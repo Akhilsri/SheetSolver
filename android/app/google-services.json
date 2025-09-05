@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "715219399445",
+    "project_id": "sheetsolver-2450a",
+    "storage_bucket": "sheetsolver-2450a.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:715219399445:android:3d10fa3d6c04a90682af1c",
+        "android_client_info": {
+          "package_name": "com.sheetsolver"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC4MPbfpStD4YCPFkaO6BHQHbpqWm5RvV0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
