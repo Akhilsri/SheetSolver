@@ -41,23 +41,21 @@ async function getRoomsForUser(userId) {
 }
 
 async function joinRoomByInviteCode(inviteCode, userId) {
-  const connection = await pool.getConnection();
-  try {
-    const [rooms] = await connection.query('SELECT id FROM rooms WHERE invite_code = ?', [inviteCode]);
-    if (rooms.length === 0) {
-      throw new Error('ROOM_NOT_FOUND');
-    }
-    const roomId = rooms[0].id;
-    await connection.query('INSERT INTO room_members (room_id, user_id) VALUES (?, ?)', [roomId, userId]);
-    return { message: 'Successfully joined room.' };
-  } catch (error) {
-    if (error.code === 'ER_DUP_ENTRY') {
-      throw new Error('ALREADY_IN_ROOM');
-    }
-    throw error;
-  } finally {
-    connection.release();
+  // Find the room ID from the invite code
+  const [rooms] = await pool.query('SELECT id, admin_id FROM rooms WHERE invite_code = ?', [inviteCode]);
+  if (rooms.length === 0) {
+    throw new Error('ROOM_NOT_FOUND');
   }
+  const roomId = rooms[0].id;
+  const adminId = rooms[0].admin_id;
+
+  // Create a new join request
+  const sql = 'INSERT INTO join_requests (user_id, room_id) VALUES (?, ?)';
+  await pool.query(sql, [userId, roomId]);
+
+  // TODO: We will add a notification for the admin here later.
+  
+  return { message: 'Request to join sent successfully.' };
 }
 
 async function getRoomMembers(roomId) {
@@ -84,7 +82,9 @@ async function startJourney(roomId, sheetId, durationInDays) {
   const sql = 'UPDATE rooms SET sheet_id = ?, start_date = ?, end_date = ?, status = ? WHERE id = ?';
   await pool.query(sql, [sheetId, startDate, endDate, 'active', roomId]);
   
-  return { message: 'Journey started successfully!' };
+  // After updating, fetch the updated room details and return them
+  const [updatedRooms] = await pool.query('SELECT * FROM rooms WHERE id = ?', [roomId]);
+  return updatedRooms[0];
 }
 
 async function getDailyProblems(roomId) {
@@ -182,6 +182,48 @@ async function removeMember(roomId, memberIdToRemove, adminId) {
   return result;
 }
 
+async function getPendingJoinRequests(roomId) {
+  const sql = `
+    SELECT jr.id, jr.user_id, u.username 
+    FROM join_requests jr
+    JOIN users u ON jr.user_id = u.id
+    WHERE jr.room_id = ? AND jr.status = 'pending'
+  `;
+  const [requests] = await pool.query(sql, [roomId]);
+  return requests;
+}
+
+async function approveJoinRequest(requestId) {
+  const connection = await pool.getConnection();
+  try {
+    await connection.beginTransaction();
+
+    // 1. Get the request details
+    const [requests] = await connection.query('SELECT user_id, room_id FROM join_requests WHERE id = ?', [requestId]);
+    if (requests.length === 0) throw new Error('Request not found.');
+    const { user_id, room_id } = requests[0];
+    
+    // 2. Add the user to the room
+    await connection.query('INSERT INTO room_members (room_id, user_id) VALUES (?, ?)', [room_id, user_id]);
+    
+    // 3. Update the request status to 'approved'
+    await connection.query('UPDATE join_requests SET status = "approved" WHERE id = ?', [requestId]);
+
+    await connection.commit();
+    return { message: 'Join request approved.' };
+  } catch (error) {
+    await connection.rollback();
+    throw error;
+  } finally {
+    connection.release();
+  }
+}
+
+async function denyJoinRequest(requestId) {
+  const sql = 'UPDATE join_requests SET status = "denied" WHERE id = ?';
+  await pool.query(sql, [requestId]);
+  return { message: 'Join request denied.' };
+}
 
 module.exports = {
   createRoom,
@@ -193,5 +235,6 @@ module.exports = {
   getDailyProblems,
   getLeaderboard,
   getFullSheetForUser,
-  removeMember
+  removeMember,
+  getPendingJoinRequests, approveJoinRequest, denyJoinRequest 
 };

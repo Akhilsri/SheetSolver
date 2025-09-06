@@ -79,8 +79,10 @@ async function handleStartJourney(req, res) {
     if (!sheetId || !duration) {
       return res.status(400).json({ message: 'Sheet ID and duration are required.' });
     }
-    await roomsService.startJourney(roomId, sheetId, duration);
-    res.status(200).json({ message: 'Journey started successfully!' });
+    // The service now returns the updated room, so we capture it here
+    const updatedRoom = await roomsService.startJourney(roomId, sheetId, duration);
+    // Send the updated room back to the frontend
+    res.status(200).json(updatedRoom);
   } catch (error) {
     console.error('Start Journey Error:', error);
     res.status(500).json({ message: 'Internal Server Error' });
@@ -143,6 +145,35 @@ async function handleRemoveMember(req, res) {
   }
 }
 
+async function handleGetPendingJoinRequests(req, res) {
+  try {
+    const { roomId } = req.params;
+    const requests = await roomsService.getPendingJoinRequests(roomId);
+    res.status(200).json(requests);
+  } catch (error) {
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+}
+
+async function handleApproveJoinRequest(req, res) {
+  try {
+    const { requestId } = req.params;
+    await roomsService.approveJoinRequest(requestId);
+    res.status(200).json({ message: 'Request approved.' });
+  } catch (error) {
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+}
+
+async function handleDenyJoinRequest(req, res) {
+  try {
+    const { requestId } = req.params;
+    await roomsService.denyJoinRequest(requestId);
+    res.status(200).json({ message: 'Request denied.' });
+  } catch (error) {
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+}
 
 module.exports = {
   handleCreateRoom,
@@ -155,4 +186,5 @@ module.exports = {
   handleGetLeaderboard,
   handleGetFullSheet,
    handleRemoveMember,
+   handleGetPendingJoinRequests, handleApproveJoinRequest, handleDenyJoinRequest
 };

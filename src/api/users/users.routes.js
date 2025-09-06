@@ -11,5 +11,6 @@ router.get('/profile', authMiddleware, usersController.handleGetUserProfile);
 // UPDATE a user's own profile
 router.put('/profile', authMiddleware, usersController.handleUpdateUserProfile);
 router.get('/search', authMiddleware, usersController.handleSearchUsers);
+router.get('/:userId/profile', authMiddleware, usersController.handleGetPublicUserProfile);
 
 module.exports = router;

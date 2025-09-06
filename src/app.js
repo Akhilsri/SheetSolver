@@ -8,6 +8,8 @@ const sheetRoutes = require('./api/sheets/sheets.routes');
 const submissionRoutes = require('./api/submissions/submissions.routes'); // Corrected path
 const userRoutes = require('./api/users/users.routes');
 const notificationRoutes = require('./api/notifications/notifications.routes');
+const invitationRoutes = require('./api/invitations/invitations.routes');
+const badgeRoutes = require('./api/badges/badges.routes')
 
 const app = express();
 
@@ -28,5 +30,7 @@ app.use('/api/sheets', sheetRoutes);
 app.use('/api/submissions', submissionRoutes); 
 app.use('/api/users', userRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/invitations', invitationRoutes);
+app.use('/api/badges', badgeRoutes);
 
 module.exports = app;

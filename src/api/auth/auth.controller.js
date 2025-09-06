@@ -29,25 +29,19 @@ async function handleRegister(req, res) {
 
 async function handleLogin(req, res) {
   try {
-    // 1. Extract email and password from request body
     const { email, password } = req.body;
-
-    // 2. Basic validation
     if (!email || !password) {
       return res.status(400).json({ message: 'Email and password are required.' });
     }
 
-    // 3. Call the service to authenticate the user
-    const token = await authService.loginUser(email, password);
+    const tokens = await authService.loginUser(email, password);
 
-    // 4. If the service returns null, credentials were bad
-    if (!token) {
-      // Use a generic message for security - don't reveal if the email exists or not
+    if (!tokens) {
       return res.status(401).json({ message: 'Invalid credentials.' });
     }
 
-    // 5. If successful, send the token back
-    res.status(200).json({ token: token });
+    // This line sends the { accessToken, refreshToken } object directly.
+    res.status(200).json(tokens);
 
   } catch (error) {
     console.error('Login Error:', error);
@@ -55,8 +49,21 @@ async function handleLogin(req, res) {
   }
 }
 
+async function handleRefreshToken(req, res) {
+  try {
+    const { refreshToken } = req.body;
+    if (!refreshToken) return res.sendStatus(401);
+
+    const tokens = await authService.refreshAccessToken(refreshToken);
+    res.json(tokens);
+  } catch (error) {
+    res.status(403).json({ message: 'Refresh token is invalid or expired.' });
+  }
+}
+
 // Update the exports to include the new function
 module.exports = {
   handleRegister,
   handleLogin,
+  handleRefreshToken
 };

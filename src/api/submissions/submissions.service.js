@@ -1,3 +1,4 @@
+const badgesService = require('../badges/badges.service');
 const pool = require('../../config/db');
 const cloudinary = require('../../config/cloudinary');
 const DatauriParser = require('datauri/parser');
@@ -48,7 +49,7 @@ async function createSubmission({ userId, roomId, problemId, file, username }) {
       const notificationValues = membersToNotify.map(member => [member.user_id, notificationTitle, notificationBody]);
       await connection.query(notificationSql, [notificationValues]);
     }
-    
+    const newBadges = await badgesService.checkAndAwardBadges(userId, connection);
     await connection.commit();
 
     // --- PUSH NOTIFICATION LOGIC (CORRECTED) ---
@@ -78,7 +79,7 @@ async function createSubmission({ userId, roomId, problemId, file, username }) {
     }
     // --- END OF CORRECTION ---
 
-    return { success: true, message: 'Submission created successfully', pointsAwarded: totalPoints, url: photoUrl };
+    return { success: true, message: 'Submission created successfully', pointsAwarded: totalPoints, url: photoUrl,newBadges:newBadges };
   
   } catch (error) {
     await connection.rollback();

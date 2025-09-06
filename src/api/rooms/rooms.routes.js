@@ -26,5 +26,8 @@ router.post('/:roomId/start', adminAuthMiddleware, roomsController.handleStartJo
 router.get('/:roomId/leaderboard', roomsController.handleGetLeaderboard);
 router.get('/:roomId/full-sheet', roomsController.handleGetFullSheet);
 router.delete('/:roomId/members/:memberId', adminAuthMiddleware, roomsController.handleRemoveMember);
+router.get('/:roomId/join-requests', adminAuthMiddleware, roomsController.handleGetPendingJoinRequests);
+router.put('/join-requests/:requestId/approve', adminAuthMiddleware, roomsController.handleApproveJoinRequest);
+router.put('/join-requests/:requestId/deny', adminAuthMiddleware, roomsController.handleDenyJoinRequest);
 
 module.exports = router;

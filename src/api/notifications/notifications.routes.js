@@ -9,5 +9,6 @@ router.get('/', authMiddleware, notificationsController.handleGetNotifications);
 
 router.get('/unread-count', authMiddleware, notificationsController.handleGetUnreadCount);
 router.put('/:notificationId/read', authMiddleware, notificationsController.handleMarkAsRead);
+router.put('/read-all', authMiddleware, notificationsController.handleMarkAllAsRead);
 
 module.exports = router;

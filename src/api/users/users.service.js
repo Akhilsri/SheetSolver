@@ -40,5 +40,11 @@ async function searchUsers(query, currentUserId) {
   return users;
 }
 
+async function getPublicUserProfile(userId) {
+  const sql = 'SELECT id, username, full_name, college_name FROM users WHERE id = ?';
+  const [users] = await pool.query(sql, [userId]);
+  return users[0];
+}
+
 // Update the exports
-module.exports = { updateFcmToken, getUserProfile, updateUserProfile,searchUsers };
+module.exports = { updateFcmToken, getUserProfile, updateUserProfile,searchUsers,getPublicUserProfile  };

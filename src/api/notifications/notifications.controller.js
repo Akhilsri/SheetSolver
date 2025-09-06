@@ -37,5 +37,15 @@ async function handleGetUnreadCount(req, res) {
   }
 }
 
+async function handleMarkAllAsRead(req, res) {
+  try {
+    const userId = req.user.userId;
+    await notificationsService.markAllNotificationsAsRead(userId);
+    res.status(200).json({ message: 'All notifications marked as read.' });
+  } catch (error) {
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+}
+
 // Update the exports
-module.exports = { handleGetNotifications, handleMarkAsRead, handleGetUnreadCount };
+module.exports = { handleGetNotifications, handleMarkAsRead, handleGetUnreadCount,handleMarkAllAsRead };

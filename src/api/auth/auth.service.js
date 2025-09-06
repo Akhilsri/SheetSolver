@@ -1,3 +1,4 @@
+const crypto = require('crypto');
 const pool = require('../../config/db');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
@@ -31,44 +32,79 @@ async function registerUser(username, email, password) {
  * @param {string} password - The user's raw password.
  * @returns {Promise<string|null>} The JWT if successful, otherwise null.
  */
+// Add this line at the top of your file
+// ... (keep other imports like pool, bcrypt, jwt)
+
+// Replace your old loginUser function with this new one
 async function loginUser(email, password) {
-  // 1. Find the user by email in the database
-  // Make sure you are selecting the username column here
+  // 1. Find the user by email
   const sql = 'SELECT id, email, username, password_hash FROM users WHERE email = ?';
   const [users] = await pool.query(sql, [email]);
 
   if (users.length === 0) {
-    return null; // User not found
+    return null;
   }
   const user = users[0];
 
-  // 2. Compare the provided password with the stored hash
+  // 2. Compare the password
   const isMatch = await bcrypt.compare(password, user.password_hash);
 
   if (!isMatch) {
-    return null; // Passwords don't match
+    return null;
   }
 
-  // 3. --- THIS IS THE FIX ---
-  // The payload MUST include the username from the user object we just fetched.
-  const payload = {
+  // --- THIS IS THE CORRECT TOKEN GENERATION LOGIC ---
+
+  // 3. Create the short-lived Access Token (15 minutes)
+  const accessTokenPayload = {
     userId: user.id,
     email: user.email,
-    username: user.username, // <-- This line fixes the bug
+    username: user.username,
   };
-
-  // 4. Create the token with the correct payload
-  const token = jwt.sign(
-    payload,
+  const accessToken = jwt.sign(
+    accessTokenPayload,
     process.env.JWT_SECRET,
-    { expiresIn: '1h' } // Token expires in 1 hour
+    { expiresIn: '15m' } 
   );
 
-  return token;
+  // 4. Create the long-lived, secure Refresh Token (30 days)
+  const refreshToken = crypto.randomBytes(40).toString('hex');
+  const expiryDate = new Date();
+  expiryDate.setDate(expiryDate.getDate() + 30);
+
+  // 5. Save the new refresh token to your database
+  await pool.query(
+    'INSERT INTO refresh_tokens (user_id, token, expires_at) VALUES (?, ?, ?)',
+    [user.id, refreshToken, expiryDate]
+  );
+
+  // 6. Return BOTH tokens to the frontend
+  return { accessToken, refreshToken };
+}
+
+async function refreshAccessToken(oldRefreshToken) {
+  // 1. Find the token in our database
+  const [tokens] = await pool.query('SELECT * FROM refresh_tokens WHERE token = ?', [oldRefreshToken]);
+  if (tokens.length === 0) throw new Error('Invalid refresh token.');
+  
+  const tokenRecord = tokens[0];
+  // 2. Check if it's expired
+  if (new Date(tokenRecord.expires_at) < new Date()) {
+    throw new Error('Refresh token expired.');
+  }
+
+  // 3. Get user info and create a new access token
+  const [users] = await pool.query('SELECT * FROM users WHERE id = ?', [tokenRecord.user_id]);
+  const user = users[0];
+  const accessTokenPayload = { userId: user.id, email: user.email, username: user.username };
+  const newAccessToken = jwt.sign(accessTokenPayload, process.env.JWT_SECRET, { expiresIn: '15m' });
+
+  return { accessToken: newAccessToken };
 }
 
 // Update the exports to include the new function
 module.exports = {
   registerUser,
   loginUser,
+  refreshAccessToken 
 };

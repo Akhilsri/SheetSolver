@@ -25,5 +25,11 @@ async function getUnreadCount(userId) {
   return { count: unreadCount };
 }
 
+async function markAllNotificationsAsRead(userId) {
+  const sql = 'UPDATE notifications SET is_read = TRUE WHERE recipient_user_id = ? AND is_read = FALSE';
+  await pool.query(sql, [userId]);
+  return { message: 'All notifications marked as read.' };
+}
 
-module.exports = { getNotificationsForUser, markNotificationAsRead, getUnreadCount };
+
+module.exports = { getNotificationsForUser, markNotificationAsRead, getUnreadCount,markAllNotificationsAsRead };
