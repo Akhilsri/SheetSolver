@@ -34,33 +34,45 @@ const RoomDetailScreen = ({ navigation }) => {
   const [sheets, setSheets] = useState([]);
   const [dailyProblems, setDailyProblems] = useState([]);
   const [isUploading, setIsUploading] = useState(false);
-  
-  // This is the correct state initialization
-  const [todaysSubmissions, setTodaysSubmissions] = useState([]); // Initialized to an empty array
-  
-  // State for the admin's form
+  const [todaysSubmissions, setTodaysSubmissions] = useState([]);
   const [selectedSheet, setSelectedSheet] = useState();
   const [duration, setDuration] = useState('90');
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
 
-  
+  // NEW: join requests state
+  const [joinRequests, setJoinRequests] = useState([]);
 
   // --- Data Fetching ---
   const fetchData = async () => {
     try {
       setIsLoading(true);
-      const [detailsRes, membersRes, sheetsRes, submissionsRes] = await Promise.all([
-        apiClient.get(`/rooms/${roomId}`),
+      const detailsRes = await apiClient.get(`/rooms/${roomId}`);
+      setRoomDetails(detailsRes.data);
+
+      const isAdmin = detailsRes.data.admin_id === Number(userId);
+
+      const promises = [
         apiClient.get(`/rooms/${roomId}/members`),
         apiClient.get('/sheets'),
         apiClient.get(`/submissions/room/${roomId}/today`),
-      ]);
+      ];
 
-      setRoomDetails(detailsRes.data);
+      if (isAdmin) {
+        promises.push(apiClient.get(`/rooms/${roomId}/join-requests`));
+      }
+
+      const [membersRes, sheetsRes, submissionsRes, requestsRes] = await Promise.all(promises);
+
       setMembers(membersRes.data);
       setSheets(sheetsRes.data);
       setTodaysSubmissions(submissionsRes.data);
+
+      if (requestsRes) {
+        setJoinRequests(requestsRes.data);
+      } else {
+        setJoinRequests([]);
+      }
 
       if (detailsRes.data && detailsRes.data.status === 'active') {
         const problemsRes = await apiClient.get(`/rooms/${roomId}/daily-problems`);
@@ -119,31 +131,19 @@ const RoomDetailScreen = ({ navigation }) => {
   };
 
   const showSubmissionPicker = (submissions) => {
-    // If there's only one submission, just open it directly.
-
     if (submissions.length === 1) {
       openSnap(submissions[0].photo_url);
       return;
     }
 
-    // Create a button for each user's submission
     const buttons = submissions.map(submission => ({
       text: `View ${submission.username}'s Snap`,
       onPress: () => openSnap(submission.photo_url),
     }));
 
-    // Add a "Cancel" button
-    buttons.push({
-      text: 'Cancel',
-      style: 'cancel',
-    });
+    buttons.push({ text: 'Cancel', style: 'cancel' });
 
-    // Show the action sheet
-    Alert.alert(
-      'View a Submission',
-      'Choose a user to see their proof.',
-      buttons
-    );
+    Alert.alert('View a Submission','Choose a user to see their proof.',buttons);
   };
 
   const handleMarkAsDone = async (problem) => {
@@ -163,7 +163,21 @@ const RoomDetailScreen = ({ navigation }) => {
         
         try {
           setIsUploading(true);
-          await apiClient.post('/submissions', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
+          // await apiClient.post('/submissions', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
+          const submissionResponse = await apiClient.post('/submissions', formData, { 
+            headers: { 'Content-Type': 'multipart/form-data' } 
+          });
+          
+          // 2. Use the new variable to get the newBadges
+          const newBadges = submissionResponse.data.newBadges;
+          // --- END OF FIX ---
+
+          let alertMessage = 'Your proof has been submitted.';
+          if (newBadges && newBadges.length > 0) {
+            const badgeNames = newBadges.map(b => b.name).join(', ');
+            alertMessage += `\n\n🎉 Badge Unlocked: ${badgeNames}!`;
+          }
+
           Alert.alert('Success!', 'Your proof has been submitted.', [{ text: 'OK', onPress: () => fetchData() }]);
         } catch (error) {
           console.error('Upload failed:', error.response?.data || error);
@@ -180,15 +194,8 @@ const RoomDetailScreen = ({ navigation }) => {
       "Remove Member",
       `Are you sure you want to remove ${member.username} from this room?`,
       [
-        {
-          text: "Cancel",
-          style: "cancel"
-        },
-        { 
-          text: "Yes, Remove", 
-          onPress: () => removeMember(member.id),
-          style: "destructive"
-        }
+        { text: "Cancel", style: "cancel" },
+        { text: "Yes, Remove", onPress: () => removeMember(member.id), style: "destructive" }
       ]
     );
   };
@@ -197,7 +204,7 @@ const RoomDetailScreen = ({ navigation }) => {
     try {
       await apiClient.delete(`/rooms/${roomId}/members/${memberId}`);
       Alert.alert('Success', 'Member has been removed.');
-      fetchData(); // Refresh the screen data to update the member list
+      fetchData();
     } catch (error) {
       const errorMessage = error.response?.data?.message || 'Could not remove member.';
       Alert.alert('Error', errorMessage);
@@ -224,8 +231,34 @@ const RoomDetailScreen = ({ navigation }) => {
     setModalVisible(true);
   };
 
+  // NEW: Approve/Deny join requests
+  const handleApproveRequest = async (requestId) => {
+    try {
+      await apiClient.put(`/rooms/join-requests/${requestId}/approve`);
+      Alert.alert('Success', 'Member has been added to the room.');
+      fetchData();
+    } catch (error) {
+      Alert.alert('Error', 'Could not approve request.');
+    }
+  };
+
+  const handleDenyRequest = async (requestId) => {
+    try {
+      await apiClient.put(`/rooms/join-requests/${requestId}/deny`);
+      Alert.alert('Success', 'Request has been denied.');
+      fetchData();
+    } catch (error) {
+      Alert.alert('Error', 'Could not deny request.');
+    }
+  };
+
   // --- Prepare Data for SectionList ---
+  const isAdmin = roomDetails && roomDetails.admin_id === Number(userId);
   const sections = [];
+
+  if (isAdmin && joinRequests.length > 0) {
+    sections.push({ title: 'Pending Join Requests', data: joinRequests });
+  }
   if (roomDetails?.status === 'active') {
     sections.push({ title: "Today's Problems", data: dailyProblems });
   }
@@ -240,11 +273,9 @@ const RoomDetailScreen = ({ navigation }) => {
     return <View style={styles.centered}><Text>Room not found.</Text></View>;
   }
 
-  const isAdmin = roomDetails.admin_id === parseInt(userId, 10);
-
   return (
     <View style={{flex: 1}}>
-     <Modal
+      <Modal
         animationType="slide"
         transparent={false}
         visible={modalVisible}
@@ -255,110 +286,109 @@ const RoomDetailScreen = ({ navigation }) => {
           <Button title="Close" onPress={() => setModalVisible(false)} />
         </View>
       </Modal>
-    <SectionList
-      style={styles.container}
-      sections={sections}
-      keyExtractor={(item, index) => item.id.toString() + index}
-      renderSectionHeader={({ section: { title } }) => <Text style={styles.sectionTitle}>{title}</Text>}
-      renderItem={({ item, section }) => {
 
-        if (section.title.startsWith('Members')) {
-          // --- This is the updated render logic for the Members section ---
-          return (
-            <View style={styles.itemRow}>
-              <Text style={styles.itemName}>{item.username}</Text>
-              {/* Show the "Remove" button only if: */}
-              {/* 1. The current user is the admin */}
-              {/* 2. The member in the list is NOT the admin */}
-              {isAdmin && Number(item.id) !== Number(roomDetails.admin_id) && (
-                <Button title="Remove" color="red" onPress={() => confirmRemoveMember(item)} />
-              )}
-            </View>
-          );
-        }
+      <SectionList
+        style={styles.container}
+        sections={sections}
+        keyExtractor={(item, index) => item.id.toString() + index}
+        renderSectionHeader={({ section: { title } }) => <Text style={styles.sectionTitle}>{title}</Text>}
+        renderItem={({ item, section }) => {
+          if (section.title === 'Pending Join Requests') {
+            return (
+              <View style={styles.itemRow}>
+                <Text style={styles.itemName}>{item.username}</Text>
+                <View style={styles.buttonContainer}>
+                  <Button title="Deny" color="red" onPress={() => handleDenyRequest(item.id)} />
+                  <Button title="Approve" onPress={() => handleApproveRequest(item.id)} />
+                </View>
+              </View>
+            );
+          }
 
-        if (section.title === "Today's Problems") {
-
-          // --- THIS IS THE CORRECTED LOGIC ---
-          // It ensures we are always comparing numbers with numbers.
-          const mySubmission = todaysSubmissions && todaysSubmissions.find(
-            s => Number(s.problem_id) === Number(item.id) && Number(s.user_id) === Number(userId)
-          );
-          const otherSubmissions = todaysSubmissions && todaysSubmissions.filter(
-            s => Number(s.problem_id) === Number(item.id) && Number(s.user_id) !== Number(userId)
-          );
-
-          return (
-            <View style={styles.itemRow}>
-              <View style={styles.itemContent}>
-                <TouchableOpacity onPress={() => Linking.openURL(item.url)}>
-                  <Text style={styles.itemName}>{item.title}</Text>
-                  <Text style={styles.itemSubtext}>Topic: {item.topic} | Difficulty: {item.difficulty}</Text>
-                </TouchableOpacity>
-                {otherSubmissions && otherSubmissions.length > 0 && (
-                  <TouchableOpacity onPress={() => showSubmissionPicker(otherSubmissions)}>
-                    <Text style={styles.othersCompletedText}>
-                      {/* Update this text to show points */}
-                      ✅ Also completed by: {otherSubmissions.map(s => `${s.username} (+${s.points_awarded} pts)`).join(', ')}
-                    </Text>
-                  </TouchableOpacity>
+          if (section.title.startsWith('Members')) {
+            return (
+              <View style={styles.itemRow}>
+                <Text style={styles.itemName}>{item.username}</Text>
+                {isAdmin && Number(item.id) !== Number(roomDetails.admin_id) && (
+                  <Button title="Remove" color="red" onPress={() => confirmRemoveMember(item)} />
                 )}
               </View>
-              {mySubmission ? (
-                <TouchableOpacity style={styles.completedContainer} onPress={() => openSnap(mySubmission.photo_url)}>
-                  <Text style={styles.completedText}>✅</Text>
-                  {/* Update this text to show points */}
-                  <Text style={styles.completedBy}>You did it! (+{mySubmission.points_awarded} pts)</Text>
-                </TouchableOpacity>
-              ) : (
-                <Button title="Done" onPress={() => handleMarkAsDone(item)} disabled={isUploading} />
+            );
+          }
+
+          if (section.title === "Today's Problems") {
+            const mySubmission = todaysSubmissions.find(
+              s => Number(s.problem_id) === Number(item.id) && Number(s.user_id) === Number(userId)
+            );
+            const otherSubmissions = todaysSubmissions.filter(
+              s => Number(s.problem_id) === Number(item.id) && Number(s.user_id) !== Number(userId)
+            );
+
+            return (
+              <View style={styles.itemRow}>
+                <View style={styles.itemContent}>
+                  <TouchableOpacity onPress={() => Linking.openURL(item.url)}>
+                    <Text style={styles.itemName}>{item.title}</Text>
+                    <Text style={styles.itemSubtext}>Topic: {item.topic} | Difficulty: {item.difficulty}</Text>
+                  </TouchableOpacity>
+                  {otherSubmissions.length > 0 && (
+                    <TouchableOpacity onPress={() => showSubmissionPicker(otherSubmissions)}>
+                      <Text style={styles.othersCompletedText}>
+                        ✅ Also completed by: {otherSubmissions.map(s => `${s.username} (+${s.points_awarded} pts)`).join(', ')}
+                      </Text>
+                    </TouchableOpacity>
+                  )}
+                </View>
+                {mySubmission ? (
+                  <TouchableOpacity style={styles.completedContainer} onPress={() => openSnap(mySubmission.photo_url)}>
+                    <Text style={styles.completedText}>✅</Text>
+                    <Text style={styles.completedBy}>You did it! (+{mySubmission.points_awarded} pts)</Text>
+                  </TouchableOpacity>
+                ) : (
+                  <Button title="Done" onPress={() => handleMarkAsDone(item)} disabled={isUploading} />
+                )}
+              </View>
+            );
+          }
+
+          return null;
+        }}
+        ListHeaderComponent={
+          <>
+            <View style={styles.header}>
+              <Text style={styles.roomName}>{roomDetails.name}</Text>
+              <Text style={styles.inviteCode}>Invite Code: {roomDetails.invite_code}</Text>
+              {roomDetails.status === 'active' && (
+                <View style={{marginTop: 15}}>
+                  <Button 
+                    title="View Full Sheet" 
+                    onPress={() => navigation.navigate('FullSheet', { roomId: roomId, roomName: roomDetails.name })} 
+                  />
+                </View>
               )}
             </View>
-          );
-        }
-        return (
-          <View style={styles.itemRow}>
-            <Text style={styles.itemName}>{item.username}</Text>
-          </View>
-        );
-      }}
-      ListHeaderComponent={
-        <>
-          <View style={styles.header}>
-            <Text style={styles.roomName}>{roomDetails.name}</Text>
-            <Text style={styles.inviteCode}>Invite Code: {roomDetails.invite_code}</Text>
-            {roomDetails.status === 'active' && (
-              <View style={{marginTop: 15}}>
-                <Button 
-                  title="View Full Sheet" 
-                  onPress={() => navigation.navigate('FullSheet', {
-                    roomId: roomId,
-                    roomName: roomDetails.name
-                  })} 
-                />
+            {isAdmin && roomDetails.status === 'pending' && (
+              <View style={styles.adminPanel}>
+                <Text style={styles.panelTitle}>Admin Controls: Setup Journey</Text>
+                <Text style={styles.label}>Select a Sheet:</Text>
+                <Picker selectedValue={selectedSheet} onValueChange={(itemValue) => setSelectedSheet(itemValue)}>
+                  <Picker.Item label="-- Choose a sheet --" value={null} />
+                  {sheets.map((sheet) => <Picker.Item label={sheet.name} value={sheet.id} key={sheet.id} />)}
+                </Picker>
+                <Text style={styles.label}>Set a Duration (in days):</Text>
+                <TextInput style={styles.input} placeholder="e.g., 90" value={duration} onChangeText={setDuration} keyboardType="numeric" />
+                <Button title="Start Journey for All Members" onPress={handleStartJourney} />
               </View>
             )}
-          </View>
-          {isAdmin && roomDetails.status === 'pending' && (
-            <View style={styles.adminPanel}>
-              <Text style={styles.panelTitle}>Admin Controls: Setup Journey</Text>
-              <Text style={styles.label}>Select a Sheet:</Text>
-              <Picker selectedValue={selectedSheet} onValueChange={(itemValue) => setSelectedSheet(itemValue)}>
-                <Picker.Item label="-- Choose a sheet --" value={null} />
-                {sheets.map((sheet) => <Picker.Item label={sheet.name} value={sheet.id} key={sheet.id} />)}
-              </Picker>
-              <Text style={styles.label}>Set a Duration (in days):</Text>
-              <TextInput style={styles.input} placeholder="e.g., 90" value={duration} onChangeText={setDuration} keyboardType="numeric" />
-              <Button title="Start Journey for All Members" onPress={handleStartJourney} />
-            </View>
-          )}
-        </>
-      }
-      ListEmptyComponent={<Text style={styles.emptyText}>Nothing to show here yet.</Text>}
-    />
+          </>
+        }
+        ListEmptyComponent={<Text style={styles.emptyText}>Nothing to show here yet.</Text>}
+      />
     </View>
   );
 };
+
+
 
 // --- Styles ---
 const styles = StyleSheet.create({
@@ -399,6 +429,10 @@ const styles = StyleSheet.create({
   modalImage: {
     width: '100%',
     height: '80%',
+  },
+  buttonContainer: {
+    flexDirection: 'row',
+    gap: 10,
   },
 });
 

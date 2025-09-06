@@ -33,7 +33,10 @@ const SearchScreen = ({ navigation }) => {
   }, [query]); // This effect re-runs every time the 'query' state changes
 
   const renderItem = ({ item }) => (
-    <TouchableOpacity style={styles.resultItem}>
+    <TouchableOpacity 
+      style={styles.resultItem}
+      onPress={() => navigation.navigate('UserProfile', { userId: item.id })}
+    >
       <Text style={styles.username}>{item.username}</Text>
       <Text style={styles.details}>{item.full_name} - {item.college_name}</Text>
     </TouchableOpacity>

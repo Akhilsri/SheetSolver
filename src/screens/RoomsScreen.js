@@ -64,12 +64,18 @@ const RoomsScreen = () => {
       return;
     }
     try {
+      // The backend now creates a request instead of an instant join
       await apiClient.post('/rooms/join', { invite_code: inviteCode });
-      Alert.alert('Success', 'You have joined the room!');
+      
+      // --- CHANGE THIS ALERT MESSAGE ---
+      Alert.alert(
+        'Request Sent', 
+        'Your request to join the room has been sent to the admin for approval.'
+      );
       setInviteCode('');
-      fetchRooms(); // Refresh the room list after joining
+      // We don't need to fetchRooms() here anymore because the user hasn't joined yet
     } catch (error) {
-      const errorMessage = error.response?.data?.message || 'Could not join the room.';
+      const errorMessage = error.response?.data?.message || 'Could not send join request.';
       Alert.alert('Error', errorMessage);
     }
   };

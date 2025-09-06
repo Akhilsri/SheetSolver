@@ -1,8 +1,9 @@
-import React from 'react';
+import React,{useEffect} from 'react';
 import { ActivityIndicator, View } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useAuth } from '../context/AuthContext';
+import messaging from '@react-native-firebase/messaging';
 
 import MainTabNavigator from './MainTabNavigator';
 import LoginScreen from '../screens/LoginScreen';
@@ -13,11 +14,50 @@ import RoomDetailScreen from '../screens/RoomDetailScreen';
 import LeaderboardScreen from '../screens/LeaderboardScreen';
 import NotificationsScreen from '../screens/NotificationsScreen';
 import FullSheetScreen from '../screens/FullSheetScreen';
+import UserProfileScreen from '../screens/UserProfileScreen';
 
 const Stack = createNativeStackNavigator();
 
 const AppNavigator = () => {
-  const { userToken, isLoading } = useAuth();
+  const { userToken, isLoading,fetchUnreadCount } = useAuth();
+
+  useEffect(() => {
+    // This listener is for when a notification is received while the app is in the FOREGROUND
+    const unsubscribe = messaging().onMessage(async remoteMessage => {
+      Alert.alert(
+        remoteMessage.notification.title,
+        remoteMessage.notification.body
+      );
+      // When a message comes in, refresh the badge count
+      fetchUnreadCount();
+    });
+
+    // This listener is for when a user taps a notification and the app is in the BACKGROUND
+    messaging().onNotificationOpenedApp(remoteMessage => {
+      console.log('Notification caused app to open from background state:', remoteMessage.notification);
+      // When the app is opened by a notification, refresh the badge count
+      fetchUnreadCount();
+      // Here you could also navigate to the notifications screen if you wanted
+      // navigation.navigate('Notifications');
+    });
+
+    // This checks if the app was opened from a QUIT state by a notification
+    messaging()
+      .getInitialNotification()
+      .then(remoteMessage => {
+        if (remoteMessage) {
+          console.log('Notification caused app to open from quit state:', remoteMessage.notification);
+          // When opened from quit state, refresh the badge count
+          // We add a small delay to ensure the app is ready
+          setTimeout(() => {
+            fetchUnreadCount();
+          }, 1000);
+        }
+      });
+    
+    // The unsubscribe function is returned and called when the component unmounts
+    return unsubscribe;
+  }, []); // The empty array ensures this effect runs only once
 
   // Show a loading screen while we check for the token
   if (isLoading) {
@@ -47,6 +87,7 @@ const AppNavigator = () => {
             <Stack.Screen name="Leaderboard" component={LeaderboardScreen} />
             <Stack.Screen name="Notifications" component={NotificationsScreen} />
             <Stack.Screen name="FullSheet" component={FullSheetScreen} />
+            <Stack.Screen name="UserProfile" component={UserProfileScreen} options={({ route }) => ({ title: 'User Profile' })} />
           </>
         )}
       </Stack.Navigator>
