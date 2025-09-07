@@ -10,6 +10,7 @@ const userRoutes = require('./api/users/users.routes');
 const notificationRoutes = require('./api/notifications/notifications.routes');
 const invitationRoutes = require('./api/invitations/invitations.routes');
 const badgeRoutes = require('./api/badges/badges.routes')
+const chatRoutes = require('./api/chat/chat.routes');
 
 const app = express();
 
@@ -32,5 +33,6 @@ app.use('/api/users', userRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/invitations', invitationRoutes);
 app.use('/api/badges', badgeRoutes);
+app.use('/api/chat', chatRoutes);
 
 module.exports = app;

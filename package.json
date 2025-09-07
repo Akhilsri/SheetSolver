@@ -11,6 +11,7 @@
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
+    "@google/generative-ai": "^0.24.1",
     "atob": "^2.1.2",
     "bcryptjs": "^3.0.2",
     "cloudinary": "^2.7.0",
@@ -24,6 +25,7 @@
     "jsonwebtoken": "^9.0.2",
     "multer": "^2.0.2",
     "mysql2": "^3.14.4",
-    "nanoid": "^5.1.5"
+    "nanoid": "^5.1.5",
+    "socket.io": "^4.8.1"
   }
 }
