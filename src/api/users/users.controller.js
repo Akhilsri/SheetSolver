@@ -65,5 +65,16 @@ async function handleGetPublicUserProfile(req, res) {
   }
 }
 
+async function handleGetProgressDashboard(req, res) {
+  try {
+    const userId = req.user.userId;
+    const dashboardData = await usersService.getProgressDashboard(userId);
+    res.status(200).json(dashboardData);
+  } catch (error) {
+    console.error("Get Dashboard Error:", error);
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+}
+
 // Update the exports
-module.exports = { handleUpdateFcmToken, handleGetUserProfile, handleUpdateUserProfile,handleSearchUsers,handleGetPublicUserProfile };
+module.exports = { handleUpdateFcmToken, handleGetUserProfile, handleUpdateUserProfile,handleSearchUsers,handleGetPublicUserProfile,handleGetProgressDashboard  };

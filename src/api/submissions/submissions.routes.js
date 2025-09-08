@@ -4,23 +4,29 @@ const submissionsController = require('./submissions.controller');
 const authMiddleware = require('../../middlewares/auth.middleware');
 
 const router = express.Router();
-
-// Configure multer to store files in memory as buffers
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 
-// Define the POST route
+// This line applies the security middleware to ALL routes defined below it in this file.
+router.use(authMiddleware);
+
+// Route for creating a new submission (with image upload)
 router.post(
   '/',
-  authMiddleware, // 1. First, check if the user is logged in
-  upload.single('proofImage'), // 2. Then, handle the single file upload with the field name 'proofImage'
-  submissionsController.handleCreateSubmission // 3. Finally, run our controller logic
+  upload.single('proofImage'),
+  submissionsController.handleCreateSubmission
 );
 
+// Route for getting today's submissions for a room
 router.get(
   '/room/:roomId/today', 
-  authMiddleware, 
   submissionsController.handleGetTodaysSubmissions
+);
+
+// Route for checking the all-time solved status for a list of problems
+router.post(
+    '/status', 
+    submissionsController.handleGetSubmissionStatus
 );
 
 module.exports = router;

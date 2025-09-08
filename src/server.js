@@ -21,17 +21,23 @@ const gameStates = {};
 io.on('connection', (socket) => {
   console.log(`✅ A user connected: ${socket.id}`);
 
-  // --- Existing Chat Logic ---
-  socket.on('join_room', (roomId) => {
-    socket.join(roomId);
-    console.log(`User ${socket.id} joined chat room: ${roomId}`);
+  // --- Chat Logic ---
+  socket.on('join_room', (roomName) => {
+    socket.join(roomName);
+    console.log(`User ${socket.id} joined chat room: ${roomName}`);
   });
 
   socket.on('send_message', async (data) => {
     try {
-      const { roomId, senderId, messageText } = data;
+      const { roomId, senderId, messageText } = data; // roomId will be "chat-6"
+      // We remove the prefix to save the clean ID to the database
+      const cleanRoomId = roomId.replace('chat-','');
+
       const sql = 'INSERT INTO chat_messages (room_id, sender_id, message_text) VALUES (?, ?, ?)';
-      await pool.query(sql, [roomId.replace('room-', ''), senderId, messageText]);
+      await pool.query(sql, [cleanRoomId, senderId, messageText]);
+      console.log(`Message from ${senderId} in room ${roomId} saved to DB.`);
+
+      // Broadcast the message to all OTHER users in the same room
       socket.to(roomId).emit('receive_message', data);
     } catch (error) {
       console.error('Error in send_message:', error);
@@ -235,3 +241,5 @@ server.listen(PORT, () => {
   console.log(`🚀 Server is running on http://localhost:${PORT}`);
   console.log('📡 Socket.IO is listening for real-time connections.');
 });
+
+server.timeout = 300000; 

@@ -37,4 +37,17 @@ async function handleGetTodaysSubmissions(req, res) {
   }
 }
 
-module.exports = { handleCreateSubmission, handleGetTodaysSubmissions };
+async function handleGetSubmissionStatus(req, res) {
+  try {
+    const userId = req.user.userId;
+    const { problemIds } = req.body;
+    const solvedIds = await submissionsService.getSubmissionStatusForProblems(userId, problemIds);
+    res.status(200).json(solvedIds);
+  } catch (error) {
+    // This now goes back to only logging on the server for security
+    console.error("Get Submission Status Error:", error);
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+}
+
+module.exports = { handleCreateSubmission, handleGetTodaysSubmissions,handleGetSubmissionStatus  };

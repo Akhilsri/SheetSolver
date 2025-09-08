@@ -7,9 +7,9 @@ const API_KEY = process.env.GEMINI_API_KEY;
 const MODEL_NAME = 'gemini-1.5-flash-latest';
 
 // --- CUSTOMIZE YOUR REQUEST ---
-const TOPIC_TO_GENERATE = 'Graphs';
+const TOPIC_TO_GENERATE = 'Linked List';
 const DIFFICULTY = 'easy';
-const NUMBER_OF_QUESTIONS = 10;
+const NUMBER_OF_QUESTIONS = 50;
 
 const prompt = `
 You are an expert computer science professor. Your task is to generate ${NUMBER_OF_QUESTIONS} unique, ${DIFFICULTY}-difficulty, multiple-choice questions about the '${TOPIC_TO_GENERATE}' topic in data structures.

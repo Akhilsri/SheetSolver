@@ -1,0 +1,430 @@
+topic,subtopic,title,url,difficulty
+Learn the basics,Things to Know in C++/Java/Python or any language,User Input / Output,,Easy
+Learn the basics,Things to Know in C++/Java/Python or any language,Data Types,,Easy
+Learn the basics,Things to Know in C++/Java/Python or any language,If Else statements,,Easy
+Learn the basics,Things to Know in C++/Java/Python or any language,Switch Statement,,Easy
+Learn the basics,Things to Know in C++/Java/Python or any language,What are arrays strings?,,Easy
+Learn the basics,Things to Know in C++/Java/Python or any language,For loops,,Easy
+Learn the basics,Things to Know in C++/Java/Python or any language,While loops,,Easy
+Learn the basics,Things to Know in C++/Java/Python or any language,Functions (Pass by Reference and Value),,Easy
+Learn the basics,Things to Know in C++/Java/Python or any language,Time Complexity [Learn Basics and then analyse in next Steps],,Easy
+Learn the basics,Build-up Logical Thinking,Patterns,,Easy
+Learn the basics,Learn STL/Java-Collections or similar thing in your language,C++ STL,,Medium
+Learn the basics,Learn STL/Java-Collections or similar thing in your language,Java Collections,,Easy
+Learn the basics,Know Basic Maths,Count Digits,,Easy
+Learn the basics,Know Basic Maths,Reverse a Number,,Easy
+Learn the basics,Know Basic Maths,Check Palindrome,,Easy
+Learn the basics,Know Basic Maths,GCD Or HCF,,Easy
+Learn the basics,Know Basic Maths,Armstrong Numbers,,Easy
+Learn the basics,Know Basic Maths,Print all Divisors,,Easy
+Learn the basics,Know Basic Maths,Check for Prime,,Easy
+Learn the basics,Learn Basic Recursion,Understand recursion by print something N times,,Easy
+Learn the basics,Learn Basic Recursion,Print name N times using recursion,,Easy
+Learn the basics,Learn Basic Recursion,Print 1 to N using recursion,,Easy
+Learn the basics,Learn Basic Recursion,Print N to 1 using recursion,,Easy
+Learn the basics,Learn Basic Recursion,Sum of first N numbers,,Easy
+Learn the basics,Learn Basic Recursion,Factorial of N numbers,,Easy
+Learn the basics,Learn Basic Recursion,Reverse an array,,Easy
+Learn the basics,Learn Basic Recursion,Check if a string is palindrome or not,,Medium
+Learn the basics,Learn Basic Recursion,Fibonacci Number,,Easy
+Learn the basics,Learn Basic Hashing,Hashing Theory,,Medium
+Learn the basics,Learn Basic Hashing,Counting frequencies of array elements,,Easy
+Learn the basics,Learn Basic Hashing,Find the highest/lowest frequency element,,Easy
+Learn Important Sorting Techniques,Lec 1: Sorting-I,Selection Sort,,Easy
+Learn Important Sorting Techniques,Lec 1: Sorting-I,Bubble Sort,,Easy
+Learn Important Sorting Techniques,Lec 1: Sorting-I,Insertion Sort,,Easy
+Learn Important Sorting Techniques,Lec 2: Sorting-II,Merge Sort,,Medium
+Learn Important Sorting Techniques,Lec 2: Sorting-II,Recursive Bubble Sort,,Easy
+Learn Important Sorting Techniques,Lec 2: Sorting-II,Recursive Insertion Sort,,Easy
+Learn Important Sorting Techniques,Lec 2: Sorting-II,Quick Sort,,Easy
+Solve Problems on Arrays [Easy -> Medium -> Hard],Lec 1: Easy,Largest Element in an Array,,Easy
+Solve Problems on Arrays [Easy -> Medium -> Hard],Lec 1: Easy,Second Largest Element in an Array without sorting,,Easy
+Solve Problems on Arrays [Easy -> Medium -> Hard],Lec 1: Easy,Check if the array is sorted,,Easy
+Solve Problems on Arrays [Easy -> Medium -> Hard],Lec 1: Easy,Remove duplicates from Sorted array,,Easy
+Solve Problems on Arrays [Easy -> Medium -> Hard],Lec 1: Easy,Left Rotate an array by one place,,Easy
+Solve Problems on Arrays [Easy -> Medium -> Hard],Lec 1: Easy,Left rotate an array by D places,,Easy
+Solve Problems on Arrays [Easy -> Medium -> Hard],Lec 1: Easy,Move Zeros to end,,Easy
+Solve Problems on Arrays [Easy -> Medium -> Hard],Lec 1: Easy,Linear Search,,Easy
+Solve Problems on Arrays [Easy -> Medium -> Hard],Lec 1: Easy,Find the Union,,Easy
+Solve Problems on Arrays [Easy -> Medium -> Hard],Lec 1: Easy,Find missing number in an array,,Easy
+Solve Problems on Arrays [Easy -> Medium -> Hard],Lec 1: Easy,Maximum Consecutive Ones,,Easy
+Solve Problems on Arrays [Easy -> Medium -> Hard],Lec 1: Easy,"Find the number that appears once, and other numbers twice.",,Medium
+Solve Problems on Arrays [Easy -> Medium -> Hard],Lec 1: Easy,Longest subarray with given sum K(positives),,Medium
+Solve Problems on Arrays [Easy -> Medium -> Hard],Lec 1: Easy,Longest subarray with sum K (Positives + Negatives),,Medium
+Solve Problems on Arrays [Easy -> Medium -> Hard],Lec 2: Medium,2Sum Problem,,Medium
+Solve Problems on Arrays [Easy -> Medium -> Hard],Lec 2: Medium,Sort an array of 0’s 1’s and 2’s,,Medium
+Solve Problems on Arrays [Easy -> Medium -> Hard],Lec 2: Medium,Majority Element (>n/2 times),,Easy
+Solve Problems on Arrays [Easy -> Medium -> Hard],Lec 2: Medium,"Kadane’s Algorithm, maximum subarray sum",,Easy
+Solve Problems on Arrays [Easy -> Medium -> Hard],Lec 2: Medium,Print subarray with maximum subarray sum (extended version of above problem),,Medium
+Solve Problems on Arrays [Easy -> Medium -> Hard],Lec 2: Medium,Stock Buy and Sell,,Easy
+Solve Problems on Arrays [Easy -> Medium -> Hard],Lec 2: Medium,Rearrange the array in alternating positive and negative items,,Medium
+Solve Problems on Arrays [Easy -> Medium -> Hard],Lec 2: Medium,Next Permutation,,Medium
+Solve Problems on Arrays [Easy -> Medium -> Hard],Lec 2: Medium,Leaders in an Array problem,,Easy
+Solve Problems on Arrays [Easy -> Medium -> Hard],Lec 2: Medium,Longest Consecutive Sequence in an Array,,Easy
+Solve Problems on Arrays [Easy -> Medium -> Hard],Lec 2: Medium,Set Matrix Zeros,,Medium
+Solve Problems on Arrays [Easy -> Medium -> Hard],Lec 2: Medium,Rotate Matrix by 90 degrees,,Medium
+Solve Problems on Arrays [Easy -> Medium -> Hard],Lec 2: Medium,Print the matrix in spiral manner,,Medium
+Solve Problems on Arrays [Easy -> Medium -> Hard],Lec 2: Medium,Count subarrays with given sum,,Easy
+Solve Problems on Arrays [Easy -> Medium -> Hard],Lec 2: Medium,Pascal’s Triangle,,Medium
+Solve Problems on Arrays [Easy -> Medium -> Hard],Lec 2: Medium,Majority Element (n/3 times),,Medium
+Solve Problems on Arrays [Easy -> Medium -> Hard],Lec 2: Medium,3-Sum Problem,,Medium
+Solve Problems on Arrays [Easy -> Medium -> Hard],Lec 2: Medium,4-Sum Problem,,Hard
+Solve Problems on Arrays [Easy -> Medium -> Hard],Lec 2: Medium,Largest Subarray with 0 Sum,,Medium
+Solve Problems on Arrays [Easy -> Medium -> Hard],Lec 2: Medium,Count number of subarrays with given xor K,,Hard
+Solve Problems on Arrays [Easy -> Medium -> Hard],Lec 2: Medium,Merge Overlapping Subintervals,,Medium
+Solve Problems on Arrays [Easy -> Medium -> Hard],Lec 2: Medium,Merge two sorted arrays without extra space,,Medium
+Solve Problems on Arrays [Easy -> Medium -> Hard],Lec 2: Medium,Find the repeating and missing number,,Hard
+Solve Problems on Arrays [Easy -> Medium -> Hard],Lec 2: Medium,Count Inversions,,Hard
+Solve Problems on Arrays [Easy -> Medium -> Hard],Lec 2: Medium,Reverse Pairs,,Hard
+Solve Problems on Arrays [Easy -> Medium -> Hard],Lec 2: Medium,Maximum Product Subarray,,Easy
+"Binary Search [1D, 2D Arrays, Search Space]",Lec 1: BS on 1D Arrays,Binary Search to find X in sorted array,,Easy
+"Binary Search [1D, 2D Arrays, Search Space]",Lec 1: BS on 1D Arrays,Implement Lower Bound,,Easy
+"Binary Search [1D, 2D Arrays, Search Space]",Lec 1: BS on 1D Arrays,Implement Upper Bound,,Easy
+"Binary Search [1D, 2D Arrays, Search Space]",Lec 1: BS on 1D Arrays,Search Insert Position,,Easy
+"Binary Search [1D, 2D Arrays, Search Space]",Lec 1: BS on 1D Arrays,Floor/Ceil in Sorted Array,,Medium
+"Binary Search [1D, 2D Arrays, Search Space]",Lec 1: BS on 1D Arrays,Find the first or last occurrence of a given number in a sorted array,,Easy
+"Binary Search [1D, 2D Arrays, Search Space]",Lec 1: BS on 1D Arrays,Count occurrences of a number in a sorted array with duplicates,,Easy
+"Binary Search [1D, 2D Arrays, Search Space]",Lec 1: BS on 1D Arrays,Search in Rotated Sorted Array I,,Medium
+"Binary Search [1D, 2D Arrays, Search Space]",Lec 2: BS on Answers,Koko Eating Bananas,,Hard
+"Binary Search [1D, 2D Arrays, Search Space]",Lec 2: BS on Answers,Minimum days to make M bouquets,,Hard
+"Binary Search [1D, 2D Arrays, Search Space]",Lec 2: BS on Answers,Find the smallest Divisor,,Easy
+"Binary Search [1D, 2D Arrays, Search Space]",Lec 2: BS on Answers,Capacity to Ship Packages within D Days,,Hard
+"Binary Search [1D, 2D Arrays, Search Space]",Lec 2: BS on Answers,Kth Missing Positive Number,,Easy
+"Binary Search [1D, 2D Arrays, Search Space]",Lec 2: BS on Answers,Aggressive Cows,,Hard
+"Binary Search [1D, 2D Arrays, Search Space]",Lec 2: BS on Answers,Book Allocation Problem,,Hard
+"Binary Search [1D, 2D Arrays, Search Space]",Lec 2: BS on Answers,Split array - Largest Sum,,Hard
+"Binary Search [1D, 2D Arrays, Search Space]",Lec 2: BS on Answers,Painter’s partition,,Hard
+"Binary Search [1D, 2D Arrays, Search Space]",Lec 2: BS on Answers,Minimize Max Distance to Gas Station,,Hard
+"Binary Search [1D, 2D Arrays, Search Space]",Lec 2: BS on Answers,Median of 2 sorted arrays,,Hard
+"Binary Search [1D, 2D Arrays, Search Space]",Lec 2: BS on Answers,Kth element of 2 sorted arrays,,Medium
+"Binary Search [1D, 2D Arrays, Search Space]",Lec 2: BS on Answers,Search in Rotated Sorted Array II,,Medium
+"Binary Search [1D, 2D Arrays, Search Space]",Lec 2: BS on Answers,Find minimum in Rotated Sorted Array,,Medium
+"Binary Search [1D, 2D Arrays, Search Space]",Lec 2: BS on Answers,Find out how many times has an array been rotated,,Easy
+"Binary Search [1D, 2D Arrays, Search Space]",Lec 2: BS on Answers,Single element in a Sorted Array,,Easy
+"Binary Search [1D, 2D Arrays, Search Space]",Lec 2: BS on Answers,Find peak element,,Hard
+"Binary Search [1D, 2D Arrays, Search Space]",Lec 2: BS on Answers,Find square root of a number in log n,,Medium
+"Binary Search [1D, 2D Arrays, Search Space]",Lec 2: BS on Answers,Find the Nth root of a number using binary search,,Medium
+"Binary Search [1D, 2D Arrays, Search Space]",Lec 3: BS on 2D Arrays,Find the row with maximum number of 1’s,,Easy
+"Binary Search [1D, 2D Arrays, Search Space]",Lec 3: BS on 2D Arrays,Search in a 2 D matrix,,Medium
+"Binary Search [1D, 2D Arrays, Search Space]",Lec 3: BS on 2D Arrays,Search in a row and column wise sorted matrix,,Medium
+"Binary Search [1D, 2D Arrays, Search Space]",Lec 3: BS on 2D Arrays,Find Peak Element (2D Matrix),,Hard
+"Binary Search [1D, 2D Arrays, Search Space]",Lec 3: BS on 2D Arrays,Matrix Median,,Hard
+String,Lec 1: Basic and Easy String Problems,Remove outermost parantheses,,Easy
+String,Lec 1: Basic and Easy String Problems,Reverse words in a string,,Easy
+String,Lec 1: Basic and Easy String Problems,Largest odd number in a string,,Easy
+String,Lec 1: Basic and Easy String Problems,Longest common prefix,,Easy
+String,Lec 1: Basic and Easy String Problems,Isomorphic Strings,,Easy
+String,Lec 1: Basic and Easy String Problems,Check if two strings are anagrams of each other,,Easy
+String,Lec 1: Basic and Easy String Problems,Check if a string is a rotated version of other,,Easy
+String,Lec 2: Medium String Problems,String to atoi,,Medium
+String,Lec 2: Medium String Problems,Roman to Integer and vice versa,,Easy
+String,Lec 2: Medium String Problems,Count number of substrings with k distinct characters,,Medium
+String,Lec 2: Medium String Problems,Longest palindromic substring,,Medium
+String,Lec 2: Medium String Problems,Sum of beauty of all substrings,,Medium
+String,Lec 2: Medium String Problems,Reverse every word in a string,,Easy
+LinkedList,Lec 1: Learn 1D LinkedList,Introduction to LinkedList,,Easy
+LinkedList,Lec 1: Learn 1D LinkedList,Insertion in LL,,Easy
+LinkedList,Lec 1: Learn 1D LinkedList,Deletion in LL,,Easy
+LinkedList,Lec 1: Learn 1D LinkedList,Count nodes of LL,,Easy
+LinkedList,Lec 1: Learn 1D LinkedList,Search in a LL,,Easy
+LinkedList,Lec 2: Learn Doubly LinkedList,Introduction to DLL,,Easy
+LinkedList,Lec 2: Learn Doubly LinkedList,Insertion in DLL,,Easy
+LinkedList,Lec 2: Learn Doubly LinkedList,Deletion in DLL,,Easy
+LinkedList,Lec 2: Learn Doubly LinkedList,Reverse a DLL,,Easy
+LinkedList,Lec 3: Medium Problems on LL,Middle of a LL,,Easy
+LinkedList,Lec 3: Medium Problems on LL,Reverse a LL,,Easy
+LinkedList,Lec 3: Medium Problems on LL,Detect a loop in LL,,Easy
+LinkedList,Lec 3: Medium Problems on LL,Find the starting point in a LL,,Medium
+LinkedList,Lec 3: Medium Problems on LL,Length of the loop in LL,,Medium
+LinkedList,Lec 3: Medium Problems on LL,Check if LL is a palindrome,,Medium
+LinkedList,Lec 3: Medium Problems on LL,Segrregate odd and even nodes in LL,,Medium
+LinkedList,Lec 3: Medium Problems on LL,Remove Nth node from the back of the LL,,Easy
+LinkedList,Lec 3: Medium Problems on LL,Delete the middle node of LL,,Easy
+LinkedList,Lec 3: Medium Problems on LL,Sort a LL,,Medium
+LinkedList,Lec 3: Medium Problems on LL,Sort a LL of 0's 1's and 2's,,Medium
+LinkedList,Lec 3: Medium Problems on LL,Find the intersection point of Y LL,,Easy
+LinkedList,Lec 3: Medium Problems on LL,Add 1 to a number represented by LL,,Medium
+LinkedList,Lec 3: Medium Problems on LL,Add two numbers in LL,,Medium
+LinkedList,Lec 4: Hard Problems on LL,Reverse a LL in groups of size k,,Medium
+LinkedList,Lec 4: Hard Problems on LL,Rotate a LL,,Medium
+LinkedList,Lec 4: Hard Problems on LL,Copy LL with random pointer,,Medium
+LinkedList,Lec 4: Hard Problems on LL,3 Sum,,Medium
+LinkedList,Lec 4: Hard Problems on LL,Flattening a LL,,Hard
+LinkedList,Lec 4: Hard Problems on LL,Merge K sorted LL,,Hard
+Recursion,Lec 1: Get a Strong Hold,Print n times,,Easy
+Recursion,Lec 1: Get a Strong Hold,Print name n times,,Easy
+Recursion,Lec 1: Get a Strong Hold,Print 1 to N,,Easy
+Recursion,Lec 1: Get a Strong Hold,Print N to 1,,Easy
+Recursion,Lec 1: Get a Strong Hold,Sum of first N numbers,,Easy
+Recursion,Lec 1: Get a Strong Hold,Factorial of N numbers,,Easy
+Recursion,Lec 1: Get a Strong Hold,Reverse an array,,Easy
+Recursion,Lec 1: Get a Strong Hold,Check Palindrome,,Easy
+Recursion,Lec 1: Get a Strong Hold,Fibonacci Number,,Easy
+Recursion,Lec 2: Subsequences Pattern,Print all subsequences,,Medium
+Recursion,Lec 2: Subsequences Pattern,Subsequences with sum K,,Medium
+Recursion,Lec 2: Subsequences Pattern,Combination Sum,,Medium
+Recursion,Lec 2: Subsequences Pattern,Combination Sum II,,Hard
+Recursion,Lec 2: Subsequences Pattern,Subset Sum,,Medium
+Recursion,Lec 2: Subsequences Pattern,Subset Sum II,,Medium
+Recursion,Lec 2: Subsequences Pattern,Combination Sum III,,Hard
+Recursion,Lec 2: Subsequences Pattern,Letter Combinations of a Phone Number,,Hard
+Recursion,Lec 3: Hard Recursion,Palindrome Partitioning,,Hard
+Recursion,Lec 3: Hard Recursion,Permutations,,Medium
+Recursion,Lec 3: Hard Recursion,Permutations II,,Hard
+Recursion,Lec 3: Hard Recursion,N-Queens,,Hard
+Recursion,Lec 3: Hard Recursion,Rat in a Maze,,Medium
+Recursion,Lec 3: Hard Recursion,Word Search,,Medium
+Recursion,Lec 3: Hard Recursion,M-Coloring Problem,,Medium
+Recursion,Lec 3: Hard Recursion,Sudoku Solver,,Hard
+Stack and Queues,Lec 1: Learning,Implement Stack using Queues,,Medium
+Stack and Queues,Lec 1: Learning,Implement Queue using Stack,,Medium
+Stack and Queues,Lec 1: Learning,Check for balanced parantheses,,Easy
+Stack and Queues,"Lec 2: Prefix, Infix,  Postfix Conversion",Infix to Postfix,,Medium
+Stack and Queues,"Lec 2: Prefix, Infix,  Postfix Conversion",Prefix to Infix,,Medium
+Stack and Queues,"Lec 2: Prefix, Infix,  Postfix Conversion",Prefix to Postfix,,Medium
+Stack and Queues,"Lec 2: Prefix, Infix,  Postfix Conversion",Postfix to Prefix,,Medium
+Stack and Queues,"Lec 2: Prefix, Infix,  Postfix Conversion",Postfix to Infix,,Medium
+Stack and Queues,"Lec 2: Prefix, Infix,  Postfix Conversion",Infix to Prefix,,Medium
+Stack and Queues,Lec 3: Monotonic Stack/Queue Problems,Next Greater Element,,Medium
+Stack and Queues,Lec 3: Monotonic Stack/Queue Problems,Next Greater Element 2,,Hard
+Stack and Queues,Lec 3: Monotonic Stack/Queue Problems,Next Smaller Element,,Hard
+Stack and Queues,Lec 3: Monotonic Stack/Queue Problems,Number of NGEs to the right,,Hard
+Stack and Queues,Lec 3: Monotonic Stack/Queue Problems,Trapping Rainwater,,Hard
+Stack and Queues,Lec 3: Monotonic Stack/Queue Problems,Sum of subarray minimums,,Hard
+Stack and Queues,Lec 3: Monotonic Stack/Queue Problems,Sum of subarray maximums,,Medium
+Stack and Queues,Lec 3: Monotonic Stack/Queue Problems,Largest rectangle in a histogram,,Hard
+Stack and Queues,Lec 3: Monotonic Stack/Queue Problems,Maximal Rectangles,,Hard
+Stack and Queues,Lec 4: Implementation Problems,Sliding Window Maximum,,Hard
+Stack and Queues,Lec 4: Implementation Problems,Stock span problem,,Hard
+Stack and Queues,Lec 4: Implementation Problems,The Celebrity Problem,,Medium
+Stack and Queues,Lec 4: Implementation Problems,LRU cache,,Hard
+Stack and Queues,Lec 4: Implementation Problems,LFU Cache,,Hard
+Stack and Queues,Lec 4: Implementation Problems,Min Stack,,Easy
+Stack and Queues,Lec 4: Implementation Problems,Rotten Oranges,,Medium
+Stack and Queues,Lec 4: Implementation Problems,Asteroid Collision,,Hard
+Sliding Window & Two Pointer Combined Problems,Medium Problems,Longest Substring Without Repeating Characters,,Medium
+Sliding Window & Two Pointer Combined Problems,Medium Problems,Max Consecutive Ones III,,Medium
+Sliding Window & Two Pointer Combined Problems,Medium Problems,Fruit Into Baskets,,Medium
+Sliding Window & Two Pointer Combined Problems,Medium Problems,Longest Repeating Character Replacement,,Medium
+Sliding Window & Two Pointer Combined Problems,Medium Problems,Binary Subarray with Sum,,Easy
+Sliding Window & Two Pointer Combined Problems,Medium Problems,Count Number of Nice Subarrays,,Medium
+Sliding Window & Two Pointer Combined Problems,Medium Problems,Number of Substrings Containing All Three Characters,,Medium
+Sliding Window & Two Pointer Combined Problems,Medium Problems,Maximum Points You Can Obtain From Cards,,Medium
+Sliding Window & Two Pointer Combined Problems,Hard Problems,Longest Substring with At Most K Distinct Characters,,Medium
+Sliding Window & Two Pointer Combined Problems,Hard Problems,Subarray with K Different Integers,,Hard
+Sliding Window & Two Pointer Combined Problems,Hard Problems,Minimum Window Substring,,Hard
+Sliding Window & Two Pointer Combined Problems,Hard Problems,Minimum Window Subsequence,,Hard
+Heaps,Learning,Introduction to Priority Queues using Binary Heaps,,Medium
+Heaps,Learning,Min Heap and Max Heap Implementation,,Medium
+Heaps,Learning,Check if an array represents a min-heap or not,,Medium
+Heaps,Learning,Convert min Heap to max Heap,,Medium
+Heaps,Medium Problems,Kth largest element in an array [use priority queue],,Medium
+Heaps,Medium Problems,Kth smallest element in an array [use priority queue],,Easy
+Heaps,Medium Problems,Sort K sorted array,,Easy
+Heaps,Medium Problems,Merge M sorted Lists,,Hard
+Heaps,Medium Problems,Replace each array element by its corresponding rank,,Easy
+Heaps,Medium Problems,Task Scheduler,,Medium
+Heaps,Medium Problems,Hands of Straights,,Medium
+Heaps,Hard Problems,Design Twitter,,Medium
+Heaps,Hard Problems,Connect `n` ropes with minimal cost,,Medium
+Heaps,Hard Problems,Kth largest element in a stream of running integers,,Easy
+Heaps,Hard Problems,Maximum Sum Combination,,Medium
+Heaps,Hard Problems,Find Median from Data Stream,,Hard
+Heaps,Hard Problems,K most frequent elements,,Medium
+Greedy Algorithms,Easy Problems,Assign Cookies,,Easy
+Greedy Algorithms,Easy Problems,Fractional Knapsack Problem,,Medium
+Greedy Algorithms,Easy Problems,Greedy algorithm to find minimum number of coins,,Medium
+Greedy Algorithms,Easy Problems,Lemonade Change,,Easy
+Greedy Algorithms,Easy Problems,Valid Parenthesis Checker,,Medium
+Greedy Algorithms,Medium/Hard Problems,N meetings in one room,,Medium
+Greedy Algorithms,Medium/Hard Problems,Jump Game,,Medium
+Greedy Algorithms,Medium/Hard Problems,Jump Game 2,,Medium
+Greedy Algorithms,Medium/Hard Problems,Minimum number of platforms required for a railway,,Medium
+Greedy Algorithms,Medium/Hard Problems,Job Sequencing Problem,,Medium
+Greedy Algorithms,Medium/Hard Problems,Candy,,Hard
+Greedy Algorithms,Medium/Hard Problems,Program for Shortest Job First (or SJF) CPU Scheduling,,Medium
+Greedy Algorithms,Medium/Hard Problems,Program for Least Recently Used (LRU) Page Replacement Algorithm,,Medium
+Greedy Algorithms,Medium/Hard Problems,Insert Interval,,Medium
+Greedy Algorithms,Medium/Hard Problems,Merge Intervals,,Medium
+Greedy Algorithms,Medium/Hard Problems,Non-overlapping Intervals,,Medium
+Binary Trees,Traversals,Introduction to Trees,,Easy
+Binary Trees,Traversals,Binary Tree Representation in C++,,Easy
+Binary Trees,Traversals,Binary Tree Representation in Java,,Easy
+Binary Trees,Traversals,Binary Tree Traversals in Binary Tree,,Easy
+Binary Trees,Traversals,Preorder Traversal of Binary Tree,,Easy
+Binary Trees,Traversals,Inorder Traversal of Binary Tree,,Easy
+Binary Trees,Traversals,Post-order Traversal of Binary Tree,,Easy
+Binary Trees,Traversals,Level order Traversal / Level order traversal in spiral form,,Easy
+Binary Trees,Traversals,Iterative Preorder Traversal of Binary Tree,,Easy
+Binary Trees,Traversals,Iterative Inorder Traversal of Binary Tree,,Easy
+Binary Trees,Traversals,Post-order Traversal of Binary Tree using 2 stack,,Easy
+Binary Trees,Traversals,Post-order Traversal of Binary Tree using 1 stack,,Medium
+Binary Trees,Traversals,"Preorder, Inorder, and Postorder Traversal in one Traversal",,Medium
+Binary Trees,Medium Problems,Height of a Binary Tree,,Medium
+Binary Trees,Medium Problems,Check if the Binary tree is height-balanced or not,,Medium
+Binary Trees,Medium Problems,Diameter of Binary Tree,,Medium
+Binary Trees,Medium Problems,Maximum path sum,,Hard
+Binary Trees,Medium Problems,Check if two trees are identical or not,,Medium
+Binary Trees,Medium Problems,Zig Zag Traversal of Binary Tree,,Easy
+Binary Trees,Medium Problems,Boundary Traversal of Binary Tree,,Medium
+Binary Trees,Medium Problems,Vertical Order Traversal of Binary Tree,,Easy
+Binary Trees,Medium Problems,Top View of Binary Tree,,Easy
+Binary Trees,Medium Problems,Bottom View of Binary Tree,,Medium
+Binary Trees,Medium Problems,Right/Left View of Binary Tree,,Medium
+Binary Trees,Medium Problems,Symmetric Binary Tree,,Medium
+Binary Trees,Hard Problems,Root to Node Path in Binary Tree,,Medium
+Binary Trees,Hard Problems,LCA in Binary Tree,,Medium
+Binary Trees,Hard Problems,Maximum width of a Binary Tree,,Medium
+Binary Trees,Hard Problems,Check for Children Sum Property,,Hard
+Binary Trees,Hard Problems,Print all the Nodes at a distance of K in a Binary Tree,,Medium
+Binary Trees,Hard Problems,Minimum time taken to BURN the Binary Tree from a Node,,Hard
+Binary Trees,Hard Problems,Count total Nodes in a COMPLETE Binary Tree,,Medium
+Binary Trees,Hard Problems,Requirements needed to construct a Unique Binary Tree | Theory,,Medium
+Binary Trees,Hard Problems,Construct Binary Tree from inorder and preorder,,Hard
+Binary Trees,Hard Problems,Construct the Binary Tree from Postorder and Inorder Traversal,,Hard
+Binary Trees,Hard Problems,Serialize and deserialize Binary Tree,,Hard
+Binary Trees,Hard Problems,Morris Preorder Traversal of a Binary Tree,,Medium
+Binary Trees,Hard Problems,Morris Inorder Traversal of a Binary Tree,,Medium
+Binary Trees,Hard Problems,Flatten Binary Tree to LinkedList,,Hard
+Binary Search Trees,Concepts,Introduction to Binary Search Tree,,Easy
+Binary Search Trees,Concepts,Search in a Binary Search Tree,,Medium
+Binary Search Trees,Concepts,Find Min/Max in BST,,Easy
+Binary Search Trees,Practice Problems,Ceil in a Binary Search Tree,,Easy
+Binary Search Trees,Practice Problems,Floor in a Binary Search Tree,,Easy
+Binary Search Trees,Practice Problems,Insert a given Node in Binary Search Tree,,Easy
+Binary Search Trees,Practice Problems,Delete a Node in Binary Search Tree,,Medium
+Binary Search Trees,Practice Problems,Find K-th smallest/largest element in BST,,Medium
+Binary Search Trees,Practice Problems,Check if a tree is a BST or BT,,Medium
+Binary Search Trees,Practice Problems,LCA in Binary Search Tree,,Medium
+Binary Search Trees,Practice Problems,Construct a BST from a preorder traversal,,Medium
+Binary Search Trees,Practice Problems,Inorder Successor/Predecessor in BST,,Medium
+Binary Search Trees,Practice Problems,Merge 2 BST’s,,Hard
+Binary Search Trees,Practice Problems,Two Sum In BST | Check if there exists a pair with Sum K,,Medium
+Binary Search Trees,Practice Problems,Recover BST | Correct BST with two nodes swapped,,Hard
+Binary Search Trees,Practice Problems,Largest BST in Binary Tree,,Hard
+Graphs,Learning,Graph and Types,,Easy
+Graphs,Learning,Graph Representation | C++,,Easy
+Graphs,Learning,Graph Representation | Java,,Easy
+Graphs,Learning,Connected Components | Logic Explanation,,Hard
+Graphs,Learning,BFS,,Medium
+Graphs,Learning,DFS,,Hard
+Graphs,Problems on BFS/DFS,Number of provinces (leetcode),,Medium
+Graphs,Problems on BFS/DFS,Connected Components Problem in Matrix,,Hard
+Graphs,Problems on BFS/DFS,Rotten Oranges,,Medium
+Graphs,Problems on BFS/DFS,Flood fill,,Hard
+Graphs,Problems on BFS/DFS,Cycle Detection in undirected Graph (bfs),,Hard
+Graphs,Problems on BFS/DFS,Cycle Detection in undirected Graph (dfs),,Hard
+Graphs,Problems on BFS/DFS,0/1 Matrix (Bfs Problem),,Medium
+Graphs,Problems on BFS/DFS,Surrounded Regions (dfs),,Hard
+Graphs,Problems on BFS/DFS,Number of Enclaves [flood fill implementation - multisource],,Hard
+Graphs,Problems on BFS/DFS,Word ladder – 1,,Hard
+Graphs,Problems on BFS/DFS,Word ladder – 2,,Hard
+Graphs,Problems on BFS/DFS,Number of Distinct Islands [dfs multisource],,Hard
+Graphs,Problems on BFS/DFS,Bipartite Graph (DFS),,Medium
+Graphs,Problems on BFS/DFS,Cycle Detection in Directed Graph (DFS),,Hard
+Graphs,Topo Sort and Problems,Topo Sort,,Hard
+Graphs,Topo Sort and Problems,Kahn’s Algorithm,,Hard
+Graphs,Topo Sort and Problems,Cycle Detection in Directed Graph (BFS),,Hard
+Graphs,Topo Sort and Problems,Course Schedule – I,,Hard
+Graphs,Topo Sort and Problems,Course Schedule – II,,Hard
+Graphs,Topo Sort and Problems,Find eventual safe states,,Hard
+Graphs,Topo Sort and Problems,Alien dictionary,,Hard
+Graphs,Shortest Path Algorithms and Problems,Shortest Path in UG with unit weights,,Hard
+Graphs,Shortest Path Algorithms and Problems,Shortest Path in DAG,,Hard
+Graphs,Shortest Path Algorithms and Problems,Dijkstra’s Algorithm,,Hard
+Graphs,Shortest Path Algorithms and Problems,Why priority Queue is used in Dijkstra’s Algorithm,,Medium
+Graphs,Shortest Path Algorithms and Problems,Shortest path in a binary maze,,Medium
+Graphs,Shortest Path Algorithms and Problems,Path with minimum effort,,Medium
+Graphs,Shortest Path Algorithms and Problems,Cheapest flights within k stops,,Medium
+Graphs,Shortest Path Algorithms and Problems,Network Delay time,,Medium
+Graphs,Shortest Path Algorithms and Problems,Number of ways to arrive at destination,,Medium
+Graphs,Shortest Path Algorithms and Problems,Minimum steps to reach end from start by performing multiplication and mod operations with array elements,,Hard
+Graphs,Shortest Path Algorithms and Problems,Bellman Ford Algorithm,,Hard
+Graphs,Shortest Path Algorithms and Problems,Floyd Warshall Algorithm,,Hard
+Graphs,Shortest Path Algorithms and Problems,Find the city with the smallest number of neighbors in a threshold distance,,Hard
+Graphs,Minimum Spanning Tree/Disjoint Set and Problems,Minimum Spanning Tree,,Hard
+Graphs,Minimum Spanning Tree/Disjoint Set and Problems,Prim’s Algorithm,,Hard
+Graphs,Minimum Spanning Tree/Disjoint Set and Problems,Disjoint Set [Union by Rank],,Hard
+Graphs,Minimum Spanning Tree/Disjoint Set and Problems,Disjoint Set [Union by Size],,Hard
+Graphs,Minimum Spanning Tree/Disjoint Set and Problems,Kruskal’s Algorithm,,Hard
+Graphs,Minimum Spanning Tree/Disjoint Set and Problems,Number of operations to make network connected,,Medium
+Graphs,Minimum Spanning Tree/Disjoint Set and Problems,Most stones removed with same rows or columns,,Medium
+Graphs,Minimum Spanning Tree/Disjoint Set and Problems,Accounts merge,,Hard
+Graphs,Minimum Spanning Tree/Disjoint Set and Problems,Number of island II,,Hard
+Graphs,Minimum Spanning Tree/Disjoint Set and Problems,Making a Large Island,,Hard
+Graphs,Minimum Spanning Tree/Disjoint Set and Problems,Swim in rising water,,Hard
+Graphs,Other Algorithms,Bridges in Graph,,Hard
+Graphs,Other Algorithms,Articulation Point,,Hard
+Graphs,Other Algorithms,Kosaraju's Algorithm,,Hard
+Dynamic Programming,Lec 1: Introduction to DP,Dynamic Programming Introduction,,Medium
+Dynamic Programming,Lec 2: 1D DP,Climbing Stairs,,Medium
+Dynamic Programming,Lec 2: 1D DP,Frog Jump(DP-3),,Medium
+Dynamic Programming,Lec 2: 1D DP,Frog jump with k distances(DP-4),,Medium
+Dynamic Programming,Lec 2: 1D DP,Maximum sum of non-adjacent elements (DP-5),,Medium
+Dynamic Programming,Lec 2: 1D DP,House Robber (DP-6),,Medium
+Dynamic Programming,Lec 3: 2D/3D DP and DP on Grids,Ninja’s Training (DP 7),,Medium
+Dynamic Programming,Lec 3: 2D/3D DP and DP on Grids,Grid Unique Path (DP 8),,Medium
+Dynamic Programming,Lec 3: 2D/3D DP and DP on Grids,Grid Unique Path 2 (DP 9),,Medium
+Dynamic Programming,Lec 3: 2D/3D DP and DP on Grids,Minimum path sum in Grid (DP 10),,Medium
+Dynamic Programming,Lec 3: 2D/3D DP and DP on Grids,Minimum path sum in Triangular Grid (DP 11),,Medium
+Dynamic Programming,Lec 3: 2D/3D DP and DP on Grids,Minimum/Maximum Falling Path Sum (DP-12),,Medium
+Dynamic Programming,Lec 3: 2D/3D DP and DP on Grids,3-d DP : Ninja and his friends (DP-13),,Medium
+Dynamic Programming,Lec 4: DP on Subsequences,Subset sum equal to target (DP - 14),,Medium
+Dynamic Programming,Lec 4: DP on Subsequences,Partition Equal Subset Sum (DP - 15),,Medium
+Dynamic Programming,Lec 4: DP on Subsequences,Partition Set into 2 Subsets With Min Absolute Sum Diff (DP-16),,Medium
+Dynamic Programming,Lec 4: DP on Subsequences,Count Subsets with Sum K (DP - 17),,Medium
+Dynamic Programming,Lec 4: DP on Subsequences,Count Partitions with Given Difference (DP-18),,Medium
+Dynamic Programming,Lec 4: DP on Subsequences,Assign Cookies,,Hard
+Dynamic Programming,Lec 4: DP on Subsequences,Minimum Coins (DP - 20),,Hard
+Dynamic Programming,Lec 4: DP on Subsequences,Target Sum (DP - 21),,Medium
+Dynamic Programming,Lec 4: DP on Subsequences,Coin Change 2 (DP - 22),,Medium
+Dynamic Programming,Lec 4: DP on Subsequences,Unbounded Knapsack (DP - 23),,Hard
+Dynamic Programming,Lec 4: DP on Subsequences,Rod Cutting Problem (DP - 24),,Hard
+Dynamic Programming,Lec 5: DP on Strings,Longest Common Subsequence | (DP - 25),,Hard
+Dynamic Programming,Lec 5: DP on Strings,Print Longest Common Subsequence (DP - 26),,Hard
+Dynamic Programming,Lec 5: DP on Strings,Longest Common Substring | (DP - 27),,Hard
+Dynamic Programming,Lec 5: DP on Strings,Longest Palindromic Subsequence | (DP-28),,Hard
+Dynamic Programming,Lec 5: DP on Strings,Minimum insertions to make string palindrome | (DP-29),,Hard
+Dynamic Programming,Lec 5: DP on Strings,Minimum Insertions/Deletions to Convert String | (DP - 30),,Hard
+Dynamic Programming,Lec 5: DP on Strings,Shortest Common Supersequence | (DP - 31),,Hard
+Dynamic Programming,Lec 5: DP on Strings,Distinct Subsequences| (DP-32),,Hard
+Dynamic Programming,Lec 5: DP on Strings,Edit Distance | (DP-33),,Hard
+Dynamic Programming,Lec 5: DP on Strings,Wildcard Matching | (DP-34),,Medium
+Dynamic Programming,Lec 6: DP on Stocks,Best Time to Buy and Sell Stock | (DP-35),,Hard
+Dynamic Programming,Lec 6: DP on Stocks,Buy and Sell Stock – II|(DP-36),,Hard
+Dynamic Programming,Lec 6: DP on Stocks,Buy and Sell Stock – III|(DP-37),,Hard
+Dynamic Programming,Lec 6: DP on Stocks,Buy and Stock Sell IV |(DP-38),,Hard
+Dynamic Programming,Lec 6: DP on Stocks,Buy and Sell Stocks With Cooldown|(DP-39),,Hard
+Dynamic Programming,Lec 6: DP on Stocks,Buy and Sell Stocks With Transaction Fee| (DP-40),,Hard
+Dynamic Programming,Lec 7: DP on LIS,Longest Increasing Subsequence| (DP-41),,Hard
+Dynamic Programming,Lec 7: DP on LIS,Printing Longest Increasing Subsequence| (DP-42),,Hard
+Dynamic Programming,Lec 7: DP on LIS,Longest Increasing Subsequence|(DP-43),,Hard
+Dynamic Programming,Lec 7: DP on LIS,Largest Divisible Subset|(DP-44),,Hard
+Dynamic Programming,Lec 7: DP on LIS,Longest String Chain|(DP-45),,Hard
+Dynamic Programming,Lec 7: DP on LIS,Longest Bitonic Subsequence|(DP-46),,Hard
+Dynamic Programming,Lec 7: DP on LIS,Number of Longest Increasing Subsequences|(DP-47),,Hard
+Dynamic Programming,Lec 8: MCM DP | Partition DP,Matrix Chain Multiplication|(DP-48),,Hard
+Dynamic Programming,Lec 8: MCM DP | Partition DP,Matrix Chain Multiplication | Bottom-Up|(DP-49),,Hard
+Dynamic Programming,Lec 8: MCM DP | Partition DP,Minimum Cost to Cut the Stick|(DP-50),,Hard
+Dynamic Programming,Lec 8: MCM DP | Partition DP,Burst Balloons|(DP-51),,Hard
+Dynamic Programming,Lec 8: MCM DP | Partition DP,Evaluate Boolean Expression to True|(DP-52),,Hard
+Dynamic Programming,Lec 8: MCM DP | Partition DP,Palindrome Partitioning – II|(DP-53),,Hard
+Dynamic Programming,Lec 8: MCM DP | Partition DP,Partition Array for Maximum Sum|(DP-54),,Hard
+Dynamic Programming,Lec 9: DP on Squares,Maximum Rectangle Area with all 1s|(DP-55),,Hard
+Dynamic Programming,Lec 9: DP on Squares,Count Square Submatrices with All Ones|(DP-56),,Hard
+Tries,Lec 1: Theory,Implement TRIE | INSERT | SEARCH | STARTSWITH,,Hard
+Tries,Lec 2: Problems,Implement Trie - 2 (Prefix Tree),,Hard
+Tries,Lec 2: Problems,Longest String with All Prefixes,,Medium
+Tries,Lec 2: Problems,Number of Distinct Substrings in a String,,Hard
+Tries,Lec 2: Problems,Bit PreRequisites for TRIE Problems,,Hard
+Tries,Lec 2: Problems,Maximum XOR of two numbers in an array,,Medium
+Tries,Lec 2: Problems,Maximum XOR With an Element From Array,,Hard
+Strings,Lec 1: Hard Problems,Minimum number of bracket reversals needed to make an expression balanced,,Medium
+Strings,Lec 1: Hard Problems,Count and say,,Medium
+Strings,Lec 1: Hard Problems,Hashing in Strings | theory,,Medium
+Strings,Lec 1: Hard Problems,Rabin Karp,,Hard
+Strings,Lec 1: Hard Problems,Z-Function,,Easy
+Strings,Lec 1: Hard Problems,KMP algo / LPS(pi) array,,Hard
+Strings,Lec 1: Hard Problems,Shortest Palindrome,,Hard
+Strings,Lec 1: Hard Problems,Longest happy prefix,,Hard
+Strings,Lec 1: Hard Problems,Count palindromic subsequence in given string,,Hard
