@@ -15,6 +15,9 @@ import LeaderboardScreen from '../screens/LeaderboardScreen';
 import NotificationsScreen from '../screens/NotificationsScreen';
 import FullSheetScreen from '../screens/FullSheetScreen';
 import UserProfileScreen from '../screens/UserProfileScreen';
+import ChatScreen from '../screens/ChatScreen';
+import GameScreen from '../screens/GameScreen';
+import EditProfileScreen from '../screens/EditProfileScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -88,6 +91,9 @@ const AppNavigator = () => {
             <Stack.Screen name="Notifications" component={NotificationsScreen} />
             <Stack.Screen name="FullSheet" component={FullSheetScreen} />
             <Stack.Screen name="UserProfile" component={UserProfileScreen} options={({ route }) => ({ title: 'User Profile' })} />
+            <Stack.Screen name="Chat" component={ChatScreen} options={({ route }) => ({ title: route.params.roomName })} />
+            <Stack.Screen name="GameScreen" component={GameScreen} options={{ title: 'Competition' }} />
+            <Stack.Screen name="EditProfile" component={EditProfileScreen} options={{ title: 'Edit Profile' }} />
           </>
         )}
       </Stack.Navigator>

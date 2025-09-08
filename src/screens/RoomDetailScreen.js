@@ -1,4 +1,4 @@
-import React, { useState, useCallback ,useLayoutEffect} from 'react';
+import React, { useState, useCallback, useLayoutEffect } from 'react';
 import {
   View,
   Text,
@@ -15,7 +15,7 @@ import {
   Modal,
   Image
 } from 'react-native';
-import { useRoute, useFocusEffect } from '@react-navigation/native';
+import { useRoute, useFocusEffect, useNavigation } from '@react-navigation/native';
 import { Picker } from '@react-native-picker/picker';
 import apiClient from '../api/apiClient';
 import { useAuth } from '../context/AuthContext';
@@ -25,8 +25,8 @@ import Icon from 'react-native-vector-icons/Ionicons';
 const RoomDetailScreen = ({ navigation }) => {
   // --- Hooks and State Initialization ---
   const route = useRoute();
-  const { userId,logout } = useAuth();
-  const { roomId } = route.params;
+  const { userId, logout } = useAuth();
+  const { roomId, roomName: initialRoomName } = route.params;
 
   const [isLoading, setIsLoading] = useState(true);
   const [roomDetails, setRoomDetails] = useState(null);
@@ -34,49 +34,54 @@ const RoomDetailScreen = ({ navigation }) => {
   const [sheets, setSheets] = useState([]);
   const [dailyProblems, setDailyProblems] = useState([]);
   const [isUploading, setIsUploading] = useState(false);
-  const [todaysSubmissions, setTodaysSubmissions] = useState([]);
+  const [todaysSubmissions, setTodaysSubmissions] = useState({});
+  const [joinRequests, setJoinRequests] = useState([]);
+  const [solvedProblemIds, setSolvedProblemIds] = useState([]); // <-- State for all-time solved status
   const [selectedSheet, setSelectedSheet] = useState();
   const [duration, setDuration] = useState('90');
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
 
-  // NEW: join requests state
-  const [joinRequests, setJoinRequests] = useState([]);
-
-  // --- Data Fetching ---
+  // --- THIS IS THE NEW, MORE ROBUST DATA FETCHING LOGIC ---
   const fetchData = async () => {
     try {
       setIsLoading(true);
       const detailsRes = await apiClient.get(`/rooms/${roomId}`);
-      setRoomDetails(detailsRes.data);
-
-      const isAdmin = detailsRes.data.admin_id === Number(userId);
+      const roomData = detailsRes.data;
+      setRoomDetails(roomData);
+      const isAdmin = roomData.admin_id === Number(userId);
 
       const promises = [
         apiClient.get(`/rooms/${roomId}/members`),
-        apiClient.get('/sheets'),
         apiClient.get(`/submissions/room/${roomId}/today`),
       ];
-
       if (isAdmin) {
         promises.push(apiClient.get(`/rooms/${roomId}/join-requests`));
+        promises.push(apiClient.get('/sheets'));
       }
 
-      const [membersRes, sheetsRes, submissionsRes, requestsRes] = await Promise.all(promises);
-
+      const [membersRes, submissionsRes, requestsRes, sheetsRes] = await Promise.all(promises);
+      
       setMembers(membersRes.data);
-      setSheets(sheetsRes.data);
-      setTodaysSubmissions(submissionsRes.data);
+      if(requestsRes) setJoinRequests(requestsRes.data);
+      if(sheetsRes) setSheets(sheetsRes.data);
 
-      if (requestsRes) {
-        setJoinRequests(requestsRes.data);
-      } else {
-        setJoinRequests([]);
-      }
+      setTodaysSubmissions(submissionsRes.data.reduce((acc, sub) => {
+        if (!acc[sub.problem_id]) acc[sub.problem_id] = [];
+        acc[sub.problem_id].push(sub);
+        return acc;
+      }, {}));
 
-      if (detailsRes.data && detailsRes.data.status === 'active') {
+      if (roomData && roomData.status === 'active') {
         const problemsRes = await apiClient.get(`/rooms/${roomId}/daily-problems`);
-        setDailyProblems(problemsRes.data);
+        const dailyProblemsData = problemsRes.data;
+        setDailyProblems(dailyProblemsData);
+
+        if (dailyProblemsData.length > 0) {
+          const problemIds = dailyProblemsData.map(p => p.id);
+          const statusRes = await apiClient.post('/submissions/status', { problemIds });
+          setSolvedProblemIds(statusRes.data);
+        }
       }
     } catch (error) {
       console.error('Failed to fetch screen data:', error);
@@ -86,23 +91,17 @@ const RoomDetailScreen = ({ navigation }) => {
     }
   };
 
-  useFocusEffect(
-    useCallback(() => {
-      fetchData();
-    }, [roomId])
-  );
+  useFocusEffect(useCallback(() => { fetchData(); }, [roomId]));
 
   useLayoutEffect(() => {
     navigation.setOptions({
+      title: roomDetails?.name || initialRoomName,
       headerRight: () => (
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-          <TouchableOpacity 
-            onPress={() => navigation.navigate('Leaderboard', {
-              roomId: roomId,
-              roomName: roomDetails?.name || 'Leaderboard'
-            })}
-            style={{ marginRight: 15 }}
-          >
+          <TouchableOpacity onPress={() => navigation.navigate('Chat', { roomId: roomId, roomName: roomDetails?.name })} style={{ marginRight: 15 }}>
+            <Icon name="chatbubbles-outline" size={24} color="#007BFF" />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => navigation.navigate('Leaderboard', { roomId: roomId, roomName: roomDetails?.name })} style={{ marginRight: 15 }}>
             <Icon name="trophy-outline" size={24} color="#007BFF" />
           </TouchableOpacity>
           <Button onPress={logout} title="Logout" />
@@ -255,23 +254,13 @@ const RoomDetailScreen = ({ navigation }) => {
   // --- Prepare Data for SectionList ---
   const isAdmin = roomDetails && roomDetails.admin_id === Number(userId);
   const sections = [];
-
-  if (isAdmin && joinRequests.length > 0) {
-    sections.push({ title: 'Pending Join Requests', data: joinRequests });
-  }
-  if (roomDetails?.status === 'active') {
-    sections.push({ title: "Today's Problems", data: dailyProblems });
-  }
+  if (isAdmin && joinRequests.length > 0) { sections.push({ title: 'Pending Join Requests', data: joinRequests }); }
+  if (roomDetails?.status === 'active') { sections.push({ title: "Today's Problems", data: dailyProblems }); }
   sections.push({ title: `Members (${members.length})`, data: members });
 
-  // --- Render Logic ---
-  if (isLoading) {
-    return <ActivityIndicator size="large" style={styles.centered} />;
-  }
+  if (isLoading) { return <ActivityIndicator size="large" style={styles.centered} />; }
+  if (!roomDetails) { return <View style={styles.centered}><Text>Room not found.</Text></View>; }
 
-  if (!roomDetails) {
-    return <View style={styles.centered}><Text>Room not found.</Text></View>;
-  }
 
   return (
     <View style={{flex: 1}}>
@@ -317,12 +306,9 @@ const RoomDetailScreen = ({ navigation }) => {
           }
 
           if (section.title === "Today's Problems") {
-            const mySubmission = todaysSubmissions.find(
-              s => Number(s.problem_id) === Number(item.id) && Number(s.user_id) === Number(userId)
-            );
-            const otherSubmissions = todaysSubmissions.filter(
-              s => Number(s.problem_id) === Number(item.id) && Number(s.user_id) !== Number(userId)
-            );
+            const isSolvedByMe = solvedProblemIds.includes(item.id);
+            const mySubmission = isSolvedByMe ? (todaysSubmissions[item.id] || []).find(s => Number(s.user_id) === Number(userId)) : null;
+            const otherSubmissions = (todaysSubmissions[item.id] || []).filter(s => Number(s.user_id) !== Number(userId));
 
             return (
               <View style={styles.itemRow}>
@@ -339,10 +325,10 @@ const RoomDetailScreen = ({ navigation }) => {
                     </TouchableOpacity>
                   )}
                 </View>
-                {mySubmission ? (
-                  <TouchableOpacity style={styles.completedContainer} onPress={() => openSnap(mySubmission.photo_url)}>
+                {isSolvedByMe ? (
+                  <TouchableOpacity style={styles.completedContainer} onPress={() => openSnap(mySubmission?.photo_url)}>
                     <Text style={styles.completedText}>✅</Text>
-                    <Text style={styles.completedBy}>You did it! (+{mySubmission.points_awarded} pts)</Text>
+                    <Text style={styles.completedBy}>You did it! (+{mySubmission?.points_awarded} pts)</Text>
                   </TouchableOpacity>
                 ) : (
                   <Button title="Done" onPress={() => handleMarkAsDone(item)} disabled={isUploading} />

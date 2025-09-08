@@ -5,6 +5,7 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import RoomsScreen from '../screens/RoomsScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import SearchScreen from '../screens/SearchScreen';
+import CompeteScreen from '../screens/CompeteScreen'; 
 
 const Tab = createBottomTabNavigator();
 
@@ -18,6 +19,9 @@ const MainTabNavigator = () => {
             iconName = focused ? 'home' : 'home-outline';
           }else if (route.name === 'SearchTab') { // <-- Add icon logic for Search
             iconName = focused ? 'search' : 'search-outline';} 
+            else if (route.name === 'CompeteTab') { // <-- Add icon logic for Compete
+            iconName = focused ? 'code-slash' : 'code-slash-outline';}
+
           else if (route.name === 'ProfileTab') {
             iconName = focused ? 'person' : 'person-outline';
           }
@@ -29,6 +33,7 @@ const MainTabNavigator = () => {
     >
       <Tab.Screen name="RoomsTab" component={RoomsScreen} options={{ title: 'Rooms' }} />
       <Tab.Screen name="SearchTab" component={SearchScreen} options={{ title: 'Search' }} />
+      <Tab.Screen name="CompeteTab" component={CompeteScreen} options={{ title: 'Compete' }} />
       <Tab.Screen name="ProfileTab" component={ProfileScreen} options={{ title: 'Profile' }}/>
     </Tab.Navigator>
   );

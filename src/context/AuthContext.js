@@ -13,27 +13,24 @@ export const AuthProvider = ({ children }) => {
   const [userToken, setUserToken] = useState(null); // This will now be the accessToken
   const [userId, setUserId] = useState(null);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [username, setUsername] = useState(null);
 
   const login = async (email, password) => {
     try {
       const response = await apiClient.post('/auth/login', { email, password });
-      
-      // --- THIS IS THE UPDATED LOGIC ---
       const { accessToken, refreshToken } = response.data;
       
       if (accessToken && refreshToken) {
         const decodedToken = jwtDecode(accessToken);
-
-        // Set state
+        
         setUserToken(accessToken);
         setUserId(decodedToken.userId);
+        setUsername(decodedToken.username);
 
-        // Save BOTH tokens to storage
+        // We only need to store the tokens. The rest is derived from the token.
         await AsyncStorage.setItem('accessToken', accessToken);
         await AsyncStorage.setItem('refreshToken', refreshToken);
-        await AsyncStorage.setItem('userId', String(decodedToken.userId));
         
-        // After successful login, initialize notifications
         await initializeNotifications();
         fetchUnreadCount();
       }
@@ -44,31 +41,37 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = async () => {
-    // Clear the state
     setUserToken(null);
     setUserId(null);
+    setUsername(null);
     setUnreadCount(0);
     
-    // Remove all auth-related items from storage
+    // We only need to remove the tokens from storage
     await AsyncStorage.removeItem('accessToken');
     await AsyncStorage.removeItem('refreshToken');
-    await AsyncStorage.removeItem('userId');
   };
 
+  // --- THIS IS THE NEW, MORE ROBUST STARTUP LOGIC ---
   const isLoggedIn = async () => {
     try {
-      // Check for the accessToken to determine if logged in
+      // 1. Only get the access token from storage.
       const accessToken = await AsyncStorage.getItem('accessToken');
-      const storedUserId = await AsyncStorage.getItem('userId');
-      
-      setUserToken(accessToken);
-      setUserId(storedUserId);
-      
+
       if (accessToken) {
-        fetchUnreadCount();
+        // 2. If a token exists, decode it to get the user info.
+        const decodedToken = jwtDecode(accessToken);
+        
+        // 3. Set all the user state from this single source of truth.
+        setUserToken(accessToken);
+        setUserId(decodedToken.userId);
+        setUsername(decodedToken.username);
+        
+        fetchUnreadCount(); // Fetch count on app startup if logged in
       }
     } catch (e) {
-      console.log(`isLoggedIn error ${e}`);
+      // This might happen if the token is invalid, so we clear it.
+      console.log(`isLoggedIn error: ${e}. Clearing tokens.`);
+      await logout(); // Ensure a clean state if token is bad
     } finally {
       setIsLoading(false);
     }
@@ -88,7 +91,7 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ login, logout, userToken, isLoading, userId, unreadCount, fetchUnreadCount }}>
+    <AuthContext.Provider value={{ login, logout, userToken, isLoading, userId, username, unreadCount, fetchUnreadCount }}>
       {children}
     </AuthContext.Provider>
   );
