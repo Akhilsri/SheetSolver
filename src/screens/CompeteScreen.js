@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useAuth } from '../context/AuthContext';
@@ -8,22 +8,28 @@ const topics = ['Arrays Part-I', 'Graphs', 'Binary Tree Part-I', 'Dynamic Progra
 
 const CompeteScreen = () => {
   const navigation = useNavigation();
-  const { userId, username } = useAuth(); // Get both userId and username
+  const { userId, username, isLoading: isAuthLoading } = useAuth(); 
   const socket = useSocket();
 
   const [status, setStatus] = useState('Choose a topic to find a match!');
   const [isSearching, setIsSearching] = useState(false);
 
   useEffect(() => {
-    if (!socket.current) return;
+    if (!socket.current || isAuthLoading) return;
 
+    // Match found
     const onMatchFound = (data) => {
       setStatus(`Match found! Joining game...`);
+      setIsSearching(false);
       navigation.replace('GameScreen', { gameDetails: data });
     };
+
+    // Still waiting
     const onWaiting = () => setStatus('Searching for an opponent...');
+
+    // Error during matchmaking
     const onError = (data) => {
-      Alert.alert('Matchmaking Error', data.message);
+      Alert.alert('Matchmaking Error', data.message || 'Something went wrong.');
       setIsSearching(false);
       setStatus('Choose a topic to find a match!');
     };
@@ -37,23 +43,31 @@ const CompeteScreen = () => {
       socket.current.off('waiting_for_match', onWaiting);
       socket.current.off('match_error', onError);
     };
-  }, [socket.current]);
+  }, [socket.current, isAuthLoading]);
 
   const handleFindMatch = (topic) => {
     if (isSearching || !socket.current) return;
+
     setIsSearching(true);
     setStatus('Searching...');
-    
-    // This line is crucial - it sends the username
+
+    // Emit matchmaking event with user info and topic
     socket.current.emit('find_match', { userId, username, topic });
   };
-  
+
+  if (isAuthLoading) {
+    return <ActivityIndicator size="large" style={styles.centered} />;
+  }
+
   return (
     <View style={styles.container}>
+      {/* Status + loader */}
       <View style={styles.statusContainer}>
         <Text style={styles.statusText}>{status}</Text>
-        {isSearching && <ActivityIndicator size="large" color="#007BFF" style={{marginTop: 20}} />}
+        {isSearching && <ActivityIndicator size="large" color="#007BFF" style={{ marginTop: 20 }} />}
       </View>
+
+      {/* Topic selection */}
       <View style={styles.topicContainer}>
         <Text style={styles.title}>Select a Topic to Compete</Text>
         {topics.map(topic => (
@@ -72,26 +86,27 @@ const CompeteScreen = () => {
 };
 
 const styles = StyleSheet.create({
-    container: { flex: 1, padding: 20, backgroundColor: '#f5f5f5' },
-    statusContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-    statusText: { fontSize: 20, textAlign: 'center', color: '#333' },
-    topicContainer: { flex: 2 },
-    title: { fontSize: 22, fontWeight: 'bold', marginBottom: 20, textAlign: 'center' },
-    topicButton: {
-        backgroundColor: '#007BFF',
-        padding: 15,
-        borderRadius: 8,
-        marginBottom: 10,
-        alignItems: 'center',
-    },
-    disabledButton: {
-        backgroundColor: '#a0a0a0',
-    },
-    topicButtonText: {
-        color: 'white',
-        fontSize: 16,
-        fontWeight: 'bold',
-    },
+  container: { flex: 1, padding: 20, backgroundColor: '#f5f5f5' },
+  statusContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  statusText: { fontSize: 20, textAlign: 'center', color: '#333' },
+  topicContainer: { flex: 2 },
+  title: { fontSize: 22, fontWeight: 'bold', marginBottom: 20, textAlign: 'center' },
+  topicButton: {
+    backgroundColor: '#007BFF',
+    padding: 15,
+    borderRadius: 8,
+    marginBottom: 10,
+    alignItems: 'center',
+  },
+  disabledButton: {
+    backgroundColor: '#a0a0a0',
+  },
+  topicButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  centered: { flex: 1, justifyContent: 'center', alignItems: 'center' },
 });
 
 export default CompeteScreen;

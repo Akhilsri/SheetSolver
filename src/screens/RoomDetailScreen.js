@@ -21,6 +21,10 @@ import apiClient from '../api/apiClient';
 import { useAuth } from '../context/AuthContext';
 import { launchCamera } from 'react-native-image-picker';
 import Icon from 'react-native-vector-icons/Ionicons';
+import ImageResizer from 'react-native-image-resizer';
+import * as roomService from '../services/roomService';
+import * as submissionService from '../services/submissionService';
+import * as sheetService from '../services/sheetService';
 
 const RoomDetailScreen = ({ navigation }) => {
   // --- Hooks and State Initialization ---
@@ -41,45 +45,69 @@ const RoomDetailScreen = ({ navigation }) => {
   const [duration, setDuration] = useState('90');
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
+  const [uploadingProblemId, setUploadingProblemId] = useState(null);
+  
 
   // --- THIS IS THE NEW, MORE ROBUST DATA FETCHING LOGIC ---
-  const fetchData = async () => {
+ const fetchData = async () => {
     try {
       setIsLoading(true);
-      const detailsRes = await apiClient.get(`/rooms/${roomId}`);
+      
+      // First, get the core room details.
+      const detailsRes = await roomService.getRoomDetails(roomId);
       const roomData = detailsRes.data;
+
+      // Important: If for some reason the room doesn't exist, stop here.
+      if (!roomData) {
+        setIsLoading(false);
+        Alert.alert('Error', 'Could not find room details.');
+        return;
+      }
+
       setRoomDetails(roomData);
       const isAdmin = roomData.admin_id === Number(userId);
 
+      // Prepare the list of API calls to run in parallel
       const promises = [
-        apiClient.get(`/rooms/${roomId}/members`),
-        apiClient.get(`/submissions/room/${roomId}/today`),
+        roomService.getRoomMembers(roomId),
+        submissionService.getTodaysSubmissions(roomId),
       ];
       if (isAdmin) {
-        promises.push(apiClient.get(`/rooms/${roomId}/join-requests`));
-        promises.push(apiClient.get('/sheets'));
+        promises.push(roomService.getJoinRequests(roomId));
+        promises.push(sheetService.getAllSheets());
       }
 
-      const [membersRes, submissionsRes, requestsRes, sheetsRes] = await Promise.all(promises);
+      // Execute all promises
+      const responses = await Promise.all(promises);
       
-      setMembers(membersRes.data);
-      if(requestsRes) setJoinRequests(requestsRes.data);
-      if(sheetsRes) setSheets(sheetsRes.data);
-
-      setTodaysSubmissions(submissionsRes.data.reduce((acc, sub) => {
+      // Safely assign the responses to state
+      setMembers(responses[0].data);
+      const submissionsData = responses[1].data;
+      
+      if (isAdmin) {
+        // These will only exist in the array if the user is an admin
+        setJoinRequests(responses[2].data);
+        setSheets(responses[3].data);
+      } else {
+        setJoinRequests([]); // Ensure it's empty for non-admins
+      }
+      
+      // Process submissions after they've been fetched
+      setTodaysSubmissions(submissionsData.reduce((acc, sub) => {
         if (!acc[sub.problem_id]) acc[sub.problem_id] = [];
         acc[sub.problem_id].push(sub);
         return acc;
       }, {}));
 
-      if (roomData && roomData.status === 'active') {
-        const problemsRes = await apiClient.get(`/rooms/${roomId}/daily-problems`);
+      // Fetch daily problems and their status if the journey is active
+      if (roomData.status === 'active') {
+        const problemsRes = await roomService.getDailyProblems(roomId);
         const dailyProblemsData = problemsRes.data;
         setDailyProblems(dailyProblemsData);
 
         if (dailyProblemsData.length > 0) {
           const problemIds = dailyProblemsData.map(p => p.id);
-          const statusRes = await apiClient.post('/submissions/status', { problemIds });
+          const statusRes = await submissionService.getSubmissionStatus(problemIds);
           setSolvedProblemIds(statusRes.data);
         }
       }
@@ -145,46 +173,86 @@ const RoomDetailScreen = ({ navigation }) => {
     Alert.alert('View a Submission','Choose a user to see their proof.',buttons);
   };
 
-  const handleMarkAsDone = async (problem) => {
-    const hasPermission = await requestCameraPermission();
-    if (!hasPermission) return;
+  const handleMarkAsDone = (problem) => {
+    requestCameraPermission().then(hasPermission => {
+      if (!hasPermission) return;
 
-    launchCamera({ mediaType: 'photo', quality: 0.5, saveToPhotos: true }, async (response) => {
-      if (response.didCancel) return;
-      if (response.errorCode) return Alert.alert('Error', 'ImagePicker Error: ' + response.errorMessage);
+      launchCamera({ mediaType: 'photo', quality: 1.0, saveToPhotos: true }, async (response) => {
+        if (response.didCancel) {
+          console.log('User cancelled image picker');
+          return;
+        }
+        if (response.errorCode) {
+          Alert.alert('Error', 'ImagePicker Error: ' + response.errorMessage);
+          return;
+        }
+        if (!response.assets || response.assets.length === 0) {
+          console.log('No image asset found.');
+          return;
+        }
 
-      if (response.assets && response.assets.length > 0) {
-        const image = response.assets[0];
-        const formData = new FormData();
-        formData.append('proofImage', { uri: image.uri, type: image.type, name: image.fileName });
-        formData.append('roomId', roomId);
-        formData.append('problemId', problem.id);
-        
+        const originalImage = response.assets[0];
+        setUploadingProblemId(problem.id);
+        setIsUploading(true); // Also set the global uploading flag
+
         try {
-          setIsUploading(true);
-          // await apiClient.post('/submissions', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
-          const submissionResponse = await apiClient.post('/submissions', formData, { 
-            headers: { 'Content-Type': 'multipart/form-data' } 
-          });
-          
-          // 2. Use the new variable to get the newBadges
-          const newBadges = submissionResponse.data.newBadges;
-          // --- END OF FIX ---
+          console.log('DEBUG: Image captured, preparing to resize...');
+          const resizedImage = await ImageResizer.createResizedImage(
+            originalImage.uri,
+            1280, // Max width
+            1280, // Max height
+            'JPEG', // Format
+            80, // Quality (0-100)
+            0, // Rotation
+            null // Output path
+          );
+          console.log('DEBUG: Image resized successfully. URI:', resizedImage.uri);
 
+          const formData = new FormData();
+          formData.append('proofImage', {
+            uri: resizedImage.uri,
+            type: 'image/jpeg',
+            name: resizedImage.name,
+          });
+          formData.append('roomId', roomId);
+          formData.append('problemId', problem.id);
+          
+          console.log('DEBUG: FormData created. Attempting to upload...');
+          const submissionResponse = await submissionService.createSubmission(formData);
+          
+          console.log('DEBUG: Upload successful! Server response:', submissionResponse.data);
+          
+          const newBadges = submissionResponse.data.newBadges;
           let alertMessage = 'Your proof has been submitted.';
           if (newBadges && newBadges.length > 0) {
-            const badgeNames = newBadges.map(b => b.name).join(', ');
-            alertMessage += `\n\n🎉 Badge Unlocked: ${badgeNames}!`;
+            alertMessage += `\n\n🎉 Badge Unlocked: ${newBadges.map(b => b.name).join(', ')}!`;
           }
 
-          Alert.alert('Success!', 'Your proof has been submitted.', [{ text: 'OK', onPress: () => fetchData() }]);
+          Alert.alert('Success!', alertMessage, [{ text: 'OK', onPress: () => fetchData() }]);
+        
         } catch (error) {
-          console.error('Upload failed:', error.response?.data || error);
-          Alert.alert('Upload Failed', 'There was an error submitting your proof.');
+          // --- THIS IS THE MOST IMPORTANT PART ---
+          console.error('--- UPLOAD FAILED ---');
+          if (error.response) {
+            // The request was made and the server responded with a status code
+            // that falls out of the range of 2xx
+            console.error('Server Response Data:', JSON.stringify(error.response.data, null, 2));
+            console.error('Server Response Status:', error.response.status);
+          } else if (error.request) {
+            // The request was made but no response was received
+            console.error('No response received from server. This is likely a Network Error.');
+            console.error('Request details:', error.request);
+          } else {
+            // Something happened in setting up the request that triggered an Error
+            console.error('Error setting up the request:', error.message);
+          }
+          console.error('----------------------');
+          Alert.alert('Upload Failed', 'There was an error submitting your proof. Please try again.');
         } finally {
+          setUploadingProblemId(null);
           setIsUploading(false);
         }
-      }
+      });
     });
   };
 
@@ -201,7 +269,7 @@ const RoomDetailScreen = ({ navigation }) => {
 
   const removeMember = async (memberId) => {
     try {
-      await apiClient.delete(`/rooms/${roomId}/members/${memberId}`);
+      await roomService.removeMember(roomId, memberId);
       Alert.alert('Success', 'Member has been removed.');
       fetchData();
     } catch (error) {
@@ -216,7 +284,7 @@ const RoomDetailScreen = ({ navigation }) => {
       return;
     }
     try {
-      await apiClient.post(`/rooms/${roomId}/start`, { sheetId: selectedSheet, duration: duration });
+      await roomService.startJourney(roomId, selectedSheet, duration);
       Alert.alert('Success', 'The journey has begun!');
       fetchData();
     } catch (error) {
@@ -233,7 +301,7 @@ const RoomDetailScreen = ({ navigation }) => {
   // NEW: Approve/Deny join requests
   const handleApproveRequest = async (requestId) => {
     try {
-      await apiClient.put(`/rooms/join-requests/${requestId}/approve`);
+      await roomService.approveJoinRequest(requestId);
       Alert.alert('Success', 'Member has been added to the room.');
       fetchData();
     } catch (error) {
@@ -243,7 +311,7 @@ const RoomDetailScreen = ({ navigation }) => {
 
   const handleDenyRequest = async (requestId) => {
     try {
-      await apiClient.put(`/rooms/join-requests/${requestId}/deny`);
+      await roomService.denyJoinRequest(requestId);
       Alert.alert('Success', 'Request has been denied.');
       fetchData();
     } catch (error) {
@@ -325,14 +393,20 @@ const RoomDetailScreen = ({ navigation }) => {
                     </TouchableOpacity>
                   )}
                 </View>
-                {isSolvedByMe ? (
-                  <TouchableOpacity style={styles.completedContainer} onPress={() => openSnap(mySubmission?.photo_url)}>
-                    <Text style={styles.completedText}>✅</Text>
-                    <Text style={styles.completedBy}>You did it! (+{mySubmission?.points_awarded} pts)</Text>
-                  </TouchableOpacity>
+                <View style={styles.actionContainer}>
+                {uploadingProblemId === item.id ? (
+                  <ActivityIndicator color="#007BFF" />
                 ) : (
-                  <Button title="Done" onPress={() => handleMarkAsDone(item)} disabled={isUploading} />
+                  isSolvedByMe ? (
+                    <TouchableOpacity style={styles.completedContainer} onPress={() => openSnap(mySubmission?.photo_url)}>
+                      <Text style={styles.completedText}>✅</Text>
+                      <Text style={styles.completedBy}>You did it! (+{mySubmission?.points_awarded} pts)</Text>
+                    </TouchableOpacity>
+                  ) : (
+                    <Button title="Done" onPress={() => handleMarkAsDone(item)} disabled={isUploading} />
+                  )
                 )}
+              </View>
               </View>
             );
           }
@@ -419,6 +493,11 @@ const styles = StyleSheet.create({
   buttonContainer: {
     flexDirection: 'row',
     gap: 10,
+  },
+  actionContainer: {
+    width: 80, // Fixed width to prevent layout shifts
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });
 
