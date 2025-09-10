@@ -1,5 +1,6 @@
 const pool = require('../../config/db');
 const { customAlphabet } = require('nanoid');
+const redisClient = require('../../config/redis');
 
 // Helper to generate a unique 6-character invite code
 const generateInviteCode = customAlphabet('ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789', 6);
@@ -115,26 +116,45 @@ async function getDailyProblems(roomId) {
 }
 
 async function getLeaderboard(roomId) {
+  // 1. Define a unique key for this specific leaderboard in the cache
+  const cacheKey = `leaderboard:${roomId}`;
+
+  try {
+    // 2. First, try to get the leaderboard from the Redis cache
+    const cachedLeaderboard = await redisClient.get(cacheKey);
+
+    if (cachedLeaderboard) {
+      console.log(`Serving leaderboard for room ${roomId} from CACHE.`);
+      return JSON.parse(cachedLeaderboard); // Return the cached data
+    }
+  } catch (error) {
+    console.error("Redis GET error:", error);
+    // If Redis fails, we'll just continue and get data from the DB
+  }
+
+  // 3. If it's not in the cache (a "cache miss"), get it from the database
+  console.log(`Serving leaderboard for room ${roomId} from DATABASE.`);
   const sql = `
     SELECT
-        u.id as userId,
-        u.username,
-        u.current_streak as currentStreak, -- <-- Add this line
+        u.id as userId, u.username, u.current_streak as currentStreak,
         COALESCE(SUM(s.points_awarded), 0) as totalScore
-    FROM
-        room_members rm
-    JOIN
-        users u ON rm.user_id = u.id
-    LEFT JOIN
-        submissions s ON rm.user_id = s.user_id AND rm.room_id = s.room_id
-    WHERE
-        rm.room_id = ?
-    GROUP BY
-        u.id, u.username
-    ORDER BY
-        totalScore DESC, u.username ASC;
+    FROM room_members rm
+    JOIN users u ON rm.user_id = u.id
+    LEFT JOIN submissions s ON rm.user_id = s.user_id AND rm.room_id = s.room_id
+    WHERE rm.room_id = ?
+    GROUP BY u.id, u.username
+    ORDER BY totalScore DESC, u.username ASC;
   `;
   const [leaderboard] = await pool.query(sql, [roomId]);
+
+  try {
+    // 4. Save the fresh data to the cache for next time
+    // We'll set it to expire in 5 minutes (300 seconds)
+    await redisClient.set(cacheKey, JSON.stringify(leaderboard), { EX: 300 });
+  } catch (error) {
+    console.error("Redis SET error:", error);
+  }
+
   return leaderboard;
 }
 

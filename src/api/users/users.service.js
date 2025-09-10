@@ -1,9 +1,28 @@
 const pool = require('../../config/db');
 
 async function updateFcmToken(userId, fcmToken) {
-  const sql = 'UPDATE users SET fcm_token = ? WHERE id = ?';
-  await pool.query(sql, [fcmToken, userId]);
-  return { message: 'FCM token updated successfully.' };
+  const connection = await pool.getConnection();
+  try {
+    // We use a transaction to ensure both steps succeed or fail together.
+    await connection.beginTransaction();
+
+    // Step 1: Find any OTHER user who has this token and set their token to NULL.
+    // This de-registers the device from the old user.
+    const clearOldTokenSql = 'UPDATE users SET fcm_token = NULL WHERE fcm_token = ? AND id != ?';
+    await connection.query(clearOldTokenSql, [fcmToken, userId]);
+
+    // Step 2: Set the token for the CURRENT user.
+    const setNewTokenSql = 'UPDATE users SET fcm_token = ? WHERE id = ?';
+    await connection.query(setNewTokenSql, [fcmToken, userId]);
+
+    await connection.commit();
+    return { message: 'FCM token updated successfully.' };
+  } catch (error) {
+    await connection.rollback();
+    throw error; // Re-throw the error to be handled by the controller
+  } finally {
+    connection.release();
+  }
 }
 
 async function getUserProfile(userId) {

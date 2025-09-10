@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const compression = require('compression');
 
 // --- Import all routes ---
 const authRoutes = require('./api/auth/auth.routes');
@@ -34,5 +35,6 @@ app.use('/api/notifications', notificationRoutes);
 app.use('/api/invitations', invitationRoutes);
 app.use('/api/badges', badgeRoutes);
 app.use('/api/chat', chatRoutes);
+app.use(compression());
 
 module.exports = app;
