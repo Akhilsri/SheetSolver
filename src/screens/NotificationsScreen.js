@@ -3,38 +3,37 @@ import { View, Text, StyleSheet, SectionList, ActivityIndicator, TouchableOpacit
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import apiClient from '../api/apiClient';
 import { useAuth } from '../context/AuthContext';
+import { COLORS, SIZES, FONTS } from '../styles/theme';
 
 const NotificationsScreen = () => {
   const navigation = useNavigation();
   const { fetchUnreadCount } = useAuth();
   const [sections, setSections] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isResponding, setIsResponding] = useState(false);
 
-  // --- This is the function that was missing ---
   const fetchData = async () => {
     try {
-      // Don't show loader on background refreshes, only initial load
-      // First, tell the backend to mark everything as read
-      await apiClient.put('/notifications/read-all');
-      // Then, update the global badge count immediately
-      fetchUnreadCount();
-
-      // Now, fetch the data to display on this screen
-      const [invitationsRes, notificationsRes] = await Promise.all([
+      setIsLoading(true);
+      const [invitationsRes, notificationsRes, connectionRequestsRes] = await Promise.all([
         apiClient.get('/invitations/pending'),
         apiClient.get('/notifications'),
+        apiClient.get('/connections/pending'),
       ]);
       
       const newSections = [];
-      if (invitationsRes.data && invitationsRes.data.length > 0) {
+      if (connectionRequestsRes.data?.length > 0) {
+        newSections.push({ title: 'Connection Requests', data: connectionRequestsRes.data });
+      }
+      if (invitationsRes.data?.length > 0) {
         newSections.push({ title: 'Pending Invitations', data: invitationsRes.data });
       }
-      if (notificationsRes.data && notificationsRes.data.length > 0) {
-        newSections.push({ title: 'Notifications', data: notificationsRes.data });
+      if (notificationsRes.data?.length > 0) {
+        newSections.push({ title: 'Activity', data: notificationsRes.data });
       }
       setSections(newSections);
     } catch (error) {
-      console.error('Failed to fetch notification data:', error);
+      console.error('Failed to fetch data:', error);
     } finally {
       setIsLoading(false);
     }
@@ -42,59 +41,110 @@ const NotificationsScreen = () => {
 
   useFocusEffect(useCallback(() => {
     fetchData();
+    const timer = setTimeout(async () => {
+      try {
+        await apiClient.put('/notifications/read-all');
+        fetchUnreadCount();
+      } catch (error) {
+        console.error('Failed to mark notifications as read:', error);
+      }
+    }, 3000);
+    return () => clearTimeout(timer);
   }, []));
 
   const handleAccept = async (invitationId) => {
+    setIsResponding(true);
     try {
       await apiClient.put(`/invitations/${invitationId}/accept`);
       Alert.alert('Success', 'You have joined the room!', [
         { text: 'OK', onPress: () => {
-          fetchData(); // Refresh the list
+          fetchData();
           navigation.navigate('RoomsTab');
         }}
       ]);
     } catch (error) {
       Alert.alert('Error', 'Could not accept the invitation.');
+    } finally {
+      setIsResponding(false);
     }
   };
   
   const handleDecline = async (invitationId) => {
+    setIsResponding(true);
     try {
       await apiClient.put(`/invitations/${invitationId}/decline`);
-      fetchData(); // This will now work because fetchData exists
+      fetchData();
     } catch (error) {
-      console.error("Decline failed with error:", error.response?.data || error); 
       Alert.alert('Error', 'Could not decline the invitation.');
+    } finally {
+      setIsResponding(false);
     }
   };
+  
+  const handleAcceptConnection = async (requestId) => {
+      setIsResponding(true);
+      try {
+          await apiClient.put(`/connections/${requestId}/accept`);
+          fetchData();
+      } catch (error) { Alert.alert('Error', 'Could not accept request.'); }
+      finally { setIsResponding(false); }
+  };
 
-  if (isLoading) {
-    return <ActivityIndicator size="large" style={styles.centered} />;
-  }
+  const handleDeclineConnection = async (requestId) => {
+      setIsResponding(true);
+      try {
+          await apiClient.put(`/connections/${requestId}/decline`);
+          fetchData();
+      } catch (error) { Alert.alert('Error', 'Could not decline request.'); }
+      finally { setIsResponding(false); }
+  };
+
+  const handleNotificationPress = (notification) => {
+    if (notification.type === 'SUBMISSION' && notification.related_room_id) {
+      navigation.navigate('RoomDetail', { roomId: notification.related_room_id });
+    }
+  };
   
   const renderItem = ({ item, section }) => {
-    // Render UI for Invitations
+    if (section.title === 'Connection Requests') {
+      return (
+        <View style={styles.invitationItem}>
+          <Text style={styles.invitationText}><Text style={{fontWeight: 'bold'}}>{item.senderName}</Text> wants to connect with you.</Text>
+          <View style={styles.buttonContainer}>
+            <Button title="Decline" onPress={() => handleDeclineConnection(item.id)} color={COLORS.danger} disabled={isResponding} />
+            <Button title="Accept" onPress={() => handleAcceptConnection(item.id)} color={COLORS.success} disabled={isResponding} />
+          </View>
+        </View>
+      );
+    }
+
     if (section.title === 'Pending Invitations') {
       return (
         <View style={styles.invitationItem}>
           <Text style={styles.invitationText}><Text style={{fontWeight: 'bold'}}>{item.senderName}</Text> invited you to join <Text style={{fontWeight: 'bold'}}>{item.roomName}</Text></Text>
           <View style={styles.buttonContainer}>
-            <Button title="Decline" onPress={() => handleDecline(item.id)} color="red" />
-            <Button title="Accept" onPress={() => handleAccept(item.id)} />
+            <Button title="Decline" onPress={() => handleDecline(item.id)} color={COLORS.danger} disabled={isResponding} />
+            <Button title="Accept" onPress={() => handleAccept(item.id)} color={COLORS.success} disabled={isResponding} />
           </View>
         </View>
       );
     }
     
-    // Render UI for regular notifications
-    return (
-      <View style={[styles.notificationItem, !item.is_read && styles.unreadItem]}>
-        <Text style={styles.notificationTitle}>{item.title}</Text>
-        <Text style={styles.notificationBody}>{item.body}</Text>
-        <Text style={styles.notificationDate}>{new Date(item.created_at).toLocaleString()}</Text>
-      </View>
-    );
+    if (section.title === 'Activity') {
+      return (
+        <TouchableOpacity onPress={() => handleNotificationPress(item)}>
+          <View style={[styles.notificationItem, !item.is_read && styles.unreadItem]}>
+            <Text style={styles.notificationTitle}>{item.title}</Text>
+            <Text style={styles.notificationBody}>{item.body}</Text>
+            <Text style={styles.notificationDate}>{new Date(item.created_at).toLocaleString()}</Text>
+          </View>
+        </TouchableOpacity>
+      );
+    }
+    return null;
   };
+
+  if (isLoading) { return <ActivityIndicator size="large" style={styles.centered} />; }
 
   return (
     <SectionList
@@ -110,17 +160,17 @@ const NotificationsScreen = () => {
 
 const styles = StyleSheet.create({
   centered: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  container: { flex: 1, backgroundColor: '#fff' },
-  emptyText: { textAlign: 'center', marginTop: 50, color: 'gray' },
-  sectionHeader: { fontSize: 18, fontWeight: 'bold', paddingHorizontal: 15, paddingTop: 20, paddingBottom: 10, backgroundColor: '#f5f5f5' },
-  invitationItem: { padding: 15, borderBottomWidth: 1, borderBottomColor: '#f0f0f0' },
-  invitationText: { fontSize: 16, marginBottom: 10 },
+  container: { flex: 1, backgroundColor: COLORS.surface },
+  emptyText: { ...FONTS.caption, textAlign: 'center', marginTop: SIZES.padding * 2 },
+  sectionHeader: { ...FONTS.h2, paddingHorizontal: SIZES.padding, paddingTop: SIZES.padding, paddingBottom: SIZES.base, backgroundColor: COLORS.background },
+  invitationItem: { padding: SIZES.padding, borderBottomWidth: 1, borderBottomColor: COLORS.border },
+  invitationText: { ...FONTS.body, marginBottom: SIZES.base * 1.5 },
   buttonContainer: { flexDirection: 'row', justifyContent: 'flex-end', gap: 10 },
-  notificationItem: { padding: 15, borderBottomWidth: 1, borderBottomColor: '#f0f0f0' },
-  unreadItem: { backgroundColor: '#e6f7ff' },
-  notificationTitle: { fontSize: 16, fontWeight: 'bold', marginBottom: 5 },
-  notificationBody: { fontSize: 14, color: '#333' },
-  notificationDate: { fontSize: 12, color: 'gray', marginTop: 8, textAlign: 'right' },
+  notificationItem: { padding: SIZES.padding, borderBottomWidth: 1, borderBottomColor: COLORS.border },
+  unreadItem: { backgroundColor: COLORS.primaryLight },
+  notificationTitle: { ...FONTS.h3, color: COLORS.textPrimary, marginBottom: 4 },
+  notificationBody: { ...FONTS.body, color: COLORS.textSecondary },
+  notificationDate: { ...FONTS.caption, marginTop: SIZES.base, textAlign: 'right' },
 });
 
 export default NotificationsScreen;

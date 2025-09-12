@@ -1,35 +1,51 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, StyleSheet, Button, Alert, Modal, FlatList, TouchableOpacity } from 'react-native';
-import { useRoute, useFocusEffect } from '@react-navigation/native';
+import { View, Text, StyleSheet, Button, Alert, Modal, ActivityIndicator, TouchableOpacity } from 'react-native';
+import { useRoute, useFocusEffect, useNavigation } from '@react-navigation/native';
 import { Picker } from '@react-native-picker/picker';
 import apiClient from '../api/apiClient';
+import { useAuth } from '../context/AuthContext';
+import { COLORS, SIZES, FONTS } from '../styles/theme';
 
 const UserProfileScreen = () => {
+  const navigation = useNavigation();
   const route = useRoute();
-  const { userId } = route.params;
+  const { userId: profileUserId } = route.params;
+  const { userId: currentUserId } = useAuth();
 
   const [profile, setProfile] = useState(null);
   const [myRooms, setMyRooms] = useState([]);
-  const [selectedRoom, setSelectedRoom] = useState();
+  const [profileUserRooms, setProfileUserRooms] = useState([]); // <-- NEW: Stores the rooms the other user is in
+  const [selectedRoom, setSelectedRoom] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [connectionStatus, setConnectionStatus] = useState(null);
   const [pendingInviteRoomIds, setPendingInviteRoomIds] = useState([]);
 
   const fetchData = async () => {
     try {
-      const [profileRes, myRoomsRes, pendingInvitesRes] = await Promise.all([
-        apiClient.get(`/users/${userId}/profile`),
+      setIsLoading(true);
+      const [profileDataRes, myRoomsRes, connStatusRes, pendingInvitesRes] = await Promise.all([
+        apiClient.get(`/users/${profileUserId}/profile`), // This now returns { profile, memberOfRoomIds }
         apiClient.get('/rooms'),
-        apiClient.get(`/invitations/sent-pending?recipientId=${userId}`), // <-- New API call
+        apiClient.get(`/connections/status/${profileUserId}`),
+        apiClient.get(`/invitations/sent-pending?recipientId=${profileUserId}`),
       ]);
-      setProfile(profileRes.data);
+      
+      setProfile(profileDataRes.data.profile); // <-- Set profile from the nested object
+      setProfileUserRooms(profileDataRes.data.memberOfRoomIds); // <-- Set the new state
+      
       setMyRooms(myRoomsRes.data);
-      setPendingInviteRoomIds(pendingInvitesRes.data); // <-- Set the new state
+      setConnectionStatus(connStatusRes.data);
+      setPendingInviteRoomIds(pendingInvitesRes.data);
     } catch (error) {
       console.error('Failed to fetch data:', error);
+      Alert.alert('Error', 'Could not load user profile.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  useFocusEffect(useCallback(() => { fetchData(); }, [userId]));
+  useFocusEffect(useCallback(() => { fetchData(); }, [profileUserId]));
   
   const handleSendInvite = async () => {
     if (!selectedRoom) {
@@ -37,86 +53,127 @@ const UserProfileScreen = () => {
     }
     try {
       await apiClient.post('/invitations', {
-        recipientId: userId,
+        recipientId: profileUserId, // Use the correct variable
         roomId: selectedRoom,
       });
       Alert.alert('Success!', `Invitation sent to ${profile.username}.`);
-       fetchData();
+      fetchData();
       setModalVisible(false);
     } catch (error) {
       Alert.alert('Error', error.response?.data?.message || 'Could not send invitation.');
     }
   };
 
-  if (!profile) return null; // Or a loading indicator
-  const isInvitePendingForSelectedRoom = pendingInviteRoomIds.includes(selectedRoom);
+  const handleSendConnectionRequest = async () => {
+    try {
+        await apiClient.post('/connections/request', { recipientId: profileUserId });
+        Alert.alert('Success', 'Connection request sent!');
+        fetchData();
+    } catch (error) {
+        Alert.alert('Error', error.response?.data?.message || 'Could not send request.');
+    }
+  };
+  
+  // --- THESE ARE THE MISSING FUNCTIONS ---
+  const confirmRemoveConnection = () => {
+    Alert.alert(
+      "Remove Connection",
+      `Are you sure you want to remove ${profile.username} from your connections?`,
+      [
+        { text: "Cancel", style: "cancel" },
+        { text: "Yes, Remove", onPress: handleRemoveConnection, style: "destructive" }
+      ]
+    );
+  };
+
+  const handleRemoveConnection = async () => {
+    try {
+      await apiClient.delete(`/connections/user/${profileUserId}`);
+      Alert.alert('Success', 'Connection removed.');
+      fetchData(); // Refresh the screen to update the button state
+    } catch (error) {
+      Alert.alert('Error', 'Could not remove connection.');
+    }
+  };
+  // ------------------------------------
+
+  const renderConnectionButton = () => {
+    if (!connectionStatus || Number(currentUserId) === Number(profileUserId)) return null;
+
+    switch (connectionStatus.status) {
+      case 'accepted':
+        // This button now correctly calls the confirmation function
+        return <Button title="Connected ✅" onPress={confirmRemoveConnection} color={COLORS.success} />;
+      case 'pending':
+        if (connectionStatus.action_user_id !== Number(currentUserId)) {
+          return <Button title="Respond to Request" onPress={() => navigation.navigate('Notifications')} />;
+        }
+        return <Button title="Request Sent" disabled />;
+      default:
+        return <Button title="Add Connection" onPress={handleSendConnectionRequest} color={COLORS.primary}/>;
+    }
+  };
+
+  if (isLoading) { return <ActivityIndicator size="large" style={styles.centered} />; }
+  if (!profile) return <View style={styles.centered}><Text>User not found.</Text></View>;
+
+   const isInvitePendingForSelectedRoom = pendingInviteRoomIds.includes(selectedRoom);
+  const isAlreadyMemberOfSelectedRoom = profileUserRooms.includes(selectedRoom);
 
   return (
     <View style={styles.container}>
-      {/* Invitation Modal */}
       <Modal visible={modalVisible} transparent={true} animationType="slide">
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>Invite {profile.username} to...</Text>
             <Picker selectedValue={selectedRoom} onValueChange={(itemValue) => setSelectedRoom(itemValue)}>
               <Picker.Item label="-- Select a Room --" value={null} />
-              {myRooms.map(room => <Picker.Item label={room.name} value={room.id} key={room.id} />)}
+              {myRooms.map(room => {
+                const isAlreadyMember = profileUserRooms.includes(room.id);
+                return (
+                  <Picker.Item 
+                    key={room.id}
+                    label={`${room.name}${isAlreadyMember ? ' (Already a member)' : ''}`} 
+                    value={room.id}
+                    enabled={!isAlreadyMember} // This disables the item
+                  />
+                );
+              })}
             </Picker>
-            <Button 
-              title={isInvitePendingForSelectedRoom ? "Invite Sent" : "Send Invite"} 
-              onPress={handleSendInvite} 
-              disabled={isInvitePendingForSelectedRoom} // <-- Disable button
-            />
-            <Button title="Cancel" onPress={() => setModalVisible(false)} color="gray" />
+            <View style={{marginBottom: SIZES.base}}>
+              <Button 
+                title={isInvitePendingForSelectedRoom ? "Invite Sent" : "Send Invite"} 
+                onPress={handleSendInvite} 
+                // Also disable the send button if the user is already a member of the selected room
+                disabled={isInvitePendingForSelectedRoom || isAlreadyMemberOfSelectedRoom}
+                color={COLORS.primary}
+              />
+            </View>
+            <Button title="Cancel" onPress={() => setModalVisible(false)} color={COLORS.textSecondary} />
           </View>
         </View>
       </Modal>
 
-      {/* Profile Info */}
       <Text style={styles.username}>{profile.username}</Text>
-      <Text style={styles.detail}>{profile.full_name}</Text>
-      <Text style={styles.detail}>{profile.college_name}</Text>
-      <Button title="Invite to a Room" onPress={() => setModalVisible(true)} />
+      <Text style={styles.detail}>{profile.full_name || 'Name not set'}</Text>
+      <Text style={styles.detail}>{profile.college_name || 'College not set'}</Text>
+      <View style={styles.buttonContainer}>
+        {renderConnectionButton()}
+        <Button title="Invite to a Room" onPress={() => setModalVisible(true)} />
+      </View>
     </View>
   );
 };
 
-// ... (Add your own styles)
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 16,
-    backgroundColor: '#fff',
-  },
-  username: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    marginBottom: 4,
-  },
-  detail: {
-    fontSize: 16,
-    marginBottom: 8,
-  },
-  modalContainer: {
-    flex: 1,
-    justifyContent: 'center',   // centers vertically
-    alignItems: 'center',       // centers horizontally
-    backgroundColor: 'rgba(0,0,0,0.5)', // dim background
-  },
-  modalContent: {
-    width: '80%',
-    backgroundColor: '#fff',
-    borderRadius: 10,
-    padding: 20,
-    elevation: 5,
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 15,
-    textAlign: 'center',
-  },
+  container: { flex: 1, padding: 20, backgroundColor: '#fff' },
+  centered: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  username: { fontSize: 24, fontWeight: 'bold', marginBottom: 8, textAlign: 'center' },
+  detail: { fontSize: 16, color: 'gray', marginBottom: 4, textAlign: 'center' },
+  buttonContainer: { marginTop: 20, gap: 10 },
+  modalContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.5)' },
+  modalContent: { width: '85%', backgroundColor: 'white', borderRadius: 10, padding: 20 },
+  modalTitle: { fontSize: 18, fontWeight: 'bold', marginBottom: 15, textAlign: 'center' },
 });
-
 
 export default UserProfileScreen;

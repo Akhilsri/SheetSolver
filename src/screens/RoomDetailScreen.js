@@ -25,6 +25,7 @@ import ImageResizer from 'react-native-image-resizer';
 import * as roomService from '../services/roomService';
 import * as submissionService from '../services/submissionService';
 import * as sheetService from '../services/sheetService';
+import Sound from 'react-native-sound';
 
 const RoomDetailScreen = ({ navigation }) => {
   // --- Hooks and State Initialization ---
@@ -132,7 +133,7 @@ const RoomDetailScreen = ({ navigation }) => {
           <TouchableOpacity onPress={() => navigation.navigate('Leaderboard', { roomId: roomId, roomName: roomDetails?.name })} style={{ marginRight: 15 }}>
             <Icon name="trophy-outline" size={24} color="#007BFF" />
           </TouchableOpacity>
-          <Button onPress={logout} title="Logout" />
+          {/* <Button onPress={logout} title="Logout" /> */}
         </View>
       ),
     });
@@ -219,6 +220,21 @@ const RoomDetailScreen = ({ navigation }) => {
           
           console.log('DEBUG: FormData created. Attempting to upload...');
           const submissionResponse = await submissionService.createSubmission(formData);
+
+          const successSound = new Sound('success.mp3', Sound.MAIN_BUNDLE, (error) => {
+              if (error) {
+                  console.log('failed to load the sound', error);
+                  return;
+              }
+              successSound.play((success) => {
+                  if (success) {
+                      console.log('successfully finished playing');
+                  } else {
+                      console.log('playback failed due to audio decoding errors');
+                  }
+                  successSound.release(); // Release the audio player resource
+              });
+          });
           
           console.log('DEBUG: Upload successful! Server response:', submissionResponse.data);
           
@@ -318,6 +334,25 @@ const RoomDetailScreen = ({ navigation }) => {
       Alert.alert('Error', 'Could not deny request.');
     }
   };
+
+  const handleLeaveRoom = () => {
+    Alert.alert(
+        "Leave Room",
+        "Are you sure you want to leave this room?",
+        [
+            { text: "Cancel", style: "cancel" },
+            { text: "Yes, Leave", onPress: async () => {
+                try {
+                    await apiClient.delete(`/rooms/${roomId}/leave`);
+                    Alert.alert('Success', 'You have left the room.');
+                    navigation.navigate('RoomsTab'); // Go back to the rooms list
+                } catch (error) {
+                    Alert.alert('Error', error.response?.data?.message || 'Could not leave the room.');
+                }
+            }, style: "destructive" }
+        ]
+    );
+};
 
   // --- Prepare Data for SectionList ---
   const isAdmin = roomDetails && roomDetails.admin_id === Number(userId);
@@ -439,7 +474,14 @@ const RoomDetailScreen = ({ navigation }) => {
                 <TextInput style={styles.input} placeholder="e.g., 90" value={duration} onChangeText={setDuration} keyboardType="numeric" />
                 <Button title="Start Journey for All Members" onPress={handleStartJourney} />
               </View>
+              
             )}
+            {!isAdmin && ( // Only show leave button if user is NOT the admin
+                    <View style={{padding: 20, backgroundColor: 'white'}}>
+                        <Button title="Leave Room" color="red" onPress={handleLeaveRoom} />
+                    </View>
+                )}
+           
           </>
         }
         ListEmptyComponent={<Text style={styles.emptyText}>Nothing to show here yet.</Text>}

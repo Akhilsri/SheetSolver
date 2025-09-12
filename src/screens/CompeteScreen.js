@@ -1,10 +1,30 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, StyleSheet, FlatList, ActivityIndicator, Alert, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useAuth } from '../context/AuthContext';
 import { useSocket } from '../context/SocketContext';
+import apiClient from '../api/apiClient';
+import Icon from 'react-native-vector-icons/Ionicons';
+import { COLORS, SIZES, FONTS } from '../styles/theme';
 
-const topics = ['Arrays Part-I', 'Graphs', 'Binary Tree Part-I', 'Dynamic Programming', 'Mixed'];
+// --- 1. Expanded and improved list of Topic Visuals ---
+const topicVisuals = {
+  'Aptitude': { icon: 'calculator-outline', color: '#17a2b8' },
+  'Arrays Part-I': { icon: 'grid-outline', color: '#ff6347' },
+  'Strings': { icon: 'text-outline', color: '#ffc107' },
+  'Linked List': { icon: 'link-outline', color: '#fd7e14' },
+  'Recursion': { icon: 'repeat-outline', color: '#6610f2' },
+  'Bit Manipulation': { icon: 'hardware-chip-outline', color: '#20c997' },
+  'Stack and Queues': { icon: 'layers-outline', color: '#6f42c1' },
+  'Heaps': { icon: 'leaf-outline', color: '#28a745' },
+  'Greedy Algorithms': { icon: 'wallet-outline', color: '#17a2b8' },
+  'Binary Trees': { icon: 'git-merge-outline', color: '#28a745' },
+  'Binary Search Trees': { icon: 'search-circle-outline', color: '#007BFF' },
+  'Graphs': { icon: 'git-network-outline', color: '#6f42c1' },
+  'Dynamic Programming': { icon: 'infinite-outline', color: '#dc3545' },
+  'Tries': { icon: 'at-outline', color: '#343a40' },
+  'Mixed': { icon: 'shuffle-outline', color: '#6c757d' },
+};
 
 const CompeteScreen = () => {
   const navigation = useNavigation();
@@ -13,6 +33,33 @@ const CompeteScreen = () => {
 
   const [status, setStatus] = useState('Choose a topic to find a match!');
   const [isSearching, setIsSearching] = useState(false);
+  const [topics, setTopics] = useState([]);
+
+  useEffect(() => {
+    const fetchTopics = async () => {
+      try {
+        const response = await apiClient.get('/quiz/topics');
+        // We now trust the backend completely and set the topics directly
+        setTopics(response.data);
+      } catch (error) {
+        Alert.alert('Error', 'Could not fetch competition topics.');
+      }
+    };
+    fetchTopics();
+  }, []);
+
+  // This useEffect now fetches the topics from your backend
+  // useEffect(() => {
+  //   const fetchTopics = async () => {
+  //     try {
+  //       const response = await apiClient.get('/quiz/topics');
+  //       setTopics(response.data);
+  //     } catch (error) {
+  //       Alert.alert('Error', 'Could not fetch competition topics.');
+  //     }
+  //   };
+  //   fetchTopics();
+  // }, []);
 
   useEffect(() => {
     if (!socket.current || isAuthLoading) return;
@@ -59,54 +106,80 @@ const CompeteScreen = () => {
     return <ActivityIndicator size="large" style={styles.centered} />;
   }
 
+  const renderTopic = ({ item }) => {
+    const visual = topicVisuals[item] || { icon: 'code-slash-outline', color: '#343a40' }; // Default visual
+    return (
+      <TouchableOpacity
+        style={styles.topicCardWrapper}
+        onPress={() => handleFindMatch(item)}
+        disabled={isSearching}
+      >
+        <View style={[styles.topicCard, { backgroundColor: visual.color }, isSearching && styles.disabledButton]}>
+          <Icon name={visual.icon} size={40} color="white" />
+          <Text style={styles.topicButtonText}>{item}</Text>
+        </View>
+      </TouchableOpacity>
+    );
+  };
+
   return (
     <View style={styles.container}>
-      {/* Status + loader */}
       <View style={styles.statusContainer}>
         <Text style={styles.statusText}>{status}</Text>
-        {isSearching && <ActivityIndicator size="large" color="#007BFF" style={{ marginTop: 20 }} />}
+        {isSearching && <ActivityIndicator size="large" color={COLORS.primary} style={{ marginTop: 20 }} />}
       </View>
 
-      {/* Topic selection */}
-      <View style={styles.topicContainer}>
-        <Text style={styles.title}>Select a Topic to Compete</Text>
-        {topics.map(topic => (
-          <TouchableOpacity
-            key={topic}
-            style={[styles.topicButton, isSearching && styles.disabledButton]}
-            onPress={() => handleFindMatch(topic)}
-            disabled={isSearching}
-          >
-            <Text style={styles.topicButtonText}>{topic}</Text>
-          </TouchableOpacity>
-        ))}
-      </View>
+      <FlatList
+        data={topics}
+        renderItem={renderTopic}
+        keyExtractor={(item) => item}
+        numColumns={2}
+        ListHeaderComponent={<Text style={styles.title}>Select a Topic</Text>}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 20 }}
+      />
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20, backgroundColor: '#f5f5f5' },
-  statusContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  statusText: { fontSize: 20, textAlign: 'center', color: '#333' },
-  topicContainer: { flex: 2 },
-  title: { fontSize: 22, fontWeight: 'bold', marginBottom: 20, textAlign: 'center' },
-  topicButton: {
-    backgroundColor: '#007BFF',
-    padding: 15,
-    borderRadius: 8,
-    marginBottom: 10,
+  container: { flex: 1, backgroundColor: COLORS.background },
+  centered: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  statusContainer: {
+    padding: SIZES.padding,
+    minHeight: 120,
+    justifyContent: 'center',
     alignItems: 'center',
+  },
+  statusText: { ...FONTS.h3, color: COLORS.textSecondary, textAlign: 'center' },
+  title: { ...FONTS.h1, textAlign: 'center', paddingVertical: SIZES.padding },
+  topicCardWrapper: {
+    flex: 1/2, // Each item takes half the width
+    padding: SIZES.base,
+  },
+  topicCard: {
+    flex: 1,
+    padding: SIZES.padding,
+    borderRadius: SIZES.radius,
+    justifyContent: 'center',
+    alignItems: 'center',
+    minHeight: 120,
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
+  topicButtonText: {
+    ...FONTS.body,
+    color: 'white',
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginTop: SIZES.base,
   },
   disabledButton: {
     backgroundColor: '#a0a0a0',
   },
-  topicButtonText: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  centered: { flex: 1, justifyContent: 'center', alignItems: 'center' },
 });
 
 export default CompeteScreen;

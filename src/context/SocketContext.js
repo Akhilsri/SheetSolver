@@ -3,7 +3,7 @@ import io from 'socket.io-client';
 import { useAuth } from './AuthContext';
 
 // IMPORTANT: Double-check that this is your computer's correct IP address
-const SOCKET_URL = 'http://192.168.1.9:3000'; 
+const SOCKET_URL = 'http://192.168.1.4:3000'; 
 
 const SocketContext = createContext();
 
@@ -13,14 +13,18 @@ export const useSocket = () => {
 
 export const SocketProvider = ({ children }) => {
   const socket = useRef(null);
-  const { userToken } = useAuth(); // We only connect if the user is logged in
+  const { userToken,userId } = useAuth(); // We only connect if the user is logged in
 
   useEffect(() => {
     // If the user is logged in and there's no socket, create one
-    if (userToken && !socket.current) {
+    if (userToken && userId && !socket.current) {
       socket.current = io(SOCKET_URL, { transports: ['websocket'] });
+      
       socket.current.on('connect', () => {
         console.log('Global socket connected:', socket.current.id);
+        // --- ADD THIS ---
+        // After connecting, register this user with the server
+        socket.current.emit('register_user', userId);
       });
     }
 
@@ -29,7 +33,7 @@ export const SocketProvider = ({ children }) => {
       socket.current.disconnect();
       socket.current = null;
     }
-  }, [userToken]);
+  }, [userToken, userId]);
 
   return (
     <SocketContext.Provider value={socket}>
