@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { View, Text, TextInput, Button, StyleSheet, FlatList, KeyboardAvoidingView, Platform, ActivityIndicator, TouchableOpacity,ImageBackground } from 'react-native';
+import React, { useState, useEffect, useCallback } from 'react';
+import { View, Text, ImageBackground, TextInput, StyleSheet, FlatList, KeyboardAvoidingView, Platform, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { useRoute } from '@react-navigation/native';
 import { useHeaderHeight } from '@react-navigation/elements';
 import { useAuth } from '../context/AuthContext';
@@ -11,20 +11,25 @@ import { COLORS, SIZES, FONTS } from '../styles/theme';
 const DirectMessageScreen = () => {
   const route = useRoute();
   const headerHeight = useHeaderHeight();
-  const { connectionUserId, connectionUsername } = route.params; // Get the user we are chatting with
-  const { userId, username } = useAuth(); // Get the current logged-in user
+  const { connectionUserId, connectionUsername } = route.params;
+  const { userId, username, fetchUnreadMessageCount } = useAuth(); // Get the global refresh function
   const socket = useSocket();
 
   const [messages, setMessages] = useState([]);
   const [text, setText] = useState('');
   const [isLoading, setIsLoading] = useState(true);
 
-  // Effect #1: Fetches the initial chat history for this specific conversation
+  // Effect #1: Fetches history and marks messages as read
   useEffect(() => {
-    const fetchHistory = async () => {
+    const loadChat = async () => {
       try {
         setIsLoading(true);
-        // KEY DIFFERENCE: Call the new 'direct' chat history endpoint
+        // Step 1: Tell the backend to mark all messages from this user as read.
+        await apiClient.put(`/chat/direct/${connectionUserId}/read`);
+        // Step 2: Refresh the global badge count in the tab bar.
+        fetchUnreadMessageCount();
+        
+        // Step 3: Fetch the conversation history for display.
         const response = await apiClient.get(`/chat/direct/${connectionUserId}`);
         const formattedMessages = response.data.map(msg => ({
           ...msg,
@@ -32,19 +37,19 @@ const DirectMessageScreen = () => {
         }));
         setMessages(formattedMessages);
       } catch (error) {
-        console.error("Failed to fetch direct message history:", error);
+        console.error("Failed to load direct message history:", error);
       } finally {
         setIsLoading(false);
       }
     };
-    fetchHistory();
+    loadChat();
   }, [connectionUserId]);
 
   // Effect #2: Manages real-time socket events for private messages
   useEffect(() => {
     if (!socket.current) return;
 
-    // KEY DIFFERENCE: Listen for 'receive_private_message'
+    // Listen for 'receive_private_message'
     const onReceivePrivateMessage = (newMessage) => {
       // Only add the message if it's from the person we're currently chatting with
       if (newMessage.user._id === Number(connectionUserId)) {
@@ -70,7 +75,7 @@ const DirectMessageScreen = () => {
       user: { _id: Number(userId), name: username },
     };
 
-    // KEY DIFFERENCE: Emit 'send_private_message' with the recipient's ID
+    // Emit 'send_private_message' with the recipient's ID
     socket.current.emit('send_private_message', {
       senderId: userId,
       recipientId: connectionUserId,
@@ -92,7 +97,7 @@ const DirectMessageScreen = () => {
             <Text style={isMyMessage ? styles.myTimestamp : styles.theirTimestamp}>
               {new Date(item.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
             </Text>
-            {isMyMessage && <Icon name="checkmark-done-outline" size={16} color={isMyMessage ? COLORS.primaryLight : COLORS.textSecondary} style={{opacity: 0.8}}/>}
+            {isMyMessage && <Icon name="checkmark-done-outline" size={16} color={COLORS.textSecondary} style={{opacity: 0.7}}/>}
           </View>
         </View>
       </View>
@@ -137,11 +142,10 @@ const DirectMessageScreen = () => {
   );
 };
 
-// We can reuse the exact same styles from our Room Chat screen
 const styles = StyleSheet.create({
   container: { flex: 1 },
   centered: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  emptyContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', transform: [{ scaleY: -1 }] }, // Inverted for FlatList
+  emptyContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', transform: [{ scaleY: -1 }] },
   emptyText: { ...FONTS.caption, backgroundColor: '#00000020', padding: SIZES.base, borderRadius: SIZES.radius },
   messageList: { flex: 1, paddingHorizontal: SIZES.base * 2 },
   inputContainer: {

@@ -19,6 +19,7 @@ import ChatScreen from '../screens/ChatScreen';
 import GameScreen from '../screens/GameScreen';
 import EditProfileScreen from '../screens/EditProfileScreen';
 import DirectMessageScreen from '../screens/DirectMessageScreen';
+import CreateSheetScreen from '../screens/CreateSheetScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -96,6 +97,7 @@ const AppNavigator = () => {
             <Stack.Screen name="GameScreen" component={GameScreen} options={{ title: 'Competition' }} />
             <Stack.Screen name="EditProfile" component={EditProfileScreen} options={{ title: 'Edit Profile' }} />
             <Stack.Screen name="DirectMessage" component={DirectMessageScreen} options={({ route }) => ({ title: route.params.connectionUsername })} />
+            <Stack.Screen name="CreateCustomSheet" component={CreateSheetScreen} options={{ title: 'Create Custom Sheet' }} />
           </>
         )}
       </Stack.Navigator>

@@ -7,11 +7,16 @@ import { useAuth } from '../context/AuthContext'; // Assuming you have a custom 
 const EditProfileScreen = () => {
   const navigation = useNavigation();
   const [isLoading, setIsLoading] = useState(true);
+  
+  // State for all profile fields
   const [fullName, setFullName] = useState('');
   const [collegeName, setCollegeName] = useState('');
   const [course, setCourse] = useState('');
   const [graduationYear, setGraduationYear] = useState('');
   const [branch, setBranch] = useState('');
+  const [linkedinUrl, setLinkedinUrl] = useState('');
+  const [githubUrl, setGithubUrl] = useState('');
+  const [twitterUrl, setTwitterUrl] = useState('');
 
   const fetchProfile = async () => {
     try {
@@ -24,6 +29,9 @@ const EditProfileScreen = () => {
         setCourse(profile.course || '');
         setGraduationYear(profile.graduation_year?.toString() || '');
         setBranch(profile.branch || '');
+        setLinkedinUrl(profile.linkedin_url || '');
+        setGithubUrl(profile.github_url || '');
+        setTwitterUrl(profile.twitter_url || '');
       }
     } catch (error) {
       console.error('Failed to fetch profile:', error);
@@ -37,11 +45,11 @@ const EditProfileScreen = () => {
 
   const handleSave = async () => {
     const profileData = {
-      fullName,
-      collegeName,
-      course,
+      fullName, collegeName, course, branch,
       graduationYear: parseInt(graduationYear, 10) || null,
-      branch,
+      linkedin_url: linkedinUrl,
+      github_url: githubUrl,
+      twitter_url: twitterUrl,
     };
     try {
       await apiClient.put('/users/profile', profileData);
@@ -73,6 +81,15 @@ const EditProfileScreen = () => {
       
       <Text style={styles.label}>Graduation Year</Text>
       <TextInput style={styles.input} value={graduationYear} onChangeText={setGraduationYear} placeholder="e.g., 2025" keyboardType="numeric" />
+      
+      <Text style={styles.label}>LinkedIn Profile URL</Text>
+      <TextInput style={styles.input} value={linkedinUrl} onChangeText={setLinkedinUrl} placeholder="https://linkedin.com/in/your-profile" autoCapitalize="none" />
+
+      <Text style={styles.label}>GitHub Profile URL</Text>
+      <TextInput style={styles.input} value={githubUrl} onChangeText={setGithubUrl} placeholder="https://github.com/your-username" autoCapitalize="none" />
+      
+      <Text style={styles.label}>Twitter (X) Profile URL</Text>
+      <TextInput style={styles.input} value={twitterUrl} onChangeText={setTwitterUrl} placeholder="https://x.com/your-username" autoCapitalize="none" />
       
       <View style={{marginTop: 20}}>
         <Button title="Save Changes" onPress={handleSave} />

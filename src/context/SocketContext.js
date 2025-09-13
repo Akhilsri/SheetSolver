@@ -13,7 +13,7 @@ export const useSocket = () => {
 
 export const SocketProvider = ({ children }) => {
   const socket = useRef(null);
-  const { userToken,userId } = useAuth(); // We only connect if the user is logged in
+  const { userToken,userId,fetchUnreadMessageCount,fetchUnreadCount   } = useAuth(); // We only connect if the user is logged in
 
   useEffect(() => {
     // If the user is logged in and there's no socket, create one
@@ -26,6 +26,17 @@ export const SocketProvider = ({ children }) => {
         // After connecting, register this user with the server
         socket.current.emit('register_user', userId);
       });
+
+       socket.current.on('receive_private_message', () => {
+        console.log('SocketContext: Heard a new private message. Refreshing badge count.');
+        // When a new message comes in, call the function from AuthContext to get the new count
+        fetchUnreadMessageCount();
+      });
+
+      socket.current.on('disconnect', () => {
+        console.log('Global socket disconnected.');
+      });
+
     }
 
     // If the user logs out, disconnect the socket

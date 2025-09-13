@@ -1,7 +1,7 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Icon from 'react-native-vector-icons/Ionicons';
-
+import { useAuth } from '../context/AuthContext';
 import RoomsScreen from '../screens/RoomsScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import SearchScreen from '../screens/SearchScreen';
@@ -11,6 +11,7 @@ import ConnectionsScreen from '../screens/ConnectionsScreen';
 const Tab = createBottomTabNavigator();
 
 const MainTabNavigator = () => {
+   const { unreadMessageCount } = useAuth(); 
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
@@ -36,7 +37,14 @@ const MainTabNavigator = () => {
       })}
     >
       <Tab.Screen name="RoomsTab" component={RoomsScreen} options={{ title: 'Rooms' }} />
-      <Tab.Screen name="ConnectionsTab" component={ConnectionsScreen} options={{ title: 'Messages' }} />
+       <Tab.Screen 
+        name="ConnectionsTab" 
+        component={ConnectionsScreen} 
+        options={{ 
+          title: 'Messages',
+          tabBarBadge: unreadMessageCount > 0 ? unreadMessageCount : null, // <-- The Badge!
+        }} 
+      />
       <Tab.Screen name="SearchTab" component={SearchScreen} options={{ title: 'Search' }} />
       <Tab.Screen name="CompeteTab" component={CompeteScreen} options={{ title: 'Compete' }} />
       <Tab.Screen name="ProfileTab" component={ProfileScreen} options={{ title: 'Profile' }}/>

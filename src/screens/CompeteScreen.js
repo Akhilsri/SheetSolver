@@ -10,14 +10,14 @@ import { COLORS, SIZES, FONTS } from '../styles/theme';
 // --- 1. Expanded and improved list of Topic Visuals ---
 const topicVisuals = {
   'Aptitude': { icon: 'calculator-outline', color: '#17a2b8' },
-  'Arrays Part-I': { icon: 'grid-outline', color: '#ff6347' },
+  'Array': { icon: 'grid-outline', color: '#ff6347' },
   'Strings': { icon: 'text-outline', color: '#ffc107' },
   'Linked List': { icon: 'link-outline', color: '#fd7e14' },
   'Recursion': { icon: 'repeat-outline', color: '#6610f2' },
   'Bit Manipulation': { icon: 'hardware-chip-outline', color: '#20c997' },
   'Stack and Queues': { icon: 'layers-outline', color: '#6f42c1' },
   'Heaps': { icon: 'leaf-outline', color: '#28a745' },
-  'Greedy Algorithms': { icon: 'wallet-outline', color: '#17a2b8' },
+  'Greedy': { icon: 'wallet-outline', color: '#17a2b8' },
   'Binary Trees': { icon: 'git-merge-outline', color: '#28a745' },
   'Binary Search Trees': { icon: 'search-circle-outline', color: '#007BFF' },
   'Graphs': { icon: 'git-network-outline', color: '#6f42c1' },

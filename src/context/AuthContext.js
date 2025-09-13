@@ -4,16 +4,15 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import apiClient from '../api/apiClient';
 import { initializeNotifications } from '../services/notificationService';
 
-// Create the context
 const AuthContext = React.createContext();
 
-// Create a provider component
 export const AuthProvider = ({ children }) => {
   const [isLoading, setIsLoading] = useState(true);
-  const [userToken, setUserToken] = useState(null); // This will now be the accessToken
+  const [userToken, setUserToken] = useState(null); // This is the accessToken
   const [userId, setUserId] = useState(null);
-  const [unreadCount, setUnreadCount] = useState(0);
   const [username, setUsername] = useState(null);
+  const [unreadCount, setUnreadCount] = useState(0); // For general notifications
+  const [unreadMessageCount, setUnreadMessageCount] = useState(0); // For private messages
 
   const login = async (email, password) => {
     try {
@@ -27,12 +26,12 @@ export const AuthProvider = ({ children }) => {
         setUserId(decodedToken.userId);
         setUsername(decodedToken.username);
 
-        // We only need to store the tokens. The rest is derived from the token.
         await AsyncStorage.setItem('accessToken', accessToken);
         await AsyncStorage.setItem('refreshToken', refreshToken);
         
         await initializeNotifications();
         fetchUnreadCount();
+        fetchUnreadMessageCount(); // Fetch count on login
       }
     } catch (error) {
       console.error('Login failed:', error);
@@ -45,33 +44,27 @@ export const AuthProvider = ({ children }) => {
     setUserId(null);
     setUsername(null);
     setUnreadCount(0);
+    setUnreadMessageCount(0); // Reset on logout
     
-    // We only need to remove the tokens from storage
     await AsyncStorage.removeItem('accessToken');
     await AsyncStorage.removeItem('refreshToken');
   };
 
-  // --- THIS IS THE NEW, MORE ROBUST STARTUP LOGIC ---
   const isLoggedIn = async () => {
     try {
-      // 1. Only get the access token from storage.
       const accessToken = await AsyncStorage.getItem('accessToken');
-
       if (accessToken) {
-        // 2. If a token exists, decode it to get the user info.
         const decodedToken = jwtDecode(accessToken);
-        
-        // 3. Set all the user state from this single source of truth.
         setUserToken(accessToken);
         setUserId(decodedToken.userId);
         setUsername(decodedToken.username);
         
-        fetchUnreadCount(); // Fetch count on app startup if logged in
+        fetchUnreadCount();
+        fetchUnreadMessageCount(); // Fetch on startup
       }
     } catch (e) {
-      // This might happen if the token is invalid, so we clear it.
       console.log(`isLoggedIn error: ${e}. Clearing tokens.`);
-      await logout(); // Ensure a clean state if token is bad
+      await logout();
     } finally {
       setIsLoading(false);
     }
@@ -81,9 +74,15 @@ export const AuthProvider = ({ children }) => {
     try {
       const response = await apiClient.get('/notifications/unread-count');
       setUnreadCount(response.data.count);
-    } catch (error) {
-      console.error("Failed to fetch unread count:", error);
-    }
+    } catch (error) { console.error("Failed to fetch unread notification count:", error); }
+  };
+  
+  // This is the function that was missing from your context's value
+  const fetchUnreadMessageCount = async () => {
+    try {
+      const response = await apiClient.get('/chat/unread-count');
+      setUnreadMessageCount(response.data.count);
+    } catch (error) { console.error("Failed to fetch unread message count:", error); }
   };
 
   useEffect(() => {
@@ -91,7 +90,12 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ login, logout, userToken, isLoading, userId, username, unreadCount, fetchUnreadCount }}>
+    // Ensure fetchUnreadMessageCount is included in the value
+    <AuthContext.Provider value={{ 
+      login, logout, userToken, isLoading, userId, username, 
+      unreadCount, fetchUnreadCount, 
+      unreadMessageCount, fetchUnreadMessageCount 
+    }}>
       {children}
     </AuthContext.Provider>
   );
