@@ -1,9 +1,11 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, StyleSheet, SectionList, ActivityIndicator, TouchableOpacity, Button, Alert } from 'react-native';
+import { View, FlatList,Text, StyleSheet, SectionList, ActivityIndicator, TouchableOpacity, Image } from 'react-native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import apiClient from '../api/apiClient';
 import { useAuth } from '../context/AuthContext';
 import { COLORS, SIZES, FONTS } from '../styles/theme';
+import Icon from 'react-native-vector-icons/Ionicons';
+import Card from '../components/common/Card';
 
 const NotificationsScreen = () => {
   const navigation = useNavigation();
@@ -106,37 +108,57 @@ const NotificationsScreen = () => {
   };
   
   const renderItem = ({ item, section }) => {
-    if (section.title === 'Connection Requests') {
+    const iconMap = {
+        'Connection Requests': { name: 'person-add-outline', color: COLORS.primary },
+        'Pending Invitations': { name: 'enter-outline', color: COLORS.accent },
+        'Activity': { name: 'flash-outline', color: COLORS.success },
+    };
+    const sectionIcon = iconMap[section.title] || { name: 'notifications-outline', color: COLORS.textSecondary };
+
+    // --- RENDER LOGIC FOR REQUESTS (Connections & Invitations) ---
+    if (section.title === 'Connection Requests' || section.title === 'Pending Invitations') {
+      const isConnectionRequest = section.title === 'Connection Requests';
+      const text = isConnectionRequest 
+        ? <Text style={styles.notificationBody}><Text style={styles.bold}>{item.senderName}</Text> wants to connect with you.</Text>
+        : <Text style={styles.notificationBody}><Text style={styles.bold}>{item.senderName}</Text> invited you to join <Text style={styles.bold}>{item.roomName}</Text>.</Text>;
+
       return (
-        <View style={styles.invitationItem}>
-          <Text style={styles.invitationText}><Text style={{fontWeight: 'bold'}}>{item.senderName}</Text> wants to connect with you.</Text>
-          <View style={styles.buttonContainer}>
-            <Button title="Decline" onPress={() => handleDeclineConnection(item.id)} color={COLORS.danger} disabled={isResponding} />
-            <Button title="Accept" onPress={() => handleAcceptConnection(item.id)} color={COLORS.success} disabled={isResponding} />
+        <Card style={styles.card}>
+          <View style={styles.cardHeader}>
+            <Icon name={sectionIcon.name} size={20} color={sectionIcon.color} />
+            <Text style={[styles.sectionTitle, {color: sectionIcon.color}]}>{section.title}</Text>
           </View>
-        </View>
+          {text}
+          <View style={styles.buttonContainer}>
+            <TouchableOpacity 
+              style={[styles.button, styles.declineButton]} 
+              onPress={() => isConnectionRequest ? handleDeclineConnection(item.id) : handleDecline(item.id)}
+              disabled={isResponding}
+            >
+              <Text style={styles.declineButtonText}>Decline</Text>
+            </TouchableOpacity>
+            <TouchableOpacity 
+              style={[styles.button, styles.acceptButton]}
+              onPress={() => isConnectionRequest ? handleAcceptConnection(item.id) : handleAccept(item.id)}
+              disabled={isResponding}
+            >
+              <Text style={styles.acceptButtonText}>Accept</Text>
+            </TouchableOpacity>
+          </View>
+        </Card>
       );
     }
 
-    if (section.title === 'Pending Invitations') {
-      return (
-        <View style={styles.invitationItem}>
-          <Text style={styles.invitationText}><Text style={{fontWeight: 'bold'}}>{item.senderName}</Text> invited you to join <Text style={{fontWeight: 'bold'}}>{item.roomName}</Text></Text>
-          <View style={styles.buttonContainer}>
-            <Button title="Decline" onPress={() => handleDecline(item.id)} color={COLORS.danger} disabled={isResponding} />
-            <Button title="Accept" onPress={() => handleAccept(item.id)} color={COLORS.success} disabled={isResponding} />
-          </View>
-        </View>
-      );
-    }
-    
+    // --- RENDER LOGIC for general Activity ---
     if (section.title === 'Activity') {
       return (
         <TouchableOpacity onPress={() => handleNotificationPress(item)}>
-          <View style={[styles.notificationItem, !item.is_read && styles.unreadItem]}>
-            <Text style={styles.notificationTitle}>{item.title}</Text>
-            <Text style={styles.notificationBody}>{item.body}</Text>
-            <Text style={styles.notificationDate}>{new Date(item.created_at).toLocaleString()}</Text>
+          <View style={[styles.activityItem, !item.is_read && styles.unreadItem]}>
+            <Icon name={sectionIcon.name} size={24} color={sectionIcon.color} style={styles.activityIcon} />
+            <View style={styles.activityTextContainer}>
+              <Text style={styles.notificationTitle}>{item.title}</Text>
+              <Text style={styles.notificationBody}>{item.body}</Text>
+            </View>
           </View>
         </TouchableOpacity>
       );
@@ -147,30 +169,57 @@ const NotificationsScreen = () => {
   if (isLoading) { return <ActivityIndicator size="large" style={styles.centered} />; }
 
   return (
-    <SectionList
-      style={styles.container}
-      sections={sections}
-      keyExtractor={(item, index) => item.id.toString() + index}
-      renderItem={renderItem}
-      renderSectionHeader={({ section: { title } }) => <Text style={styles.sectionHeader}>{title}</Text>}
-      ListEmptyComponent={<Text style={styles.emptyText}>You have no new notifications or invites.</Text>}
-    />
+    <View style={styles.container}>
+        <FlatList
+            data={sections}
+            keyExtractor={(item, index) => item.title + index}
+            renderItem={({ item }) => (
+                <FlatList 
+                    data={item.data}
+                    keyExtractor={(subItem) => subItem.id.toString()}
+                    renderItem={({ item: subItem }) => renderItem({ item: subItem, section: item })}
+                />
+            )}
+            ListHeaderComponent={<Text style={styles.headerTitle}>Notifications</Text>}
+            ListEmptyComponent={<View style={styles.centered}><Text style={styles.emptyText}>No new notifications.</Text></View>}
+            showsVerticalScrollIndicator={false}
+        />
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
-  centered: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  container: { flex: 1, backgroundColor: COLORS.surface },
-  emptyText: { ...FONTS.caption, textAlign: 'center', marginTop: SIZES.padding * 2 },
-  sectionHeader: { ...FONTS.h2, paddingHorizontal: SIZES.padding, paddingTop: SIZES.padding, paddingBottom: SIZES.base, backgroundColor: COLORS.background },
-  invitationItem: { padding: SIZES.padding, borderBottomWidth: 1, borderBottomColor: COLORS.border },
-  invitationText: { ...FONTS.body, marginBottom: SIZES.base * 1.5 },
-  buttonContainer: { flexDirection: 'row', justifyContent: 'flex-end', gap: 10 },
-  notificationItem: { padding: SIZES.padding, borderBottomWidth: 1, borderBottomColor: COLORS.border },
+  container: { flex: 1, backgroundColor: COLORS.background },
+  centered: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingTop: SIZES.padding * 2 },
+  headerTitle: { ...FONTS.h1, margin: SIZES.padding },
+  emptyText: { ...FONTS.body, color: COLORS.textSecondary },
+  
+  card: { marginHorizontal: SIZES.padding, marginBottom: SIZES.padding, padding: SIZES.padding },
+  cardHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: SIZES.base },
+  sectionTitle: { ...FONTS.h3, marginLeft: SIZES.base, fontWeight: '600' },
+
+  notificationBody: { ...FONTS.body, color: COLORS.textSecondary, marginBottom: SIZES.padding, lineHeight: 22 },
+  bold: { fontWeight: 'bold', color: COLORS.textPrimary },
+  
+  buttonContainer: { flexDirection: 'row', justifyContent: 'flex-end', gap: SIZES.base },
+  button: { paddingVertical: SIZES.base, paddingHorizontal: SIZES.padding, borderRadius: SIZES.radius * 2 },
+  acceptButton: { backgroundColor: COLORS.success },
+  acceptButtonText: { ...FONTS.body, color: COLORS.surface, fontWeight: 'bold' },
+  declineButton: { backgroundColor: COLORS.background },
+  declineButtonText: { ...FONTS.body, color: COLORS.textSecondary, fontWeight: 'bold' },
+
+  activityItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: SIZES.padding,
+    backgroundColor: COLORS.surface,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border,
+  },
   unreadItem: { backgroundColor: COLORS.primaryLight },
-  notificationTitle: { ...FONTS.h3, color: COLORS.textPrimary, marginBottom: 4 },
-  notificationBody: { ...FONTS.body, color: COLORS.textSecondary },
-  notificationDate: { ...FONTS.caption, marginTop: SIZES.base, textAlign: 'right' },
+  activityIcon: { marginRight: SIZES.padding },
+  activityTextContainer: { flex: 1 },
+  notificationTitle: { ...FONTS.h3, color: COLORS.textPrimary },
 });
 
 export default NotificationsScreen;

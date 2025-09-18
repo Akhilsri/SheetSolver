@@ -1,22 +1,21 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, StyleSheet, FlatList, ActivityIndicator, TouchableOpacity } from 'react-native';
+import { View, Text, TextInput, StyleSheet, FlatList, ActivityIndicator, TouchableOpacity, Image } from 'react-native';
 import apiClient from '../api/apiClient';
+import { COLORS, SIZES, FONTS } from '../styles/theme';
+import Icon from 'react-native-vector-icons/Ionicons';
 
 const SearchScreen = ({ navigation }) => {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  // This useEffect hook implements the "debounce" for our live search
   useEffect(() => {
-    // If the query is empty, don't search
     if (query.trim() === '') {
       setResults([]);
       return;
     }
 
     setIsLoading(true);
-    // Set a timer. If the user types again, we'll clear this timer.
     const searchTimer = setTimeout(async () => {
       try {
         const response = await apiClient.get(`/users/search?query=${query}`);
@@ -26,32 +25,44 @@ const SearchScreen = ({ navigation }) => {
       } finally {
         setIsLoading(false);
       }
-    }, 300); // Wait 300ms after the user stops typing
+    }, 300);
 
-    // This is the cleanup function. It runs if the user types again before 300ms.
     return () => clearTimeout(searchTimer);
-  }, [query]); // This effect re-runs every time the 'query' state changes
+  }, [query]);
 
   const renderItem = ({ item }) => (
     <TouchableOpacity 
       style={styles.resultItem}
       onPress={() => navigation.navigate('UserProfile', { userId: item.id })}
     >
-      <Text style={styles.username}>{item.username}</Text>
-      <Text style={styles.details}>{item.full_name} - {item.college_name}</Text>
+      <Image
+        source={item.avatar_url ? { uri: item.avatar_url } : require('../assets/images/default_avatar.png')}
+        style={styles.avatar}
+      />
+      <View style={styles.textContainer}>
+        <Text style={styles.username}>{item.username}</Text>
+        <Text style={styles.details}>{item.full_name || 'Name not set'} - {item.college_name || 'College not set'}</Text>
+      </View>
+      <Icon name="chevron-forward-outline" size={22} color={COLORS.textSecondary} />
     </TouchableOpacity>
   );
 
   return (
     <View style={styles.container}>
-      <TextInput
-        style={styles.searchInput}
-        placeholder="Search by username, name, or college..."
-        value={query}
-        onChangeText={setQuery}
-      />
+      <View style={styles.searchContainer}>
+        <Icon name="search-outline" size={22} color={COLORS.textSecondary} style={styles.searchIcon} />
+        <TextInput
+          style={styles.searchInput}
+          placeholder="Search by username, college..."
+          placeholderTextColor={COLORS.textSecondary}
+          value={query}
+          onChangeText={setQuery}
+          autoCapitalize="none"
+        />
+      </View>
+      
       {isLoading ? (
-        <ActivityIndicator size="large" style={{ marginTop: 20 }} />
+        <ActivityIndicator size="large" color={COLORS.primary} style={{ marginTop: 20 }} />
       ) : (
         <FlatList
           data={results}
@@ -67,33 +78,51 @@ const SearchScreen = ({ navigation }) => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
+  container: { flex: 1, backgroundColor: COLORS.surface },
+  searchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.background,
+    borderRadius: SIZES.radius,
+    margin: SIZES.padding,
+    paddingHorizontal: SIZES.base,
+  },
+  searchIcon: {
+    marginHorizontal: SIZES.base,
+  },
   searchInput: {
-    height: 40,
-    borderColor: '#ddd',
-    borderWidth: 1,
-    borderRadius: 8,
-    paddingHorizontal: 15,
-    margin: 15,
-    fontSize: 16,
+    flex: 1,
+    height: 50,
+    ...FONTS.body,
   },
   resultItem: {
-    padding: 15,
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: SIZES.padding,
     borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
+    borderBottomColor: COLORS.border,
+  },
+  avatar: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+  },
+  textContainer: {
+    flex: 1,
+    marginLeft: SIZES.padding,
   },
   username: {
-    fontSize: 16,
-    fontWeight: 'bold',
+    ...FONTS.h3,
   },
   details: {
-    fontSize: 14,
-    color: 'gray',
+    ...FONTS.caption,
+    marginTop: 2,
   },
   emptyText: {
+    ...FONTS.body,
+    color: COLORS.textSecondary,
     textAlign: 'center',
-    marginTop: 50,
-    color: 'gray',
+    marginTop: SIZES.padding * 2,
   },
 });
 

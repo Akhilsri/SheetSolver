@@ -1,10 +1,12 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, StyleSheet, Button, Alert, Modal, ActivityIndicator, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, Button, Alert, Modal, ActivityIndicator, Image, Linking, TouchableOpacity, ScrollView } from 'react-native';
 import { useRoute, useFocusEffect, useNavigation } from '@react-navigation/native';
 import { Picker } from '@react-native-picker/picker';
 import apiClient from '../api/apiClient';
 import { useAuth } from '../context/AuthContext';
 import { COLORS, SIZES, FONTS } from '../styles/theme';
+import Icon from 'react-native-vector-icons/Ionicons';
+import Card from '../components/common/Card';
 
 const UserProfileScreen = () => {
   const navigation = useNavigation();
@@ -14,7 +16,7 @@ const UserProfileScreen = () => {
 
   const [profile, setProfile] = useState(null);
   const [myRooms, setMyRooms] = useState([]);
-  const [profileUserRooms, setProfileUserRooms] = useState([]); // <-- NEW: Stores the rooms the other user is in
+  const [profileUserRooms, setProfileUserRooms] = useState([]);
   const [selectedRoom, setSelectedRoom] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -25,15 +27,13 @@ const UserProfileScreen = () => {
     try {
       setIsLoading(true);
       const [profileDataRes, myRoomsRes, connStatusRes, pendingInvitesRes] = await Promise.all([
-        apiClient.get(`/users/${profileUserId}/profile`), // This now returns { profile, memberOfRoomIds }
+        apiClient.get(`/users/${profileUserId}/profile`),
         apiClient.get('/rooms'),
         apiClient.get(`/connections/status/${profileUserId}`),
         apiClient.get(`/invitations/sent-pending?recipientId=${profileUserId}`),
       ]);
-      
-      setProfile(profileDataRes.data.profile); // <-- Set profile from the nested object
-      setProfileUserRooms(profileDataRes.data.memberOfRoomIds); // <-- Set the new state
-      
+      setProfile(profileDataRes.data.profile);
+      setProfileUserRooms(profileDataRes.data.memberOfRoomIds);
       setMyRooms(myRoomsRes.data);
       setConnectionStatus(connStatusRes.data);
       setPendingInviteRoomIds(pendingInvitesRes.data);
@@ -121,7 +121,7 @@ const UserProfileScreen = () => {
   const isAlreadyMemberOfSelectedRoom = profileUserRooms.includes(selectedRoom);
 
   return (
-    <View style={styles.container}>
+    <ScrollView style={styles.container}>
       <Modal visible={modalVisible} transparent={true} animationType="slide">
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
@@ -154,26 +154,60 @@ const UserProfileScreen = () => {
         </View>
       </Modal>
 
-      <Text style={styles.username}>{profile.username}</Text>
-      <Text style={styles.detail}>{profile.full_name || 'Name not set'}</Text>
-      <Text style={styles.detail}>{profile.college_name || 'College not set'}</Text>
+       <View style={styles.header}>
+        <Image source={profile.avatar_url ? { uri: profile.avatar_url } : require('../assets/images/default_avatar.png')} style={styles.avatar} />
+        <Text style={styles.fullName}>{profile.full_name || profile.username}</Text>
+        <Text style={styles.username}>@{profile.username}</Text>
+        <View style={styles.socialsContainer}>
+          {profile.github_url && <TouchableOpacity onPress={() => Linking.openURL(profile.github_url)}><Icon name="logo-github" size={28} color={COLORS.textSecondary} /></TouchableOpacity>}
+          {profile.linkedin_url && <TouchableOpacity onPress={() => Linking.openURL(profile.linkedin_url)}><Icon name="logo-linkedin" size={28} color={COLORS.textSecondary} /></TouchableOpacity>}
+        </View>
+      </View>
+
       <View style={styles.buttonContainer}>
         {renderConnectionButton()}
         <Button title="Invite to a Room" onPress={() => setModalVisible(true)} />
       </View>
-    </View>
+
+      <Card style={{ margin: SIZES.padding }}>
+        <Text style={styles.sectionTitle}>Stats</Text>
+        <View style={styles.detailRow}><Text style={styles.detailLabel}>Current Streak:</Text><Text style={styles.detailValue}>{profile.current_streak || 0} 🔥</Text></View>
+        <View style={styles.detailRow}><Text style={styles.detailLabel}>Compete Rating:</Text><Text style={styles.detailValue}>{profile.rating || 1200}</Text></View>
+      </Card>
+    </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20, backgroundColor: '#fff' },
-  centered: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  username: { fontSize: 24, fontWeight: 'bold', marginBottom: 8, textAlign: 'center' },
-  detail: { fontSize: 16, color: 'gray', marginBottom: 4, textAlign: 'center' },
-  buttonContainer: { marginTop: 20, gap: 10 },
-  modalContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.5)' },
-  modalContent: { width: '85%', backgroundColor: 'white', borderRadius: 10, padding: 20 },
-  modalTitle: { fontSize: 18, fontWeight: 'bold', marginBottom: 15, textAlign: 'center' },
+  container: { flex: 1, backgroundColor: COLORS.background },
+    centered: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+    header: { alignItems: 'center', backgroundColor: COLORS.surface, padding: SIZES.padding, borderBottomLeftRadius: SIZES.radius, borderBottomRightRadius: SIZES.radius, elevation: 2 },
+    avatar: { width: 120, height: 120, borderRadius: 60, borderWidth: 3, borderColor: COLORS.primary, marginBottom: SIZES.base },
+    fullName: { ...FONTS.h1, marginTop: SIZES.base },
+    username: { ...FONTS.body, color: COLORS.textSecondary },
+    socialsContainer: { flexDirection: 'row', gap: SIZES.padding, marginVertical: SIZES.padding },
+    buttonContainer: { paddingHorizontal: SIZES.padding, marginTop: SIZES.padding, gap: SIZES.base },
+    sectionTitle: { ...FONTS.h3, marginBottom: SIZES.base },
+    detailRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: SIZES.base, borderTopWidth: 1, borderTopColor: COLORS.background },
+    detailLabel: { ...FONTS.body, color: COLORS.textSecondary },
+    detailValue: { ...FONTS.body, fontWeight: 'bold' },
+  modalContainer: { 
+    flex: 1, 
+    justifyContent: 'center', 
+    alignItems: 'center', 
+    backgroundColor: 'rgba(0,0,0,0.5)' // optional dim background
+  },
+  modalContent: { 
+    width: '85%', 
+    backgroundColor: 'white', 
+    borderRadius: 10, 
+    padding: 20 
+  },
+  modalTitle: { 
+    fontSize: 18, 
+    fontWeight: 'bold', 
+    marginBottom: 15, 
+    textAlign: 'center' },
 });
 
 export default UserProfileScreen;

@@ -204,9 +204,9 @@ const RoomsScreen = () => {
           <Icon name="add" size={20} color="white" />
           <Text style={styles.createBtnText}>Create New Room</Text>
         </TouchableOpacity>
-         <TouchableOpacity onPress={() => navigation.navigate('CreateCustomSheet')}>
+         {/* <TouchableOpacity onPress={() => navigation.navigate('CreateCustomSheet')}>
                     <Text style={styles.createText}>Create a Sheet from CSV</Text>
-                </TouchableOpacity>
+                </TouchableOpacity> */}
       </View>
     </SafeAreaView>
   );

@@ -46,9 +46,11 @@ const FullSheetScreen = () => {
   if (isLoading) {
     return <ActivityIndicator size="large" style={styles.centered} />;
   }
+
+  //onPress={() => Linking.openURL(item.url)}
   
   const renderItem = ({ item }) => (
-    <TouchableOpacity style={styles.itemRow} onPress={() => Linking.openURL(item.url)}>
+    <TouchableOpacity style={styles.itemRow} >
       <View style={styles.itemContent}>
         <Text style={styles.itemName}>{item.title}</Text>
         <Text style={styles.itemSubtext}>Difficulty: {item.difficulty}</Text>

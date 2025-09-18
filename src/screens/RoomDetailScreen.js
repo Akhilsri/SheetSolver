@@ -26,6 +26,8 @@ import * as roomService from '../services/roomService';
 import * as submissionService from '../services/submissionService';
 import * as sheetService from '../services/sheetService';
 import Sound from 'react-native-sound';
+import { COLORS, SIZES, FONTS } from '../styles/theme';
+import Card from '../components/common/Card';
 
 const RoomDetailScreen = ({ navigation }) => {
   // --- Hooks and State Initialization ---
@@ -138,6 +140,8 @@ const RoomDetailScreen = ({ navigation }) => {
       ),
     });
   }, [navigation, logout, roomId, roomDetails]);
+
+  
   
   // --- Permission and Handlers ---
   const requestCameraPermission = async () => {
@@ -354,6 +358,28 @@ const RoomDetailScreen = ({ navigation }) => {
     );
 };
 
+const confirmDeleteRoom = () => {
+    Alert.alert(
+        "Delete Room",
+        "Are you sure you want to permanently delete this room? This action cannot be undone.",
+        [
+            { text: "Cancel", style: "cancel" },
+            { text: "Yes, Delete", onPress: handleDeleteRoom, style: "destructive" }
+        ]
+    );
+  };
+
+  const handleDeleteRoom = async () => {
+      try {
+          await apiClient.delete(`/rooms/${roomId}`);
+          Alert.alert('Success', 'The room has been deleted.', [
+              { text: 'OK', onPress: () => navigation.navigate('RoomsTab') }
+          ]);
+      } catch (error) {
+          Alert.alert('Error', error.response?.data?.message || 'Could not delete the room.');
+      }
+  };
+
   // --- Prepare Data for SectionList ---
   const isAdmin = roomDetails && roomDetails.admin_id === Number(userId);
   const sections = [];
@@ -398,15 +424,28 @@ const RoomDetailScreen = ({ navigation }) => {
           }
 
           if (section.title.startsWith('Members')) {
+            const isRoomAdmin = Number(item.id) === Number(roomDetails.admin_id);
             return (
-              <View style={styles.itemRow}>
+          <View style={styles.itemRow}>
+            <View style={styles.nameContainer}> {/* Added a container for name and tag */}
                 <Text style={styles.itemName}>{item.username}</Text>
-                {isAdmin && Number(item.id) !== Number(roomDetails.admin_id) && (
-                  <Button title="Remove" color="red" onPress={() => confirmRemoveMember(item)} />
+                
+                {/* --- NEW: Admin Tag --- */}
+                {isRoomAdmin && (
+                    <View style={styles.adminTag}>
+                        <Text style={styles.adminTagText}> (Admin)</Text>
+                    </View>
                 )}
-              </View>
-            );
-          }
+                {/* --- END NEW --- */}
+            </View>
+
+            {/* Existing remove button logic */}
+            {isAdmin && Number(item.id) !== Number(roomDetails.admin_id) && (
+              <Button title="Remove" color={COLORS.danger} onPress={() => confirmRemoveMember(item)} />
+            )}
+          </View>
+        );
+      }
 
           if (section.title === "Today's Problems") {
             const isSolvedByMe = solvedProblemIds.includes(item.id);
@@ -416,7 +455,7 @@ const RoomDetailScreen = ({ navigation }) => {
             return (
               <View style={styles.itemRow}>
                 <View style={styles.itemContent}>
-                  <TouchableOpacity onPress={() => Linking.openURL(item.url)}>
+                  <TouchableOpacity>
                     <Text style={styles.itemName}>{item.title}</Text>
                     <Text style={styles.itemSubtext}>Topic: {item.topic} | Difficulty: {item.difficulty}</Text>
                   </TouchableOpacity>
@@ -481,7 +520,11 @@ const RoomDetailScreen = ({ navigation }) => {
                         <Button title="Leave Room" color="red" onPress={handleLeaveRoom} />
                     </View>
                 )}
-           
+           {isAdmin && (
+              <Card style={styles.actionCard}>
+                  <Button title="Delete Room" color={COLORS.danger} onPress={confirmDeleteRoom} />
+              </Card>
+            )}
           </>
         }
         ListEmptyComponent={<Text style={styles.emptyText}>Nothing to show here yet.</Text>}
@@ -501,15 +544,15 @@ const styles = StyleSheet.create({
   inviteCode: { fontSize: 16, color: 'gray', marginTop: 5 },
   sectionTitle: { fontSize: 18, fontWeight: 'bold', paddingHorizontal: 20, paddingTop: 20, paddingBottom: 10, backgroundColor: '#f5f5f5' },
   itemRow: {
-    backgroundColor: 'white',
-    paddingVertical: 15,
-    paddingHorizontal: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
+        backgroundColor: COLORS.surface,
+        paddingVertical: SIZES.padding,
+        paddingHorizontal: SIZES.padding,
+        borderBottomWidth: 1,
+        borderBottomColor: COLORS.border,
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center'
+    },
   itemContent: { flex: 1, marginRight: 10 },
   itemName: { fontSize: 16 },
   itemSubtext: { fontSize: 12, color: 'gray', marginTop: 4 },
@@ -540,7 +583,25 @@ const styles = StyleSheet.create({
     width: 80, // Fixed width to prevent layout shifts
     alignItems: 'center',
     justifyContent: 'center',
+    adminTag: {
+        marginLeft: SIZES.base, // Space between name and tag
+        paddingHorizontal: SIZES.base, // Horizontal padding inside the tag
+        paddingVertical: 2, // Vertical padding inside the tag
+        backgroundColor: COLORS.success, // Green background from your theme
+        borderRadius: SIZES.base / 2, // Slightly rounded corners
+    },
+    // NEW: Style for the text inside the "Admin" tag
+    adminTagText: {
+        ...FONTS.caption, // Using a smaller font style from your theme
+        fontSize: 10, // Explicitly set font size
+        color: COLORS.surface, // White text for contrast on green background
+        fontWeight: 'bold', // Bold text
+    },
   },
+  nameContainer: {
+        flexDirection: 'row', // Aligns name and tag horizontally
+        alignItems: 'center', // Centers them vertically
+    },
 });
 
 export default RoomDetailScreen;
