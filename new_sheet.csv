@@ -1,0 +1,376 @@
+title,problem,url,difficulty
+Arrays,Maximum and Minimum Element in an Array,,Easy
+Arrays,Reverse the Array,,Easy
+Arrays,Maximum-Subarray,,Easy
+Arrays,Contains Duplicate,,Easy
+Arrays,Chocolate Distribution Problem,,Easy
+Arrays,Search in Rotated Sorted Array,,Easy
+Arrays,Next Permutation,,Medium
+Arrays,Best time to Buy and Sell Stock,,Medium
+Arrays,Repeat and Missing Number Array,,Medium
+Arrays,Kth-Largest Element in an Array,,Medium
+Arrays,Trapping Rain Water,,Medium
+Arrays,Product of Array Except Self,,Medium
+Arrays,Maximum Product Subarray,,Medium
+Arrays,Find Minimum in Rotated Sorted Array,,Medium
+Arrays,Find Pair with Sum in Sorted & Rotated Array,,Medium
+Arrays,3Sum,,Medium
+Arrays,Container With Most Water,,Medium
+Arrays,Given Sum Pair,,Medium
+Arrays,Kth - Smallest Element,,Medium
+Arrays,Merge Overlapping Intervals,,Medium
+Arrays,Find Minimum Number of Merge Operations to Make an Array Palindrome,,Medium
+Arrays,Given an Array of Numbers Arrange the Numbers to Form the Biggest Number,,Medium
+Arrays,Space Optimization Using Bit Manipulations,,Medium
+Arrays,Subarray Sum Divisible K,,Unknown
+Arrays,Print all Possible Combinations of r Elements in a Given Array of Size n,,Unknown
+Arrays,Mo's Algorithm,,Unknown
+Strings,Valid Palindrome,,Easy
+Strings,Valid Anagram,,Easy
+Strings,Valid parentheses,,Easy
+Strings,Remove Consecutive Characters,,Easy
+Strings,Longest Common Prefix,,Easy
+Strings,Convert a Sentence into its Equivalent Mobile Numeric Keypad Sequence,,Easy
+Strings,Print all the Duplicates in the Input String,,Easy
+Strings,Longest Substring without Repeating Characters,,Medium
+Strings,Longest Repeating Character Replacement,,Medium
+Strings,Group Anagrams,,Medium
+Strings,Longest Palindromic Substring,,Medium
+Strings,Palindromic Substrings,,Medium
+Strings,Next Permutation,,Medium
+Strings,Count Palindromic Subsequences ,,Medium
+Strings,Smallest Window in a String Containing all the Characters of Another String,,Medium
+Strings,Wildcard String Matching,,Medium
+Strings,Longest Prefix Suffix,,Medium
+Strings,Rabin-Karp Algorithm for Pattern Searching,,Medium
+Strings,Transform One String to Another using Minimum Number of Given Operation,,Medium
+Strings,Minimum Window Substring,,Unknown
+Strings,Boyer Moore Algorithm for Pattern Searching,,Unknown
+Strings,Word Wrap,,Unknown
+2D Arrays,Zigzag (or diagonal) Traversal of Matrix,,Medium
+2D Arrays,Set Matrix Zeroes,,Medium
+2D Arrays,Spiral Matrix,,Medium
+2D Arrays,Rotate Image,,Medium
+2D Arrays,Word Search,,Medium
+2D Arrays,Find the Number of Islands | Set 1 (Using DFS),,Medium
+2D Arrays,"Given a Matrix of ‘O’ and ‘X’, Replace ‘O’ with ‘X’ if Surrounded by ‘X’",,Medium
+2D Arrays,Find a Common Element in all Rows of a Given Row-Wise Sorted Matrix,,Medium
+2D Arrays,Create a Matrix with Alternating Rectangles of O and X,,Medium
+2D Arrays,Maximum Size Rectangle of all 1s,,Unknown
+Searching & Sorting,Permute Two Arrays such that Sum of Every Pair is Greater or Equal to K,,Easy
+Searching & Sorting,counting sort,,Easy
+Searching & Sorting,find common elements three sorted arrays,,Easy
+Searching & Sorting,Searching in an array where adjacent differ by at most k,,Easy
+Searching & Sorting,ceiling in a sorted array,,Easy
+Searching & Sorting,Piar with given difference,,Easy
+Searching & Sorting,majority element,,Medium
+Searching & Sorting,count triplets with sum smaller that a given value,,Medium
+Searching & Sorting,Maximum Sum Subsequence with no adjacent elements,,Medium
+Searching & Sorting,Merge Sorted Arrays using O(1) Space,,Medium
+Searching & Sorting,Inversion of Array,,Medium
+Searching & Sorting,Find Duplicates in O(n) Time and O(1) Extra Space ,,Medium
+Searching & Sorting,Radix Sort,,Medium
+Searching & Sorting,Product of Array except itself,,Medium
+Searching & Sorting,Make all Array Elements Equal,,Medium
+Searching & Sorting,Check if Reversing a Sub Array Make the Array Sorted,,Medium
+Searching & Sorting,Find Four Elements that Sum to a Given Value,,Unknown
+Searching & Sorting,Median of Two Sorted Array with Different Size,,Unknown
+Searching & Sorting,Median of Stream of Integers Running Integers,,Unknown
+Searching & Sorting,Print Subarrays with 0 Sum,,Unknown
+Searching & Sorting,Aggressive Cows,,Unknown
+Searching & Sorting,Allocate Minimum number of Pages,,Unknown
+Searching & Sorting,Minimum Swaps to Sort,,Unknown
+Backtracking,Backtracking Set 2 Rat in a Maze,,Medium
+Backtracking,Combinational Sum,,Medium
+Backtracking,Crossword-Puzzle,,Medium
+Backtracking,Longest Possible Route in a Matrix with Hurdles,,Medium
+Backtracking,Printing all solutions in N-Queen Problem,,Medium
+Backtracking,Solve the Sudoku,,Medium
+Backtracking,Partition Equal Subset Sum,,Medium
+Backtracking,M Coloring Problem,,Medium
+Backtracking,Knight Tour,,Unknown
+Backtracking,Soduko,,Unknown
+Backtracking,Remove Invalid Parentheses,,Unknown
+Backtracking,Word Break Problem using Backtracking,,Unknown
+Backtracking,Print all Palindromic Partitions of a String,,Unknown
+Backtracking,Find Shortest Safe Route in a Path with Landmines,,Unknown
+Backtracking,Partition of Set into K Subsets with Equal Sum,,Unknown
+Backtracking,Backtracking set-7 hamiltonian cycle,,Unknown
+Backtracking,tug-of-war,,Unknown
+Backtracking,Maximum Possible Number by doing at most K swaps,,Unknown
+Backtracking,Backtracking set-8 solving cryptarithmetic puzzles,,Unknown
+Backtracking,Find paths from corner cell to middle cell in maze,,Unknown
+Backtracking,Arithmetic Expressions,,Unknown
+Linked List,Reverse Linked List,,Easy
+Linked List,Linked List Cycle,,Easy
+Linked List,Merge Two Sorted Lists,,Easy
+Linked List,Delete without Head node,,Easy
+Linked List,Remove duplicates from an unsorted linked list,,Easy
+Linked List,Sort a linked list of 0s-1s-or-2s,,Easy
+Linked List,Multiply two numbers represented linked lists,,Easy
+Linked List,Remove nth node from end of list,,Medium
+Linked List,Reorder List,,Medium
+Linked List,Detect and remove loop in a linked list,,Medium
+Linked List,Write a Function to get the Intersection Point of two Linked Lists,,Medium
+Linked List,Flatten a linked list with next and child pointers,,Medium
+Linked List,Linked list in zig-zag fashion,,Medium
+Linked List,Reverse a doubly linked list,,Medium
+Linked List,Delete nodes which have a greater value on right side,,Medium
+Linked List,Segregate even and odd Elements in a Linked List,,Medium
+Linked List,Point to next higher value node in a linked list with an Arbitrary Pointer,,Medium
+Linked List,Rearrange a given linked list in place,,Medium
+Linked List,Sort Biotonic Doubly Linked Lists,,Medium
+Linked List,Merge K Sorted Lists,,Unknown
+Linked List,Merge sort for linked list,,Unknown
+Linked List,Quicksort on singly-linked list,,Unknown
+Linked List,Sum of two linked lists,,Unknown
+Linked List,Flattening a linked list,,Unknown
+Linked List,Clone a linked list with next and random Pointer,,Unknown
+Linked List,Subtract two numbers represented as linked lists,,Unknown
+Stacks & Queues,Implement two stacks in an Array,,Easy
+Stacks & Queues,Evaluation of Postfix Expression,,Easy
+Stacks & Queues,Implement Stack using Queues,,Easy
+Stacks & Queues,Queue Reversal,,Easy
+Stacks & Queues,Implement Stack Queue using Deque,,Easy
+Stacks & Queues,Reverse first k elements of queue,,Easy
+Stacks & Queues,Design Stack with Middle Operation,,Medium
+Stacks & Queues,Infix to Postfix,,Medium
+Stacks & Queues,Design and Implement Special stack ,,Medium
+Stacks & Queues,Longest Valid String,,Medium
+Stacks & Queues,Find if an expression has duplicate parenthesis or not,,Medium
+Stacks & Queues,Stack permutations check if an array is stack permutation of other,,Medium
+Stacks & Queues,Count natural numbers whose permutation greater number,,Medium
+Stacks & Queues,Sort a stack using Recursion,,Medium
+Stacks & Queues,Queue based approach for first non repeating character in a stream,,Medium
+Stacks & Queues,The Celebrity Problem,,Medium
+Stacks & Queues,Next larger Element,,Medium
+Stacks & Queues,Distance of nearest cell,,Medium
+Stacks & Queues,Rotten-oranges,,Medium
+Stacks & Queues,Next smaller element,,Medium
+Stacks & Queues,Circular-tour,,Medium
+Stacks & Queues,Efficiently implement k-stacks single array,,Unknown
+Stacks & Queues,The celebrity problem,,Unknown
+Stacks & Queues,Iterative tower of hanoi,,Unknown
+Stacks & Queues,Find the maximum of minimums for every window size in a given array,,Unknown
+Stacks & Queues,lru cache implementation,,Unknown
+Stacks & Queues,Find a tour that visits all stations,,Unknown
+Greedy,Activity selection problem greedy algo,,Easy
+Greedy,Greedy algorithm to find minimum number of coins,,Easy
+Greedy,Minimum sum two numbers formed digits array-2,,Easy
+Greedy,Minimum sum absolute difference pairs two arrays,,Easy
+Greedy,Find maximum height pyramid from the given array of objects,,Easy
+Greedy,Minimum cost for acquiring all coins with k extra coins allowed with every coin,,Easy
+Greedy,Find maximum equal sum of every three stacks,,Easy
+Greedy,Job sequencing problem,,Medium
+Greedy,Greedy algorithm egyptian fraction,,Medium
+Greedy,Fractional knapsack problem,,Medium
+Greedy,Maximum length chain of pairs,,Medium
+Greedy,Find smallest number with given number of digits and digit sum,,Medium
+Greedy,Maximize sum of consecutive differences circular-array,,Medium
+Greedy,paper-cut minimum number squares,,Medium
+Greedy,Lexicographically smallest array-k consecutive swaps,,Medium
+Greedy,Problems-CHOCOLA,,Medium
+Greedy,Find minimum time to finish all jobs with given constraints,,Unknown
+Greedy,Job sequencing using disjoint set union,,Unknown
+Greedy,Rearrange characters string such that no two adjacent are same,,Unknown
+Greedy,Minimum edges to reverse to make path from a source to a destination,,Unknown
+Greedy,Minimize Cash Flow among a given set of friends who have borrowed money from each other,,Unknown
+Greedy,Minimum Cost to cut a board into squares,,Unknown
+Binary Trees, Maximum Depth of Binary Tree,,Easy
+Binary Trees,Reverse Level Order Traversal,,Easy
+Binary Trees,Subtree of Another Tree,,Easy
+Binary Trees,Invert Binary Tree,,Easy
+Binary Trees,Binary Tree Level Order Traversal,,Easy
+Binary Trees,Left View of Binary Tree,,Easy
+Binary Trees,Right View of Binary Tree,,Easy
+Binary Trees,ZigZag Tree Traversal,,Easy
+Binary Trees,Create a mirror tree from the given binary tree,,Easy
+Binary Trees,Leaf at same level,,Easy
+Binary Trees,Check for Balanced Tree,,Easy
+Binary Trees,Transform to Sum Tree,,Easy
+Binary Trees,Check if Tree is Isomorphic ,,Easy
+Binary Trees,Same Tree,,Easy
+Binary Trees,Construct Binary Tree from Preorder and Inorder Traversal,,Medium
+Binary Trees,Height of Binary Tree ,,Medium
+Binary Trees,Diameter of a Binary Tree,,Medium
+Binary Trees,Top View of Binary Tree,,Medium
+Binary Trees,Bottom View of Binary Tree ,,Medium
+Binary Trees,Diagonal Traversal of Binary Tree ,,Medium
+Binary Trees,Boundary Traversal of binary tree,,Medium
+Binary Trees,Construct Binary Tree from String with Brackets,,Medium
+Binary Trees,Minimum swap required to convert binary tree to binary search tree,,Medium
+Binary Trees,Duplicate subtree in Binary Tree,,Medium
+Binary Trees,Check if a given graph is tree or not,,Medium
+Binary Trees,Lowest Common Ancestor in a Binary Tree,,Medium
+Binary Trees,Min distance between two given nodes of a Binary Tree,,Medium
+Binary Trees,Duplicate Subtrees,,Medium
+Binary Trees,Kth ancestor of a node in binary tree,,Medium
+Binary Trees,Binary Tree Maximum Path Sum,,Unknown
+Binary Trees,Serialize and Deserialize Binary Tree,,Unknown
+Binary Trees,Binary Tree to DLL,,Unknown
+Binary Trees,Print all k-sum paths in a binary tree,,Unknown
+Binary Search Trees,Lowest Common Ancestor of a Binary Search Tree,,Easy
+Binary Search Trees,Binary Search Tree | Set 1 (Search and Insertion),,Easy
+Binary Search Trees,Minimum element in BST ,,Easy
+Binary Search Trees,Predecessor and Successor,,Easy
+Binary Search Trees,Check whether BST contains Dead End,,Easy
+Binary Search Trees,Binary Tree to BST,,Easy
+Binary Search Trees,Kth largest element in BST ,,Easy
+Binary Search Trees,Validate Binary Search Tree,,Medium
+Binary Search Trees,Kth Smallest Element in a BST,,Medium
+Binary Search Trees,Delete Node in a BST,,Medium
+Binary Search Trees,Flatten BST to sorted list,,Medium
+Binary Search Trees,Preorder to Postorder,,Medium
+Binary Search Trees,Count BST nodes that lie in a given range ,,Medium
+Binary Search Trees,Populate Inorder Successor for all Nodes,,Medium
+Binary Search Trees,Convert Normal BST to Balanced BST,,Medium
+Binary Search Trees,Merge two BSTs,,Medium
+Binary Search Trees,Given n appointments find all conflicting appointments,,Unknown
+Binary Search Trees,Replace every element,,Unknown
+Binary Search Trees,Construct BST from given preorder traversal,,Unknown
+Binary Search Trees,Find median of BST in O(n) time and O(1) space,,Unknown
+Binary Search Trees,Largest BST in a Binary Tree,,Unknown
+Heaps & Hashing,Choose k array elements such that difference of maximum and minimum is minimized,,Medium
+Heaps & Hashing,Heap Sort,,Medium
+Heaps & Hashing,Top K Frequent Elements,,Medium
+Heaps & Hashing,k largest elements in an array,,Medium
+Heaps & Hashing,Next Greater Element,,Medium
+Heaps & Hashing,Kâ€™th Smallest/Largest Element in Unsorted Array,,Medium
+Heaps & Hashing,Find the maximum repeating number in O(n) time and O(1) extra space,,Medium
+Heaps & Hashing,K-th smallest element after removing some integers from natural numbers,,Medium
+Heaps & Hashing,Find k closest elements to a given value,,Medium
+Heaps & Hashing,Kâ€™th largest element in a stream,,Medium
+Heaps & Hashing,Connect Ropes,,Medium
+Heaps & Hashing,Cuckoo Hashing,,Medium
+Heaps & Hashing,Itinerary from a List of Tickets,,Medium
+Heaps & Hashing,Largest Subarray with 0 Sum,,Medium
+Heaps & Hashing,Count distinct elements in every window of sizeÂ  k,,Medium
+Heaps & Hashing,Group Shifted Strings,,Medium
+Heaps & Hashing,Merge K Sorted lists,,Unknown
+Heaps & Hashing,Find Median from Data Stream,,Unknown
+Heaps & Hashing,Sliding Window Maximum,,Unknown
+Heaps & Hashing,Find the smallest positive number,,Unknown
+Heaps & Hashing,Find Surpasser Count of each element in array,,Unknown
+Heaps & Hashing,Tournament Tree and Binary Heap,,Unknown
+Heaps & Hashing,Check for palindrome,,Unknown
+Heaps & Hashing,Length of the largest subarray with contiguous elements,,Unknown
+Heaps & Hashing,Palindrome Substring Queries,,Unknown
+Heaps & Hashing,Subarray distinct elements,,Unknown
+Heaps & Hashing,Find the recurring function,,Unknown
+Heaps & Hashing,K maximum sum combinations from two arrays,,Unknown
+Graphs,BFS,,Easy
+Graphs,DFS,,Easy
+Graphs,Flood Fill Algorithm,,Easy
+Graphs,Number of Triangles,,Easy
+Graphs,Detect cycle in a graph,,Medium
+Graphs,Detect cycle in an undirected graph ,,Medium
+Graphs,Rat in a Maze Problem,,Medium
+Graphs,Steps by Knight,,Medium
+Graphs,Clone graph,,Medium
+Graphs,Number of Operations to Make Network Connected,,Medium
+Graphs,Dijkstraâ€™s shortest path algorithm,,Medium
+Graphs,Topological Sort,,Medium
+Graphs,Oliver and the Game,,Medium
+Graphs,Minimum time taken by each job to be completed given by a Directed Acyclic Graph,,Medium
+Graphs,Find whether it is possible to finish all tasks or not from given dependencies,,Medium
+Graphs,Find the number of islands,,Medium
+Graphs,Prim's Algo,,Medium
+Graphs,[object Object],,Medium
+Graphs,Floyd Warshall,,Medium
+Graphs,Graph Coloring,,Medium
+Graphs,Snakes and Ladders,,Medium
+Graphs,Kosaraju's Theorem,,Medium
+Graphs,Journey to moon,,Medium
+Graphs,Vertex Cover,,Medium
+Graphs,M Coloring Problem,,Medium
+Graphs,Cheapest Flights Within K Stops,,Medium
+Graphs,Find if there is a path of more than k length from a source,,Medium
+Graphs,Bellman Ford,,Medium
+Graphs,Bipartitie Graph,,Medium
+Graphs,Word-Ladder,,Unknown
+Graphs,Allen Dictionary,,Unknown
+Graphs,Kruskals MST,,Unknown
+Graphs,Total number spanning trees graph,,Unknown
+Graphs,Travelling Salesman,,Unknown
+Graphs,Find longest path directed acyclic graph ,,Unknown
+Graphs,Two Clique Problem,,Unknown
+Graphs,Minimise the cash flow,,Unknown
+Graphs,Chinese postman,,Unknown
+Graphs,Water Jug ,,Unknown
+Graphs,Water Jug 2,,Unknown
+Tries,Construct a trie from scratch,,Medium
+Tries,Print unique rows in a given boolean matrix,,Medium
+Tries,Word Break Problem | (Trie solution),,Medium
+Tries,Given a sequence of words print all anagrams together,,Medium
+Tries,Find shortest unique prefix for every word in a given list,,Unknown
+Tries,Implement a Phone Directory,,Unknown
+DP,Knapsack with Duplicate Items,,Easy
+DP,BBT counter,,Easy
+DP,Reach a given score,,Easy
+DP,Maximum difference of zeros and ones in binary string,,Easy
+DP,Climbing Stairs,,Easy
+DP,Permutation Coefficient,,Easy
+DP,Longest Repeating Subsequence,,Easy
+DP,Pairs with specific difference ,,Easy
+DP,Longest subsequence-1 ,,Easy
+DP,Coin Change,,Medium
+DP,LIS,,Medium
+DP,Longest Common Subsequence,,Medium
+DP,Word Break,,Medium
+DP,Combination Sum IV,,Medium
+DP,House Robber,,Medium
+DP,Houe Robber 2,,Medium
+DP,Decode Ways,,Medium
+DP,Unique Paths,,Medium
+DP,Jumps Game,,Medium
+DP,Knapsack Problem,,Medium
+DP,nCr,,Medium
+DP,Catalan Number,,Medium
+DP,Edit Distance,,Medium
+DP,Subset Sum ,,Medium
+DP,Gold mine,,Medium
+DP,Assembly Line Scheduling,,Medium
+DP,Maximize The Cut Segments,,Medium
+DP,Maximum sum increasing subsequence ,,Medium
+DP,Count all subsequences having product less than K,,Medium
+DP,Maximum sum increasing subsequence,,Medium
+DP,Egg dropping puzzle,,Medium
+DP,Max length chain,,Medium
+DP,Largest Square in Matrix,,Medium
+DP,Maximum Path Sum,,Medium
+DP,Minimum Number of Jumps,,Medium
+DP,Minimum removals from array to make max â€“ min <= K,,Medium
+DP,Longest Common Substring,,Medium
+DP,Partition Equal Subset Sum,,Medium
+DP,Longest Palindromic Subsequnce,,Medium
+DP,Count Palindromic Subsequences,,Medium
+DP,Longest Palindromic Substring,,Medium
+DP,Longest Alternating Sequence,,Medium
+DP,Weighted Job Scheduling,,Medium
+DP,Coin Game,,Medium
+DP,Coin Game Winner,,Medium
+DP,Optimal Strategy for a game,,Medium
+DP,Word Wrap,,Medium
+DP,Mobile numeric keypad ,,Medium
+DP,Maximum Length of Pair Chain,,Medium
+DP,Matrix Chain Multiplication,,Unknown
+DP,Maximum profit by buying and selling a share at most twice,,Unknown
+DP,Optimal BST,,Unknown
+DP,Largest Submatrix with sum 0,,Unknown
+DP,Largest area rectangular sub-matrix with equal number of 1â€™s and 0â€™s,,Unknown
+Bit Manipulation,Count set bits in an integer,,Easy
+Bit Manipulation,Find the two non-repeating elements in an array of repeating elements,,Easy
+Bit Manipulation,Program to find whether a no is power of two,,Easy
+Bit Manipulation,Find position of the only set bit,,Easy
+Bit Manipulation,Count number of bits to be flipped to convert A to B,,Easy
+Bit Manipulation,Count total set bits in all numbers from 1 to n,,Medium
+Bit Manipulation,Copy set bits in a range,,Medium
+Bit Manipulation,Calculate square of a number without using *  / and pow(),,Medium
+Bit Manipulation,"Divide two integers without using multiplication, division and mod operator",,Medium
+Bit Manipulation,Power Set,,Medium
+Segment Trees,Range Sum Query - Immutable,,Medium
+Segment Trees,Range Minimum Query,,Medium
+Segment Trees,Range Sum Query - Mutable,,Medium
+Segment Trees,Create Sorted Array through Instructions,,Unknown
+Segment Trees,Count of Range Sum,,Unknown
+Segment Trees,Count of Smaller Numbers After Self,,Unknown

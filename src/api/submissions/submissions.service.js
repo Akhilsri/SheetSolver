@@ -73,8 +73,11 @@ async function createSubmission({ userId, roomId, problemId, file, username }) {
     const notificationBody = `${username} just solved "${problem.title}"! Check out their snap.`;
     const [membersToNotify] = await connection.query('SELECT user_id FROM room_members WHERE room_id = ? AND user_id != ?', [roomId, userId]);
     if (membersToNotify.length > 0) {
-      const notificationSql = 'INSERT INTO notifications (recipient_user_id, title, body) VALUES ?';
-      const notificationValues = membersToNotify.map(member => [member.user_id, notificationTitle, notificationBody]);
+      const submissionId = result.insertId; // Get the ID of the submission we just created
+      const notificationSql = 'INSERT INTO notifications (recipient_user_id, title, body, type, related_room_id, related_submission_id) VALUES ?';
+      const notificationValues = membersToNotify.map(member => 
+        [member.user_id, notificationTitle, notificationBody, 'SUBMISSION', roomId, submissionId]
+      );
       await connection.query(notificationSql, [notificationValues]);
     }
     

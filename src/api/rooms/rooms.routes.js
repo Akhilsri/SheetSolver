@@ -29,5 +29,7 @@ router.delete('/:roomId/members/:memberId', adminAuthMiddleware, roomsController
 router.get('/:roomId/join-requests', adminAuthMiddleware, roomsController.handleGetPendingJoinRequests);
 router.put('/join-requests/:requestId/approve', adminAuthMiddleware, roomsController.handleApproveJoinRequest);
 router.put('/join-requests/:requestId/deny', adminAuthMiddleware, roomsController.handleDenyJoinRequest);
+router.delete('/:roomId/leave', authMiddleware, roomsController.handleLeaveRoom);
+router.delete('/:roomId', adminAuthMiddleware, roomsController.handleDeleteRoom);
 
 module.exports = router;

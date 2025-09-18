@@ -175,6 +175,38 @@ async function handleDenyJoinRequest(req, res) {
   }
 }
 
+async function handleLeaveRoom(req, res) {
+  try {
+    const { roomId } = req.params;
+    const userId = req.user.userId;
+    const result = await roomsService.leaveRoom(roomId, userId);
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: 'You are not a member of this room.' });
+    }
+    res.status(200).json({ message: 'You have left the room.' });
+  } catch (error) {
+    if (error.message === 'ADMIN_CANNOT_LEAVE') {
+      return res.status(400).json({ message: 'Admin cannot leave the room. You must delete it instead.' });
+    }
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+}
+
+async function handleDeleteRoom(req, res) {
+  try {
+    const { roomId } = req.params;
+    const adminId = req.user.userId; // The admin's ID comes from the token
+    const result = await roomsService.deleteRoom(roomId, adminId);
+    if (result.affectedRows === 0) {
+      // This means either the room didn't exist or the user was not the admin.
+      return res.status(404).json({ message: 'Room not found or you are not the admin.' });
+    }
+    res.status(200).json({ message: 'Room deleted successfully.' });
+  } catch (error) {
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+}
+
 module.exports = {
   handleCreateRoom,
   handleGetRooms,
@@ -186,5 +218,7 @@ module.exports = {
   handleGetLeaderboard,
   handleGetFullSheet,
    handleRemoveMember,
-   handleGetPendingJoinRequests, handleApproveJoinRequest, handleDenyJoinRequest
+   handleGetPendingJoinRequests, handleApproveJoinRequest, handleDenyJoinRequest,
+   handleLeaveRoom,
+   handleDeleteRoom
 };

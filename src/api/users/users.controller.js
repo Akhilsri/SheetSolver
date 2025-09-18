@@ -1,5 +1,23 @@
 const usersService = require('./users.service');
 
+async function searchUsersController(req, res, next) {
+  try {
+    const { query } = req.query;
+    // Assuming req.user.id is available from your authentication middleware
+    const userId = req.user.id; // <-- GET THE LOGGED-IN USER'S ID
+
+    if (!query) {
+      return res.status(200).json([]); // Return empty array if no query
+    }
+
+    // Pass userId to the service function
+    const users = await usersService.searchUsers(query, userId); // <-- PASS userId HERE
+    res.json(users);
+  } catch (error) {
+    next(error);
+  }
+}
+
 async function handleUpdateFcmToken(req, res) {
   try {
     const userId = req.user.userId;
@@ -55,11 +73,11 @@ async function handleSearchUsers(req, res) {
 async function handleGetPublicUserProfile(req, res) {
   try {
     const { userId } = req.params;
-    const profile = await usersService.getPublicUserProfile(userId);
-    if (!profile) {
+    const data = await usersService.getPublicUserProfile(userId); // The service now returns an object
+    if (!data) {
       return res.status(404).json({ message: 'User not found.' });
     }
-    res.status(200).json(profile);
+    res.status(200).json(data);
   } catch (error) {
     res.status(500).json({ message: 'Internal Server Error' });
   }
@@ -76,5 +94,26 @@ async function handleGetProgressDashboard(req, res) {
   }
 }
 
+async function handleUpdateAvatar(req, res) {
+  try {
+    console.log('--- SERVER: handleUpdateAvatar controller hit ---');
+    const userId = req.user.userId;
+    const file = req.file;
+
+    if (!file) {
+      console.log('--- SERVER: No image file was provided in the request. ---');
+      return res.status(400).json({ message: 'No image file provided.' });
+    }
+    
+    console.log('--- SERVER: File received. Calling updateAvatar service... ---');
+    const result = await usersService.updateAvatar(userId, file);
+    console.log('--- SERVER: Avatar update successful. ---');
+    res.status(200).json(result);
+  } catch (error) {
+    console.error("--- SERVER ERROR in handleUpdateAvatar:", error);
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+}
+
 // Update the exports
-module.exports = { handleUpdateFcmToken, handleGetUserProfile, handleUpdateUserProfile,handleSearchUsers,handleGetPublicUserProfile,handleGetProgressDashboard  };
+module.exports = { searchUsersController,handleUpdateFcmToken, handleGetUserProfile, handleUpdateUserProfile,handleSearchUsers,handleGetPublicUserProfile,handleGetProgressDashboard ,handleUpdateAvatar };

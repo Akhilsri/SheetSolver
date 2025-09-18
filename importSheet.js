@@ -1,18 +1,12 @@
 const fs = require('fs');
 const csv = require('csv-parser');
-const pool = require('./src/config/db'); // Use your existing DB connection
+const pool = require('./src/config/db');
 
 // --- CONFIGURE YOUR IMPORT ---
-// 1. Set the name of the CSV file you want to import.
-const CSV_FILE_PATH = './a_to_z_sheet.csv';
-
-// 2. Set the sheet_id for these problems. From your message, it's 3.
-const SHEET_ID_TO_SAVE = 1;
-
-// 3. Set the starting number for the problem order. Your last problem was 191, so we start at 192.
-const STARTING_PROBLEM_ORDER = 347;
+const CSV_FILE_PATH = './new_sheet.csv'; // Make sure this is the correct filename
+const SHEET_ID_TO_SAVE = 5;
+const STARTING_PROBLEM_ORDER = 776;
 // -----------------------------
-
 
 async function importCSV() {
   const results = [];
@@ -20,7 +14,11 @@ async function importCSV() {
   console.log(`Starting CSV import process for: ${CSV_FILE_PATH}`);
 
   fs.createReadStream(CSV_FILE_PATH)
+    // --- THIS IS THE FIX ---
+    // We remove the hardcoded headers. The library will now automatically
+    // use the first line of your CSV file as the headers.
     .pipe(csv())
+    // ---------------------
     .on('data', (data) => results.push(data))
     .on('end', async () => {
       console.log(`CSV file successfully processed. Found ${results.length} problems.`);
@@ -32,6 +30,11 @@ async function importCSV() {
         let currentProblemOrder = STARTING_PROBLEM_ORDER;
 
         for (const row of results) {
+          let problemDifficulty = row.difficulty;
+          if (problemDifficulty === 'Unknown') {
+            problemDifficulty = 'Hard';
+          }
+
           const sql = `
             INSERT INTO problems 
             (sheet_id, topic, title, url, difficulty, problem_order) 
@@ -39,17 +42,17 @@ async function importCSV() {
           `;
           
           const values = [
-            SHEET_ID_TO_SAVE, // Add the sheet_id from our config
-            row.topic,
-            row.title,
+            SHEET_ID_TO_SAVE,
+            row.title, // Mapping 'title' from CSV to 'topic' in DB
+            row.problem, // Mapping 'problem' from CSV to 'title' in DB
             row.url,
-            row.difficulty,
-            currentProblemOrder // Add the calculated problem_order
+            problemDifficulty,
+            currentProblemOrder
           ];
 
           await connection.query(sql, values);
-          console.log(`Inserted: ${row.title} (Order: ${currentProblemOrder})`);
-          currentProblemOrder++; // Increment the order for the next problem
+          console.log(`Inserted: ${row.problem} (Order: ${currentProblemOrder})`);
+          currentProblemOrder++;
         }
 
         connection.release();
@@ -66,5 +69,4 @@ async function importCSV() {
     });
 }
 
-// Run the function
 importCSV();

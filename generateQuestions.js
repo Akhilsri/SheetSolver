@@ -7,7 +7,7 @@ const API_KEY = process.env.GEMINI_API_KEY;
 const MODEL_NAME = 'gemini-1.5-flash-latest';
 
 // --- CUSTOMIZE YOUR REQUEST ---
-const TOPIC_TO_GENERATE = 'Linked List';
+const TOPIC_TO_GENERATE = 'Stack and Queues';
 const DIFFICULTY = 'easy';
 const NUMBER_OF_QUESTIONS = 50;
 

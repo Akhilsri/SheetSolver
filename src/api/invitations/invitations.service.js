@@ -14,10 +14,10 @@ async function createInvitation(senderId, recipientId, roomId) {
     const sql = 'INSERT INTO room_invitations (sender_id, recipient_id, room_id) VALUES (?, ?, ?)';
     const [result] = await connection.query(sql, [senderId, recipientId, roomId]);
     
-    await connection.query(
-      'INSERT INTO notifications (recipient_user_id, title, body) VALUES (?, ?, ?)',
-      [recipientId, notificationTitle, notificationBody]
-    );
+    await pool.query(
+    'INSERT INTO notifications (recipient_user_id, title, body, type, related_room_id) VALUES (?, ?, ?, ?, ?)',
+    [recipientId, notificationTitle, notificationBody, 'INVITATION', roomId]
+  );
 
     await connection.commit();
     return result;

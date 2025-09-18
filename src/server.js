@@ -11,13 +11,22 @@ const server = http.createServer(app);
 const io = new Server(server, { cors: { origin: "*", methods: ["GET", "POST"] } });
 
 // --- Matchmaking queues ---
-const waitingQueues = {
-  'Arrays Part-I': [],
-  'Graphs': [],
-  'Binary Tree Part-I': [],
-  'Dynamic Programming': [],
-  'Mixed': []
-};
+const waitingQueues = {};
+
+async function initializeWaitingQueues() {
+  try {
+    const [results] = await pool.query('SELECT DISTINCT topic FROM quiz_questions');
+    const topics = results.map(r => r.topic);
+    topics.forEach(topic => {
+      waitingQueues[topic] = [];
+    });
+    console.log('✅ Matchmaking queues initialized for topics:', Object.keys(waitingQueues));
+  } catch (error) {
+    console.error('Failed to initialize matchmaking queues:', error);
+  }
+}
+
+initializeWaitingQueues(); // Run the function on server startup
 
 // --- Active games state ---
 const gameStates = {};
@@ -146,7 +155,32 @@ io.on('connection', (socket) => {
       }
     }
   });
+
+  socket.on('register_user', (userId) => {
+    const userRoom = `user-${userId}`;
+    socket.join(userRoom);
+    console.log(`User ${socket.id} (User ID: ${userId}) has registered and joined their private room: ${userRoom}`);
+  });
+
+  // When a user sends a private message
+  socket.on('send_private_message', async (data) => {
+    const { senderId, recipientId, messageText, ...messageData } = data;
+    const recipientRoom = `user-${recipientId}`;
+
+    try {
+      // 1. Save the message to the database
+      const sql = 'INSERT INTO direct_messages (sender_id, recipient_id, message_text) VALUES (?, ?, ?)';
+      await pool.query(sql, [senderId, recipientId, messageText]);
+
+      // 2. Emit the message ONLY to the recipient's private room
+      io.to(recipientRoom).emit('receive_private_message', messageData);
+      console.log(`Message sent from ${senderId} to ${recipientId}`);
+    } catch (error) {
+      console.error('Error in send_private_message:', error);
+    }
+  });
 });
+ 
 
 // --- Game Functions ---
 async function startGame(gameId) {

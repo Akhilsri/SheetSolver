@@ -245,6 +245,26 @@ async function denyJoinRequest(requestId) {
   return { message: 'Join request denied.' };
 }
 
+async function leaveRoom(roomId, userId) {
+  // First, check if the user is the admin
+  const [rooms] = await pool.query('SELECT admin_id FROM rooms WHERE id = ?', [roomId]);
+  if (rooms.length > 0 && rooms[0].admin_id === userId) {
+    throw new Error('ADMIN_CANNOT_LEAVE');
+  }
+
+  // If not the admin, delete them from the room_members table
+  const sql = 'DELETE FROM room_members WHERE room_id = ? AND user_id = ?';
+  const [result] = await pool.query(sql, [roomId, userId]);
+  return result;
+}
+
+async function deleteRoom(roomId, adminId) {
+  // The WHERE clause ensures that only the admin of the room can delete it.
+  const sql = 'DELETE FROM rooms WHERE id = ? AND admin_id = ?';
+  const [result] = await pool.query(sql, [roomId, adminId]);
+  return result;
+}
+
 module.exports = {
   createRoom,
   getRoomsForUser,
@@ -256,5 +276,7 @@ module.exports = {
   getLeaderboard,
   getFullSheetForUser,
   removeMember,
-  getPendingJoinRequests, approveJoinRequest, denyJoinRequest 
+  getPendingJoinRequests, approveJoinRequest, denyJoinRequest,
+  leaveRoom,
+  deleteRoom
 };

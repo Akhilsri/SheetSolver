@@ -1,8 +1,9 @@
 const pool = require('../../config/db');
 
 async function getNotificationsForUser(userId) {
+  // Add the new columns to the SELECT statement
   const sql = `
-    SELECT id, title, body, is_read, created_at 
+    SELECT id, title, body, is_read, created_at, type, related_room_id, related_submission_id 
     FROM notifications 
     WHERE recipient_user_id = ? 
     ORDER BY created_at DESC
