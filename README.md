@@ -1,97 +1,99 @@
-This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
+# SheetSolver - Collaborative DSA Platform 🚀
 
-# Getting Started
+<p align="center">
+  <img src="https://i.imgur.com/your-app-screenshot-url.png" alt="SheetSolver App Screenshot" width="600"/>
+  <br>
+  <i>An end-to-end mobile application that transforms solitary DSA practice into a collaborative, competitive, and engaging team sport.</i>
+</p>
 
-> **Note**: Make sure you have completed the [Set Up Your Environment](https://reactnative.dev/docs/set-up-your-environment) guide before proceeding.
+## Table of Contents
 
-## Step 1: Start Metro
+- [Introduction](#introduction)
+- [Gallery](#gallery)
+- [Features](#features)
+- [Tech Stack](#tech-stack)
+- [System Architecture](#system-architecture)
+- [Setup & Installation](#setup--installation)
+- [Key Achievements & Learnings](#key-achievements--learnings)
+- [Future Enhancements](#future-enhancements)
 
-First, you will need to run **Metro**, the JavaScript build tool for React Native.
+---
 
-To start the Metro dev server, run the following command from the root of your React Native project:
+## Introduction
 
-```sh
-# Using npm
-npm start
+SheetSolver is a full-stack, real-time mobile application designed to revolutionize how students and SDE aspirants approach Data Structures & Algorithms (DSA) preparation. Moving beyond isolated problem-solving, SheetSolver fosters a collaborative environment where users can form study rooms, tackle popular DSA sheets together, compete in real-time challenges, and hold each other accountable.
 
-# OR using Yarn
-yarn start
-```
+The core vision is to combat the procrastination and lack of motivation inherent in solo self-study by leveraging social interaction, gamification, and structured learning paths.
 
-## Step 2: Build and run your app
+## Gallery
 
-With Metro running, open a new terminal window/pane from the root of your React Native project, and use one of the following commands to build and run your Android or iOS app:
+| Profile Dashboard | Compete Mode | Room Details |
+| :---: | :---: | :---: |
+| <img src="URL_to_your_screenshot" width="200"/> | <img src="URL_to_your_screenshot" width="200"/> | <img src="URL_to_your_screenshot" width="200"/> |
 
-### Android
+*(**Note:** You can upload your screenshots like [this one]() to a site like Imgur and place the URLs in the `src` attribute above.)*
 
-```sh
-# Using npm
-npm run android
+## Features
 
-# OR using Yarn
-yarn android
-```
+### **Real-time Collaboration & Competition**
+- **Collaborative Rooms:** Create private, admin-controlled rooms for specific DSA sheets.
+- **"Compete" Mode:** Engage in live, 1-on-1 competitive quizzes with random matchmaking, timed questions, and a persistent ELO rating system.
+- **Chat & Messaging:** Integrated real-time chat for both rooms and 1-on-1 private conversations between connected users.
 
-### iOS
+### **Gamification & Accountability**
+- **Personalized Dashboard:** A polished dashboard showcasing a user's streaks, active journeys, and a GitHub-style activity calendar.
+- **Streaks & Leaderboards:** Maintain a daily solving streak (🔥) and compete with room members on a real-time leaderboard.
+- **"Proof of Solve":** A unique accountability feature where users upload a photo of their solved problem, which is visible to teammates for 24 hours.
 
-For iOS, remember to install CocoaPods dependencies (this only needs to be run on first clone or after updating native deps).
+### **Content & Social Features**
+- **User-Generated Content:** Users can create and upload their own custom DSA sheets via CSV, making the platform infinitely scalable.
+- **AI-Powered Quizzes:** Leverages the Google Gemini API to dynamically generate an endless supply of unique quiz questions for the "Compete" mode.
+- **Social Networking:** A full social layer with searchable user profiles, a friend/connection system with requests and approvals, and social link sharing.
+- **Notification System:** A comprehensive notification center with unread badges and real-time push notifications via Firebase for all social events.
 
-The first time you create a new project, run the Ruby bundler to install CocoaPods itself:
+## Tech Stack
 
-```sh
-bundle install
-```
+SheetSolver leverages a robust and modern technology stack to deliver a scalable and responsive user experience.
 
-Then, and every time you update your native dependencies, run:
+-   **Frontend:** React Native CLI, React Navigation, Axios, Socket.IO Client
+-   **Backend:** Node.js, Express.js, Socket.IO, JWT
+-   **Database & Cache:** MySQL, Redis (Upstash)
+-   **Cloud & APIs:** Firebase (FCM), Cloudinary, Google Gemini API
+-   **Tools:** Git, Postman, VS Code, Docker
 
-```sh
-bundle exec pod install
-```
+## System Architecture
 
-For more information, please visit [CocoaPods Getting Started guide](https://guides.cocoapods.org/using/getting-started.html).
+The application is built on a professional three-tier architecture with a dedicated real-time layer and multiple integrated cloud services for scalability and performance.
+`Mobile App (React Native) <--> Real-time Server (Node.js/Socket.IO) <--> Database & Cache (MySQL/Redis) <--> Cloud Services`
 
-```sh
-# Using npm
-npm run ios
+## Setup & Installation
 
-# OR using Yarn
-yarn ios
-```
+*(This is a template; you would fill in the details for your specific repository)*
 
-If everything is set up correctly, you should see your new app running in the Android Emulator, iOS Simulator, or your connected device.
+1.  **Clone the repository:** `git clone ...`
+2.  **Backend Setup:**
+    - `cd backend`
+    - `npm install`
+    - Set up your `.env` file with credentials for MySQL, Cloudinary, Firebase, Redis, and Gemini.
+    - `npm start`
+3.  **Frontend Setup:**
+    - `cd frontend`
+    - `npm install`
+    - Set up your `.env` file with the backend server URL.
+    - `npx react-native run-android` or `npx react-native run-ios`
 
-This is one way to run your app — you can also build it directly from Android Studio or Xcode.
+## Key Achievements & Learnings
 
-## Step 3: Modify your app
+-   **Full-Stack Development:** Architected and developed a complete full-stack application from concept to a polished, functional product as the sole developer.
+-   **Real-time Systems:** Mastered Socket.IO for building complex, low-latency, real-time features like live chat and a server-authoritative competitive game mode.
+-   **Professional Authentication:** Implemented an industry-standard JWT authentication system with Access and Refresh tokens for seamless and secure user sessions.
+-   **Performance Optimization:** Applied advanced caching strategies with Redis to significantly reduce database load and improve API response times for data-heavy screens like leaderboards and dashboards.
+-   **Complex Bug Resolution:** Successfully diagnosed and resolved a wide range of real-world development challenges, including:
+    -   Native Android build failures (Manifest Merging, `reanimated` worklets).
+    -   Tricky server-side API errors (`404 Not Found`, `403 Forbidden`).
+    -   Frontend state management and race condition bugs leading to `undefined` data in the UI.
 
-Now that you have successfully run the app, let's make changes!
-
-Open `App.tsx` in your text editor of choice and make some changes. When you save, your app will automatically update and reflect these changes — this is powered by [Fast Refresh](https://reactnative.dev/docs/fast-refresh).
-
-When you want to forcefully reload, for example to reset the state of your app, you can perform a full reload:
-
-- **Android**: Press the <kbd>R</kbd> key twice or select **"Reload"** from the **Dev Menu**, accessed via <kbd>Ctrl</kbd> + <kbd>M</kbd> (Windows/Linux) or <kbd>Cmd ⌘</kbd> + <kbd>M</kbd> (macOS).
-- **iOS**: Press <kbd>R</kbd> in iOS Simulator.
-
-## Congratulations! :tada:
-
-You've successfully run and modified your React Native App. :partying_face:
-
-### Now what?
-
-- If you want to add this new React Native code to an existing application, check out the [Integration guide](https://reactnative.dev/docs/integration-with-existing-apps).
-- If you're curious to learn more about React Native, check out the [docs](https://reactnative.dev/docs/getting-started).
-
-# Troubleshooting
-
-If you're having issues getting the above steps to work, see the [Troubleshooting](https://reactnative.dev/docs/troubleshooting) page.
-
-# Learn More
-
-To learn more about React Native, take a look at the following resources:
-
-- [React Native Website](https://reactnative.dev) - learn more about React Native.
-- [Getting Started](https://reactnative.dev/docs/environment-setup) - an **overview** of React Native and how setup your environment.
-- [Learn the Basics](https://reactnative.dev/docs/getting-started) - a **guided tour** of the React Native **basics**.
-- [Blog](https://reactnative.dev/blog) - read the latest official React Native **Blog** posts.
-- [`@facebook/react-native`](https://github.com/facebook/react-native) - the Open Source; GitHub **repository** for React Native.
+## Future Enhancements
+-   Implement a "Share to Social Media" feature for achievements and game results.
+-   Develop public/private profile settings.
+-   Deploy the application to the Google Play Store and Apple App Store.
