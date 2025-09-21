@@ -1,0 +1,298 @@
+topic,problem name,url,difficulty
+Array,Reverse the array,https://www.geeksforgeeks.org/write-a-program-to-reverse-an-array-or-string/,Easy
+Array,Maximum and minimum of an array using minimum number of comparisons,https://www.geeksforgeeks.org/maximum-and-minimum-of-an-array-using-minimum-number-of-comparisons/,Easy
+Array,Find the "Kth" max and min element of an array,https://www.geeksforgeeks.org/kth-smallest-element-in-an-unsorted-array/,Medium
+Array,Sort an array of 0s, 1s and 2s,https://www.geeksforgeeks.org/sort-an-array-of-0s-1s-and-2s/,Medium
+Array,Move all the negative elements to one side of the array,https://www.geeksforgeeks.org/move-all-negative-elements-to-end-of-array-without-changing-order-of-positive-elements/,Easy
+Array,Find the Union and Intersection of the two sorted arrays,https://www.geeksforgeeks.org/find-union-and-intersection-of-two-unsorted-arrays/,Easy
+Matrix,Spiral traversal on a Matrix,https://www.geeksforgeeks.org/print-a-given-matrix-in-spiral-form/,Medium
+Matrix,Search an element in a matrix,https://www.geeksforgeeks.org/search-in-row-wise-and-column-wise-sorted-matrix/,Easy
+String,Reverse a String,https://www.geeksforgeeks.org/reverse-a-string-in-c-cpp/,Easy
+String,Check whether a String is a palindrome or not,https://www.geeksforgeeks.org/c-program-check-given-string-palindrome/,Easy
+String,Find Duplicate characters in a string,https://www.geeksforgeeks.org/print-all-the-duplicates-in-the-input-string/,Medium
+Searching & Sorting,Find first and last occurrences of an element in a sorted array,https://www.geeksforgeeks.org/find-first-and-last-position-of-an-element-in-a-sorted-array/,Medium
+Searching & Sorting,Find a fixed point (value equal to index) in a given array,https://www.geeksforgeeks.org/find-a-fixed-point-in-a-given-array/,Easy
+Searching & Sorting,Search in a rotated sorted array,https://www.geeksforgeeks.org/search-an-element-in-a-sorted-and-pivoted-array/,Medium
+Linked List,Reverse a Linked List,https://www.geeksforgeeks.org/reverse-a-linked-list-in-groups-of-given-size/,Easy
+Linked List,Detect loop in a linked list,https://www.geeksforgeeks.org/detect-loop-in-a-linked-list/,Easy
+Linked List,Remove loop in a linked list,https://www.geeksforgeeks.org/remove-loop-in-a-linked-list/,Medium
+Stack & Queue,Implement stack using array,https://www.geeksforgeeks.org/stack-data-structure-introduction-and-implementation/,Easy
+Stack & Queue,Implement queue using array,https://www.geeksforgeeks.org/queue-data-structure-introduction-and-array-implementation/,Easy
+Stack & Queue,Implement N Stacks In An Array,https://www.geeksforgeeks.org/implement-n-stacks-in-a-single-array-in-o1-time-and-o1-space/,Medium
+Binary Tree,Find the maximum height of the tree,https://www.geeksforgeeks.org/write-a-c-program-to-find-the-maximum-depth-or-height-of-a-tree/,Easy
+Binary Tree,Level order traversal,https://www.geeksforgeeks.org/level-order-tree-traversal/,Easy
+Binary Tree,Diameter of a tree,https://www.geeksforgeeks.org/diameter-of-a-binary-tree/,Medium
+Binary Search Tree,Find a value in a BST,https://www.geeksforgeeks.org/search-a-node-in-binary-search-tree-bst/,Easy
+Binary Search Tree,Find min and max value in a BST,https://www.geeksforgeeks.org/find-minimum-and-maximum-value-in-a-binary-search-tree/,Easy
+Binary Search Tree,Construct BST from a given preorder traversal,https://www.geeksforgeeks.org/construct-bst-from-given-preorder-traversal/,Medium
+Graph,BFS of a graph,https://www.geeksforgeeks.org/breadth-first-search-or-bfs-for-a-graph/,Easy
+Graph,DFS of a graph,https://www.geeksforgeeks.org/depth-first-search-or-dfs-for-a-graph/,Easy
+Graph,Detect cycle in a directed graph,https://www.geeksforgeeks.org/detect-cycle-in-a-directed-graph/,Medium
+topic,problem_name,url,difficulty
+Array,Reverse the array,https://www.geeksforgeeks.org/write-a-program-to-reverse-an-array-or-string/,Easy
+Array,Find the maximum and minimum element in an array,https://www.geeksforgeeks.org/maximum-and-minimum-element-in-an-array/,Easy
+Array,Find the "Kth" max and min element of an array,https://www.geeksforgeeks.org/kth-smallest-element-in-a-row-wise-and-column-wise-sorted-matrix/,Medium
+Array,Given an array which consists of only 0, 1 and 2. Sort the array without using any sorting algo,https://www.geeksforgeeks.org/sort-an-array-of-0s-1s-and-2s/,Medium
+Array,Move all the negative elements to one side of the array,https://www.geeksforgeeks.org/move-all-negative-numbers-to-beginning-and-positive-to-end-with-constant-extra-space/,Easy
+Array,Find the Union and Intersection of the two sorted arrays,https://www.geeksforgeeks.org/find-union-and-intersection-of-two-unsorted-arrays/,Easy
+Array,Cyclically rotate an array by one,https://www.geeksforgeeks.org/c-program-cyclically-rotate-an-array-by-one/,Easy
+Array,Kadane's Algorithm,https://www.geeksforgeeks.org/largest-sum-contiguous-subarray/,Medium
+Array,Minimum number of jumps to reach the end of an array,https://www.geeksforgeeks.org/minimum-number-of-jumps-to-reach-end-of-a-given-array/,Medium
+Array,Find the duplicate number in an array of N+1 integers,https://www.geeksforgeeks.org/find-the-duplicate-number-in-a-given-array-of-n1-elements/,Medium
+Array,Merge two sorted arrays without using extra space,https://www.geeksforgeeks.org/merge-two-sorted-arrays-with-o1-extra-space/,Medium
+Array,Inversion of array,https://www.geeksforgeeks.org/count-inversions-in-an-array-set-1-using-merge-sort/,Medium
+Array,Best time to buy and sell stock,https://www.geeksforgeeks.org/stock-buy-sell-problem/,Easy
+Array,Find the median of two sorted arrays of different sizes,https://www.geeksforgeeks.org/median-of-two-sorted-arrays-of-different-sizes/,Hard
+Array,Find common elements in three sorted arrays,https://www.geeksforgeeks.org/find-common-elements-three-sorted-arrays/,Easy
+Array,Rearrange array in alternating positive & negative items with O(1) extra space,https://www.geeksforgeeks.org/rearrange-array-alternating-positive-negative-items-o1-extra-space/,Medium
+Array,Subarray with 0 sum,https://www.geeksforgeeks.org/find-if-there-is-a-subarray-with-0-sum/,Easy
+Array,Find factorial of a large number,https://www.geeksforgeeks.org/factorial-of-a-large-number-using-dynamic-programming/,Medium
+Array,Maximum product subarray,https://www.geeksforgeeks.org/maximum-product-subarray/,Medium
+Array,Longest consecutive subsequence,https://www.geeksforgeeks.org/longest-consecutive-subsequence/,Medium
+Array,Count pairs with given sum,https://www.geeksforgeeks.org/count-pairs-with-given-sum/,Easy
+Array,Find whether an array is a subset of another array,https://www.geeksforgeeks.org/find-whether-an-array-is-subset-of-another-array-set-1/,Easy
+Array,Find the triplet that sum to a given value,https://www.geeksforgeeks.org/find-triplets-with-zero-sum/,Medium
+Array,Trapping rainwater problem,https://www.geeksforgeeks.org/trapping-rain-water/,Hard
+Array,Chocolate Distribution Problem,https://www.geeksforgeeks.org/chocolate-distribution-problem/,Easy
+Array,Smallest subarray with sum greater than a given value,https://www.geeksforgeeks.org/smallest-subarray-with-sum-greater-than-a-given-value/,Medium
+Array,Three way partitioning of an array around a given range,https://www.geeksforgeeks.org/three-way-partitioning-of-an-array-around-a-given-range/,Medium
+Array,Minimum swaps required to bring all elements less than or equal to k together,https://www.geeksforgeeks.org/minimum-swaps-required-to-bring-all-elements-less-than-or-equal-to-k-together/,Easy
+Array,Minimum number of operations to make an array palindromic,https://www.geeksforgeeks.org/minimum-number-of-operations-to-make-an-array-palindromic/,Medium
+Array,Find subarray with given sum (negative numbers allowed),https://www.geeksforgeeks.org/find-subarray-with-given-sum-in-an-array-of-integers-including-negative-numbers/,Medium
+Matrix,Spiral traversal of a matrix,https://www.geeksforgeeks.org/print-a-given-matrix-in-spiral-form/,Easy
+Matrix,Search an element in a sorted matrix,https://www.geeksforgeeks.org/search-in-a-row-wise-and-column-wise-sorted-matrix/,Medium
+Matrix,Find median in a row-wise sorted matrix,https://www.geeksforgeeks.org/find-median-row-wise-sorted-matrix/,Medium
+Matrix,Row with maximum number of 1s,https://www.geeksforgeeks.org/find-the-row-with-maximum-number-of-1s/,Easy
+Matrix,Print matrix in snake pattern,https://www.geeksforgeeks.org/print-matrix-in-snake-pattern/,Easy
+Matrix,Rotate matrix by 90 degrees,https://www.geeksforgeeks.org/rotate-a-matrix-by-90-degree-in-clockwise-direction-without-using-extra-space/,Medium
+Matrix,Kth element in a matrix,https://www.geeksforgeeks.org/find-kth-smallest-element-in-a-sorted-matrix/,Medium
+Matrix,Common elements in all rows of a given matrix,https://www.geeksforgeeks.org/find-common-elements-in-all-rows-of-a-given-matrix/,Medium
+String,Reverse a String,https://www.geeksforgeeks.org/write-a-program-to-reverse-a-string/,Easy
+String,Check whether a String is a Palindrome or not,https://www.geeksforgeeks.org/c-program-to-check-if-a-string-is-palindrome-or-not/,Easy
+String,Find Duplicate characters in a string,https://www.geeksforgeeks.org/print-all-the-duplicates-in-the-input-string/,Easy
+String,Why strings are immutable in Java?,https://www.geeksforgeeks.org/string-is-immutable-in-java/,Concept
+String,Count and Say problem,https://www.geeksforgeeks.org/count-and-say-problem/,Easy
+String,Longest Palindromic Substring,https://www.geeksforgeeks.org/longest-palindromic-substring-set-2/,Medium
+String,Longest Repeated Subsequence,https://www.geeksforgeeks.org/longest-repeating-subsequence-dp-26/,Medium
+String,Print all Subsequences of a string,https://www.geeksforgeeks.org/print-all-subsequences-of-a-string/,Easy
+String,Print all the permutations of the given string,https://www.geeksforgeeks.org/write-a-c-program-to-print-all-permutations-of-a-given-string/,Medium
+String,Find the length of the longest valid substring,https://www.geeksforgeeks.org/length-of-the-longest-valid-substring/,Hard
+String,Find the first non-repeating character in a stream of characters,https://www.geeksforgeeks.org/find-first-non-repeating-character-stream-characters/,Medium
+String,Roman Number to Integer,https://www.geeksforgeeks.org/converting-roman-numerals-to-integer-in-java/,Easy
+String,Integer to Roman,https://www.geeksforgeeks.org/convert-integer-to-roman-numerals/,Medium
+Searching & Sorting,Find first and last occurrences of an element in a sorted array,https://www.geeksforgeeks.org/find-first-and-last-occurrence-of-an-element-in-a-sorted-array/,Easy
+Searching & Sorting,Find a fixed point in a given array,https://www.geeksforgeeks.org/find-a-fixed-point-in-a-given-array/,Easy
+Searching & Sorting,Search in a rotated sorted array,https://www.geeksforgeeks.org/search-an-element-in-a-sorted-and-pivoted-array/,Medium
+Searching & Sorting,Square root of an integer,https://www.geeksforgeeks.org/square-root-of-an-integer/,Easy
+Searching & Sorting,Maximum and minimum of an array using minimum number of comparisons,https://www.geeksforgeeks.org/maximum-and-minimum-in-an-array-using-minimum-number-of-comparisons/,Easy
+Searching & Sorting,Find a pair with a given sum in a sorted array,https://www.geeksforgeeks.org/find-a-pair-with-the-given-sum-in-an-array/,Easy
+Searching & Sorting,Majority element,https://www.geeksforgeeks.org/majority-element/,Easy
+Searching & Sorting,Number of times a sorted array is rotated,https://www.geeksforgeeks.org/find-rotation-count-rotated-sorted-array/,Easy
+Searching & Sorting,Count only repeated elements in an array with given constraints,https://www.geeksforgeeks.org/find-the-first-repeated-character-in-a-string/,Easy
+Searching & Sorting,Find a peak element,https://www.geeksforgeeks.org/find-a-peak-element-in-a-given-array/,Easy
+Searching & Sorting,Find pivot element in a rotated sorted array,https://www.geeksforgeeks.org/find-pivot-element-sorted-rotated-array/,Easy
+Searching & Sorting,Find a triplet with zero sum,https://www.geeksforgeeks.org/find-triplets-with-zero-sum/,Medium
+Searching & Sorting,Product array puzzle,https://www.geeksforgeeks.org/product-array-puzzle-2/,Medium
+Searching & Sorting,Sort array in wave form,https://www.geeksforgeeks.org/sort-an-array-in-wave-form-2/,Easy
+Searching & Sorting,Smallest positive missing number,https://www.geeksforgeeks.org/find-the-smallest-positive-missing-number-in-an-unsorted-array/,Medium
+Searching & Sorting,Kadane's algorithm,https://www.geeksforgeeks.org/largest-sum-contiguous-subarray/,Medium
+Linked List,Reverse a linked list,https://www.geeksforgeeks.org/reverse-a-linked-list-in-groups-of-given-size-k-set-2-recursive-approach/,Easy
+Linked List,Detect loop in a linked list,https://www.geeksforgeeks.org/detect-loop-in-a-linked-list/,Easy
+Linked List,Find the middle element of a linked list,https://www.geeksforgeeks.org/write-a-c-function-to-print-the-middle-of-the-linked-list/,Easy
+Linked List,Remove duplicates from a sorted linked list,https://www.geeksforgeeks.org/remove-duplicates-from-sorted-linked-list/,Easy
+Linked List,Remove duplicates from an unsorted linked list,https://www.geeksforgeeks.org/remove-duplicates-from-an-unsorted-linked-list/,Easy
+Linked List,Move last element to front of a given linked list,https://www.geeksforgeeks.org/move-last-element-to-front-of-a-given-linked-list/,Easy
+Linked List,Add two numbers represented by linked lists,https://www.geeksforgeeks.org/add-two-numbers-represented-by-linked-lists/,Medium
+Linked List,Intersection point of two linked lists,https://www.geeksforgeeks.org/write-a-function-to-get-the-intersection-point-of-two-linked-lists/,Easy
+Linked List,Merge two sorted linked lists,https://www.geeksforgeeks.org/merge-two-sorted-linked-lists/,Easy
+Linked List,Merge k sorted linked lists,https://www.geeksforgeeks.org/merge-k-sorted-linked-lists/,Hard
+Linked List,Flatten a multilevel linked list,https://www.geeksforgeeks.org/flatten-a-multi-level-linked-list/,Medium
+Linked List,Sort a linked list of 0s, 1s and 2s,https://www.geeksforgeeks.org/sort-a-linked-list-of-0s-1s-and-2s/,Medium
+Linked List,Quick sort on linked list,https://www.geeksforgeeks.org/quicksort-on-singly-linked-list/,Medium
+Linked List,Clone a linked list with next and random pointer,https://www.geeksforgeeks.org/clone-a-linked-list-with-next-and-random-pointer-set-2/,Medium
+Linked List,Flatten a linked list with next and down pointers,https://www.geeksforgeeks.org/flattening-a-linked-list/,Medium
+Linked List,Delete nodes having greater value on the right,https://www.geeksforgeeks.org/delete-nodes-which-have-a-greater-value-on-right-side/,Medium
+Linked List,Segregate even and odd nodes in a linked list,https://www.geeksforgeeks.org/segregate-even-and-odd-nodes-in-a-linked-list/,Easy
+Linked List,Find the first non-repeating character in a stream,https://www.geeksforgeeks.org/find-first-non-repeating-character-stream-characters/,Medium
+Stack & Queue,Implement stack using array,https://www.geeksforgeeks.org/stack-data-structure-introduction-and-implementation/,Easy
+Stack & Queue,Implement queue using array,https://www.geeksforgeeks.org/queue-data-structure-introduction-and-implementation/,Easy
+Stack & Queue,Implement stack using a queue,https://www.geeksforgeeks.org/implement-stack-using-queue/,Easy
+Stack & Queue,Implement queue using a stack,https://www.geeksforgeeks.org/implement-queue-using-stacks/,Easy
+Stack & Queue,Sort a stack using a temporary stack,https://www.geeksforgeeks.org/sort-stack-using-temporary-stack/,Easy
+Stack & Queue,Reverse a stack,https://www.geeksforgeeks.org/reverse-a-stack-using-recursion/,Easy
+Stack & Queue,Next Greater Element,https://www.geeksforgeeks.org/next-greater-element-using-stack-and-without-stack/,Medium
+Stack & Queue,The celebrity problem,https://www.geeksforgeeks.org/the-celebrity-problem/,Medium
+Stack & Queue,Stock span problem,https://www.geeksforgeeks.org/the-stock-span-problem/,Medium
+Stack & Queue,Largest rectangular area in a histogram,https://www.geeksforgeeks.org/largest-rectangle-in-a-histogram/,Hard
+Stack & Queue,Circular tour,https://www.geeksforgeeks.org/circular-tour-for-gas-stations/,Medium
+Stack & Queue,Implement a Queue using two stacks,https://www.geeksforgeeks.org/queue-using-stacks-implementation/,Easy
+Stack & Queue,Implement a Stack using two queues,https://www.geeksforgeeks.org/implement-stack-using-queue/,Easy
+Stack & Queue,First negative integer in every window of size k,https://www.geeksforgeeks.org/first-negative-integer-in-every-window-of-size-k/,Medium
+Stack & Queue,Sliding window maximum,https://www.geeksforgeeks.org/sliding-window-maximum-in-o-n-time-and-o-k-space/,Hard
+Stack & Queue,Maximum of all subarrays of size k,https://www.geeksforgeeks.org/sliding-window-maximum-in-o-n-time-and-o-k-space/,Hard
+Stack & Queue,Minimum sum of lengths of two non-overlapping subarrays with given sum,https://www.geeksforgeeks.org/minimum-sum-of-lengths-of-two-non-overlapping-subarrays-with-given-sum/,Medium
+Heap,Find Kth largest/smallest element in an array,https://www.geeksforgeeks.org/kth-largest-element-in-an-array/,Medium
+Heap,Merge k sorted arrays,https://www.geeksforgeeks.org/merge-k-sorted-arrays/,Hard
+Heap,Minimum cost of ropes,https://www.geeksforgeeks.org/minimum-cost-to-connect-ropes/,Medium
+Heap,Kth largest element in a stream,https://www.geeksforgeeks.org/kth-largest-element-in-a-stream/,Easy
+Heap,Find median in a stream,https://www.geeksforgeeks.org/find-median-from-data-stream/,Hard
+Heap,Smallest range in K lists,https://www.geeksforgeeks.org/find-smallest-range-containing-elements-from-k-lists/,Hard
+Heap,Find all elements in an array which appear more than n/k times,https://www.geeksforgeeks.org/find-the-number-of-elements-that-appear-more-than-n-k-times/,Medium
+Heap,Reorganize string,https://www.geeksforgeeks.org/reorganize-string-no-two-adjacent-characters-are-same/,Medium
+Heap,Connect n ropes with minimum cost,https://www.geeksforgeeks.org/minimum-cost-to-connect-ropes/,Medium
+Heap,Maximum of all subarrays of size k,https://www.geeksforgeeks.org/sliding-window-maximum-in-o-n-time-and-o-k-space/,Hard
+Heap,Given a binary tree, print all leaf nodes in a single traversal,https://www.geeksforgeeks.org/print-all-leaf-nodes-of-a-binary-tree-using-dfs-and-bfs/,Easy
+Greedy,Activity Selection Problem,https://www.geeksforgeeks.org/activity-selection-problem-greedy-approach-set-2/,Easy
+Greedy,Job Sequencing Problem,https://www.geeksforgeeks.org/job-sequencing-problem-set-1-greedy-algorithm/,Medium
+Greedy,N meetings in one room,https://www.geeksforgeeks.org/n-meetings-in-one-room/,Medium
+Greedy,Fractional Knapsack Problem,https://www.geeksforgeeks.org/fractional-knapsack-problem-greedy-approach/,Medium
+Greedy,Greedy algorithm for Egyptian Fraction,https://www.geeksforgeeks.org/greedy-algorithm-for-egyptian-fraction/,Medium
+Greedy,Greedy algorithm to find minimum number of coins,https://www.geeksforgeeks.org/greedy-algorithm-to-find-minimum-number-of-coins/,Easy
+Greedy,Huffman Coding,https://www.geeksforgeeks.org/huffman-coding-greedy-algorithm/,Medium
+Greedy,Minimum number of platforms required for a railway/bus station,https://www.geeksforgeeks.org/minimum-number-platforms-required-railwaybus-station/,Easy
+Greedy,Minimum number of jumps to reach the end,https://www.geeksforgeeks.org/minimum-number-of-jumps-to-reach-end-of-a-given-array/,Medium
+Greedy,Maximum meetings in one room,https://www.geeksforgeeks.org/maximum-meetings-in-one-room/,Medium
+Greedy,Shop in Candy Store,https://www.geeksforgeeks.org/shop-candy-store-greedy-approach/,Easy
+Greedy,Find maximum meetings in one room,https://www.geeksforgeeks.org/n-meetings-in-one-room/,Medium
+Greedy,Maximum product subarray,https://www.geeksforgeeks.org/maximum-product-subarray/,Medium
+Greedy,Minimum number of coins,https://www.geeksforgeeks.org/find-minimum-number-of-coins-that-make-a-given-value/,Easy
+Greedy,Find the smallest number with given number of digits and sum of digits,https://www.geeksforgeeks.org/find-the-smallest-number-with-given-number-of-digits-and-sum-of-digits/,Medium
+Greedy,Check if it is possible to survive on Island,https://www.geeksforgeeks.org/check-if-it-is-possible-to-survive-on-island/,Easy
+Greedy,Buy maximum stocks,https://www.geeksforgeeks.org/buy-maximum-stocks-at-most-k-times/,Medium
+Greedy,Maximum sum of non-adjacent elements,https://www.geeksforgeeks.org/maximum-sum-such-that-no-two-elements-are-adjacent/,Medium
+Greedy,Smallest number,https://www.geeksforgeeks.org/find-the-smallest-number-with-given-number-of-digits-and-sum-of-digits/,Medium
+Graph,DFS Traversal of a Graph,https://www.geeksforgeeks.org/depth-first-search-or-dfs-for-a-graph/,Easy
+Graph,BFS Traversal of a Graph,https://www.geeksforgeeks.org/breadth-first-search-or-bfs-for-a-graph/,Easy
+Graph,Detect cycle in an undirected graph,https://www.geeksforgeeks.org/detect-cycle-in-an-undirected-graph/,Medium
+Graph,Detect cycle in a directed graph,https://www.geeksforgeeks.org/detect-cycle-in-a-directed-graph-using-dfs/,Medium
+Graph,Topological sort,https://www.geeksforgeeks.org/topological-sorting/,Medium
+Graph,Shortest path in a maze,https://www.geeksforgeeks.org/rat-in-a-maze-problem-with-multiple-steps-and-jumps/,Medium
+Graph,Dijkstra's shortest path algorithm,https://www.geeksforgeeks.org/dijkstras-shortest-path-algorithm-greedy-algo-7/,Medium
+Graph,Bellman-Ford algorithm,https://www.geeksforgeeks.org/bellman-ford-algorithm-simple-implementation/,Medium
+Graph,Floyd Warshall Algorithm,https://www.geeksforgeeks.org/floyd-warshall-algorithm-dp-16/,Medium
+Graph,Minimum spanning tree (MST) using Prim's algorithm,https://www.geeksforgeeks.org/prims-minimum-spanning-tree-mst-greedy-algo-5/,Medium
+Graph,Minimum spanning tree (MST) using Kruskal's algorithm,https://www.geeksforgeeks.org/kruskals-minimum-spanning-tree-algorithm-greedy-algo-2/,Medium
+Graph,Find the number of islands,https://www.geeksforgeeks.org/find-the-number-of-islands-using-bfs-or-dfs/,Medium
+Graph,Clone a graph,https://www.geeksforgeeks.org/clone-an-undirected-graph/,Medium
+Graph,Cheapest flights within K stops,https://www.geeksforgeeks.org/cheapest-flights-within-k-stops/,Medium
+Graph,Strongly Connected Components (Kosaraju's Algorithm),https://www.geeksforgeeks.org/strongly-connected-components-kosarajus-algorithm-2/,Hard
+Graph,Bridge in a graph,https://www.geeksforgeeks.org/bridge-in-a-graph/,Hard
+Graph,Articulation points in a graph,https://www.geeksforgeeks.org/articulation-points-or-cut-vertices-in-a-graph/,Hard
+Graph,Find a Mother Vertex in a graph,https://www.geeksforgeeks.org/find-a-mother-vertex-in-a-graph/,Medium
+Graph,Find the number of operations to make a network connected,https://www.geeksforgeeks.org/number-of-operations-to-make-network-connected/,Medium
+Graph,Find the number of triangles in a graph,https://www.geeksforgeeks.org/number-of-triangles-in-a-directed-and-undirected-graph/,Medium
+Tree,Inorder Traversal of a tree,https://www.geeksforgeeks.org/inorder-tree-traversal-without-recursion/,Easy
+Tree,Preorder Traversal of a tree,https://www.geeksforgeeks.org/preorder-tree-traversal/,Easy
+Tree,Postorder Traversal of a tree,https://www.geeksforgeeks.org/postorder-tree-traversal/,Easy
+Tree,Level order traversal,https://www.geeksforgeeks.org/level-order-tree-traversal/,Easy
+Tree,Height of a tree,https://www.geeksforgeeks.org/write-a-c-program-to-find-the-height-of-a-tree/,Easy
+Tree,Diameter of a tree,https://www.geeksforgeeks.org/diameter-of-a-binary-tree/,Medium
+Tree,Mirror of a tree,https://www.geeksforgeeks.org/create-a-mirror-tree-from-a-given-binary-tree/,Easy
+Tree,Inorder and Preorder traversals to build a tree,https://www.geeksforgeeks.org/construct-tree-from-given-inorder-and-preorder-traversals/,Medium
+Tree,Check if a tree is balanced,https://www.geeksforgeeks.org/how-to-determine-if-a-binary-tree-is-balanced/,Medium
+Tree,LCA of two nodes in a Binary Tree,https://www.geeksforgeeks.org/lowest-common-ancestor-in-a-binary-tree-set-1-introduction-and-naive-approach/,Medium
+Tree,Find the maximum width of a tree,https://www.geeksforgeeks.org/maximum-width-of-a-binary-tree/,Medium
+Tree,Check if a tree is a sum tree,https://www.geeksforgeeks.org/check-if-a-given-binary-tree-is-sumtree/,Medium
+Tree,Convert a given Binary Tree to a Doubly Linked List,https://www.geeksforgeeks.org/convert-a-given-binary-tree-to-doubly-linked-list-set-4/,Medium
+Tree,Find the number of leaves in a tree,https://www.geeksforgeeks.org/count-leaf-nodes-binary-tree/,Easy
+Tree,Find the number of nodes in a tree,https://www.geeksforgeeks.org/count-number-of-nodes-in-a-binary-tree/,Easy
+Tree,Kth largest element in BST,https://www.geeksforgeeks.org/kth-largest-element-in-bst-using-recursion-and-without-recursion/,Medium
+Tree,Find the inorder successor of a node in BST,https://www.geeksforgeeks.org/inorder-successor-in-binary-search-tree/,Medium
+Tree,Find the inorder predecessor of a node in BST,https://www.geeksforgeeks.org/inorder-predecessor-and-successor-for-a-given-key-in-bst/,Medium
+Tree,Merge two BSTs with limited extra space,https://www.geeksforgeeks.org/merge-two-binary-search-trees-with-limited-extra-space/,Hard
+Tree,Construct a BST from pre-order traversal,https://www.geeksforgeeks.org/construct-a-binary-search-tree-from-preorder-traversal/,Medium
+Tree,LCA of two nodes in a BST,https://www.geeksforgeeks.org/lowest-common-ancestor-in-a-binary-search-tree/,Easy
+Tree,Maximum sum path between two leaf nodes,https://www.geeksforgeeks.org/find-the-maximum-sum-leaf-to-root-path-in-a-binary-tree/,Medium
+Tree,Check if two trees are identical,https://www.geeksforgeeks.org/check-if-two-trees-are-identical/,Easy
+Tree,Check if a tree is a subtree of another tree,https://www.geeksforgeeks.org/check-if-a-binary-tree-is-subtree-of-another-binary-tree/,Easy
+Tree,Find the largest BST in a Binary Tree,https://www.geeksforgeeks.org/find-the-largest-bst-subtree-in-a-given-binary-tree/,Medium
+Tree,Convert BST to a balanced BST,https://www.geeksforgeeks.org/convert-normal-bst-balanced-bst/,Medium
+Tree,Delete a node from BST,https://www.geeksforgeeks.org/binary-search-tree-set-2-delete/,Medium
+Tree,Find the smallest and largest element in BST,https://www.geeksforgeeks.org/find-the-minimum-and-maximum-element-in-a-binary-search-tree/,Easy
+Backtracking,Rat in a Maze Problem,https://www.geeksforgeeks.org/rat-in-a-maze-problem-with-multiple-steps-and-jumps/,Medium
+Backtracking,N-Queen Problem,https://www.geeksforgeeks.org/n-queen-problem-backtracking-2/,Hard
+Backtracking,Sudoku Solver,https://www.geeksforgeeks.org/sudoku-backtracking-7/,Hard
+Backtracking,M-Coloring Problem,https://www.geeksforgeeks.org/m-coloring-problem-backtracking-5/,Hard
+Backtracking,Combination Sum,https://www.geeksforgeeks.org/combination-sum/,Medium
+Backtracking,Permutations of a string,https://www.geeksforgeeks.org/write-a-c-program-to-print-all-permutations-of-a-given-string/,Medium
+Backtracking,Palindrome Partitioning,https://www.geeksforgeeks.org/given-a-string-print-all-possible-palindromic-partitions/,Medium
+Backtracking,Find all possible paths from top left to bottom right of a m*n matrix,https://www.geeksforgeeks.org/count-all-possible-paths-from-top-left-to-bottom-right-of-a-m-x-n-matrix/,Easy
+Backtracking,Find all combinations of k elements that sum to n,https://www.geeksforgeeks.org/find-all-combinations-that-sum-to-a-given-value/,Medium
+Backtracking,Find all possible paths from top left to bottom right of a m*n matrix,https://www.geeksforgeeks.org/count-all-possible-paths-from-top-left-to-bottom-right-of-a-m-x-n-matrix/,Easy
+Backtracking,The Knight's Tour problem,https://www.geeksforgeeks.org/the-knights-tour-problem-backtracking-1/,Hard
+Dynamic Programming,Longest Common Subsequence,https://www.geeksforgeeks.org/longest-common-subsequence-dp-4/,Medium
+Dynamic Programming,Longest Increasing Subsequence,https://www.geeksforgeeks.org/longest-increasing-subsequence-dp-3/,Medium
+Dynamic Programming,Kadane's algorithm,https://www.geeksforgeeks.org/largest-sum-contiguous-subarray/,Medium
+Dynamic Programming,Knapsack Problem,https://www.geeksforgeeks.org/knapsack-problem-dp-10/,Medium
+Dynamic Programming,Edit Distance,https://www.geeksforgeeks.org/edit-distance-dp-5/,Medium
+Dynamic Programming,Coin Change,https://www.geeksforgeeks.org/coin-change-dp-7/,Medium
+Dynamic Programming,Matrix Chain Multiplication,https://www.geeksforgeeks.org/matrix-chain-multiplication-dp-8/,Hard
+Dynamic Programming,Subset Sum Problem,https://www.geeksforgeeks.org/subset-sum-problem-dp-25/,Medium
+Dynamic Programming,Minimum number of jumps to reach end,https://www.geeksforgeeks.org/minimum-number-of-jumps-to-reach-end-of-a-given-array/,Medium
+Dynamic Programming,House Robber,https://www.geeksforgeeks.org/find-maximum-possible-stolen-value-houses/,Medium
+Dynamic Programming,Longest Common Substring,https://www.geeksforgeeks.org/longest-common-substring-dp-29/,Medium
+Dynamic Programming,Rod Cutting,https://www.geeksforgeeks.org/cutting-a-rod-dp-13/,Medium
+Dynamic Programming,Longest Palindromic Subsequence,https://www.geeksforgeeks.org/longest-palindromic-subsequence-dp-28/,Medium
+Dynamic Programming,Count all palindromic substrings,https://www.geeksforgeeks.org/count-all-palindromic-subsequences-in-a-string/,Medium
+Dynamic Programming,Partition problem,https://www.geeksforgeeks.org/partition-problem-dp-18/,Medium
+Dynamic Programming,Maximum sum of non-adjacent elements,https://www.geeksforgeeks.org/maximum-sum-such-that-no-two-elements-are-adjacent/,Medium
+Dynamic Programming,Ugly Numbers,https://www.geeksforgeeks.org/ugly-numbers/,Medium
+Dynamic Programming,Word Break Problem,https://www.geeksforgeeks.org/word-break-problem-dp-32/,Hard
+Dynamic Programming,Longest Increasing Subsequence with Sum,https://www.geeksforgeeks.org/longest-increasing-subsequence-with-sum/,Medium
+Trie,Implement a Trie,https://www.geeksforgeeks.org/trie-insert-and-search/,Medium
+Trie,Find all words in a trie,https://www.geeksforgeeks.org/find-all-words-in-a-trie/,Medium
+Trie,Count of distinct substrings,https://www.geeksforgeeks.org/count-of-distinct-substrings-using-trie/,Medium
+Trie,Max XOR subarray,https://www.geeksforgeeks.org/find-the-maximum-xor-of-two-numbers-in-an-array/,Medium
+Trie,Word Boggle,https://www.geeksforgeeks.org/boggle-set-2-using-trie/,Medium
+Trie,Maximum XOR of two numbers in an array,https://www.geeksforgeeks.org/find-the-maximum-xor-of-two-numbers-in-an-array/,Medium
+Trie,Implement a Dictionary using Trie,https://www.geeksforgeeks.org/implement-a-dictionary-using-trie-data-structure/,Medium
+Bit Manipulation,Count set bits in an integer,https://www.geeksforgeeks.org/count-set-bits-in-an-integer/,Easy
+Bit Manipulation,Find the two non-repeating elements in an array,https://www.geeksforgeeks.org/find-the-two-non-repeating-elements-in-an-array/,Medium
+Bit Manipulation,Swap two numbers without using a third variable,https://www.geeksforgeeks.org/swap-two-numbers-without-using-a-temporary-variable/,Easy
+Bit Manipulation,Count total set bits in all numbers from 1 to n,https://www.geeksforgeeks.org/count-total-set-bits-in-all-numbers-from-1-to-n/,Medium
+Bit Manipulation,Divide two integers without using multiplication, division, and modulus operators,https://www.geeksforgeeks.org/divide-two-integers-without-using-multiplication-division-and-modulus-operators/,Medium
+Bit Manipulation,Check if a number is a power of 2,https://www.geeksforgeeks.org/program-to-find-whether-a-given-number-is-power-of-two/,Easy
+Bit Manipulation,Find the position of the only set bit,https://www.geeksforgeeks.org/find-position-of-the-only-set-bit/,Easy
+Bit Manipulation,Single Number,https://www.geeksforgeeks.org/find-the-number-occurring-odd-number-of-times/,Easy
+Bit Manipulation,Bitwise AND of numbers range,https://www.geeksforgeeks.org/bitwise-and-of-a-range-of-numbers/,Medium
+Stack & Queue,Min stack,https://www.geeksforgeeks.org/design-a-stack-that-supports-getmin-in-o1-time-and-o1-extra-space/,Medium
+Linked List,Detect and remove loop in a linked list,https://www.geeksforgeeks.org/detect-and-remove-loop-in-a-linked-list/,Medium
+Linked List,Reverse a doubly linked list,https://www.geeksforgeeks.org/reverse-a-doubly-linked-list/,Easy
+Linked List,Find the Kth node from the end of a linked list,https://www.geeksforgeeks.org/nth-node-from-the-end-of-a-linked-list/,Easy
+Linked List,Intersection of two linked lists,https://www.geeksforgeeks.org/intersection-of-two-linked-lists/,Easy
+Linked List,Flatten a multilevel linked list,https://www.geeksforgeeks.org/flatten-a-multi-level-linked-list/,Medium
+Linked List,Sort a linked list of 0s, 1s and 2s,https://www.geeksforgeeks.org/sort-a-linked-list-of-0s-1s-and-2s/,Medium
+Linked List,Clone a linked list with next and random pointer,https://www.geeksforgeeks.org/clone-a-linked-list-with-next-and-random-pointer-set-2/,Medium
+Linked List,Flatten a linked list with next and down pointers,https://www.geeksforgeeks.org/flattening-a-linked-list/,Medium
+Linked List,Delete nodes having greater value on the right,https://www.geeksforgeeks.org/delete-nodes-which-have-a-greater-value-on-right-side/,Medium
+Graph,Minimum number of operations to make a network connected,https://www.geeksforgeeks.org/number-of-operations-to-make-network-connected/,Medium
+Graph,Find the number of triangles in a graph,https://www.geeksforgeeks.org/number-of-triangles-in-a-directed-and-undirected-graph/,Medium
+Graph,Find the number of operations to make a network connected,https://www.geeksforgeeks.org/number-of-operations-to-make-network-connected/,Medium
+Graph,Find the number of triangles in a graph,https://www.geeksforgeeks.org/number-of-triangles-in-a-directed-and-undirected-graph/,Medium
+String,Longest Common Prefix,https://www.geeksforgeeks.org/longest-common-prefix-using-word-by-word-matching/,Easy
+String,Valid Parentheses,https://www.geeksforgeeks.org/check-for-balanced-parentheses-in-an-expression-using-array-stack/,Easy
+String,Count and Say problem,https://www.geeksforgeeks.org/count-and-say-problem/,Easy
+String,Longest Palindromic Substring,https://www.geeksforgeeks.org/longest-palindromic-substring-set-2/,Medium
+String,Longest Repeated Subsequence,https://www.geeksforgeeks.org/longest-repeating-subsequence-dp-26/,Medium
+String,Print all Subsequences of a string,https://www.geeksforgeeks.org/print-all-subsequences-of-a-string/,Easy
+String,Print all the permutations of the given string,https://www.geeksforgeeks.org/write-a-c-program-to-print-all-permutations-of-a-given-string/,Medium
+String,Find the length of the longest valid substring,https://www.geeksforgeeks.org/length-of-the-longest-valid-substring/,Hard
+String,Find the first non-repeating character in a stream of characters,https://www.geeksforgeeks.org/find-first-non-repeating-character-stream-characters/,Medium
+String,Roman Number to Integer,https://www.geeksforgeeks.org/converting-roman-numerals-to-integer-in-java/,Easy
+String,Integer to Roman,https://www.geeksforgeeks.org/convert-integer-to-roman-numerals/,Medium
+Searching & Sorting,Find first and last occurrences of an element in a sorted array,https://www.geeksforgeeks.org/find-first-and-last-occurrence-of-an-element-in-a-sorted-array/,Easy
+Searching & Sorting,Find a fixed point in a given array,https://www.geeksforgeeks.org/find-a-fixed-point-in-a-given-array/,Easy
+Searching & Sorting,Search in a rotated sorted array,https://www.geeksforgeeks.org/search-an-element-in-a-sorted-and-pivoted-array/,Medium
+Searching & Sorting,Square root of an integer,https://www.geeksforgeeks.org/square-root-of-an-integer/,Easy
+Searching & Sorting,Maximum and minimum of an array using minimum number of comparisons,https://www.geeksforgeeks.org/maximum-and-minimum-in-an-array-using-minimum-number-of-comparisons/,Easy
+Searching & Sorting,Find a pair with a given sum in a sorted array,https://www.geeksforgeeks.org/find-a-pair-with-the-given-sum-in-an-array/,Easy
+Searching & Sorting,Majority element,https://www.geeksforgeeks.org/majority-element/,Easy
+Searching & Sorting,Number of times a sorted array is rotated,https://www.geeksforgeeks.org/find-rotation-count-rotated-sorted-array/,Easy
+Searching & Sorting,Count only repeated elements in an array with given constraints,https://www.geeksforgeeks.org/find-the-first-repeated-character-in-a-string/,Easy
+Searching & Sorting,Find a peak element,https://www.geeksforgeeks.org/find-a-peak-element-in-a-given-array/,Easy
+Searching & Sorting,Find pivot element in a rotated sorted array,https://www.geeksforgeeks.org/find-pivot-element-sorted-rotated-array/,Easy
+Searching & Sorting,Find a triplet with zero sum,https://www.geeksforgeeks.org/find-triplets-with-zero-sum/,Medium
+Searching & Sorting,Product array puzzle,https://www.geeksforgeeks.org/product-array-puzzle-2/,Medium
+Searching & Sorting,Sort array in wave form,https://www.geeksforgeeks.org/sort-an-array-in-wave-form-2/,Easy
+Searching & Sorting,Smallest positive missing number,https://www.geeksforgeeks.org/find-the-smallest-positive-missing-number-in-an-unsorted-array/,Medium
+Searching & Sorting,Kadane's algorithm,https://www.geeksforgeeks.org/largest-sum-contiguous-subarray/,Medium

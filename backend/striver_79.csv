@@ -1,0 +1,80 @@
+topic,title,url,difficulty
+Arrays and Hashing,Next Permutation,,Medium
+Arrays and Hashing,3-Sum Problem,,Medium
+Arrays and Hashing,Kadane's Algorithm,,Easy
+Arrays and Hashing,Majority Element (n/3 times),,Medium
+Arrays and Hashing,Count number of subarrays with given xor K,,Hard
+Arrays and Hashing,Find the repeating and missing number,,Hard
+Arrays and Hashing,Count Inversions,,Hard
+Arrays and Hashing,Maximum Product Subarray,,Easy
+Binary Search,Search in Rotated Sorted Array II,,Medium
+Binary Search,Find minimum in Rotated Sorted Array,,Medium
+Binary Search,Find peak element,,Hard
+Binary Search,Koko Eating Bananas,,Hard
+Binary Search,Aggressive Cows,,Hard
+Binary Search,Book Allocation Problem,,Hard
+Binary Search,Median of 2 sorted arrays,,Hard
+Binary Search,Minimize Max Distance to Gas Station,,Hard
+Linked List,Middle of a LinkedList [TortoiseHare Method],,Easy
+Linked List,Detect a loop in LL,,Medium
+Linked List,Remove Nth node from the back of the LL,,Medium
+Linked List,Find the intersection point of Y LL,,Medium
+Linked List,Sort LL,,Medium
+Linked List,Segregate odd and even nodes in LL,,Medium
+Recursion and Backtracking,Print all subsequences/Power Set,,Medium
+Recursion and Backtracking,Combination Sum,,Medium
+Recursion and Backtracking,N Queen,,Hard
+Recursion and Backtracking,Sudoko Solver,,Hard
+Recursion and Backtracking,M Coloring Problem,,Hard
+Recursion and Backtracking,Word Search,,Medium
+Stacks/Queues,Next Greater Element,,Easy
+Stacks/Queues,Trapping Rainwater,,Hard
+Stacks/Queues,Largest rectangle in a histogram,,Medium
+Stacks/Queues,Asteroid Collision,,Medium
+Stacks/Queues,Sliding Window maximum,,Hard
+Stacks/Queues,LRU cache (IMPORTANT),,Hard
+Heaps,Kth largest element in an array [use priority queue],,Easy
+Heaps,Task Scheduler,,Medium
+Heaps,Min Heap and Max Heap Implementation,,Medium
+Trees (BT + BST),Diameter of Binary Tree,,Medium
+Trees (BT + BST),Maximum path sum,,Hard
+Trees (BT + BST),Bottom View of Binary Tree,,Medium
+Trees (BT + BST),LCA in Binary Tree,,Medium
+Trees (BT + BST),Minimum time taken to BURN the Binary Tree from a Node,,Hard
+Trees (BT + BST),Construct Binary Tree from inorder and preorder,,Hard
+Trees (BT + BST),Morris Preorder Traversal of a Binary Tree,,Medium
+Trees (BT + BST),Delete a Node in Binary Search Tree,,Medium
+Trees (BT + BST),LCA in Binary Search Tree,,Medium
+Trees (BT + BST),Two Sum in BST | Check if there exists a pair with Sum K,,Medium
+Trees (BT + BST),Largest BST in Binary Tree,,Hard
+Graphs,Rotten Oranges,,Medium
+Graphs,Word ladder - 1,,Hard
+Graphs,Number of Distinct islands [dfs multisource],,Hard
+Graphs,Course Schedule - II,,Hard
+Graphs,Alien dictionary,,Hard
+Graphs,Dijkstra's Algorithm,,Hard
+Graphs,Cheapest flights within k stops,,Hard
+Graphs,Bellman Ford Algorithm,,Hard
+Graphs,Floyd Warshal Algorithm,,Hard
+Graphs,Kruskal's Algorithm,,Hard
+Graphs,Accounts merge,,Hard
+Graphs,Bridges in Graph,,Hard
+Dynamic Programming,Maximum sum of non-adjacent elements (DP 5),,Medium
+Dynamic Programming,Ninja's Training (DP 7),,Medium
+Dynamic Programming,Minimum path sum in Grid (DP 10),,Medium
+Dynamic Programming,Subset sum equal to target (DP-14),,Medium
+Dynamic Programming,Assign Cookies,,Hard
+Dynamic Programming,Rod Cutting Problem I (DP - 24),,Hard
+Dynamic Programming,Longest Common Subsequence,,Medium
+Dynamic Programming,Longest Palindromic Subsequence I (DP-28),,Hard
+Dynamic Programming,Edit Distance I (DP-33),,Hard
+Dynamic Programming,Buy and Stock Sell IV (DP-38),,Hard
+Dynamic Programming,Longest Increasing Subsequence,,Medium
+Dynamic Programming,Burst Balloons (DP-51),,Hard
+Tries,Implement Trie - 2 (Prefix Tree),,Hard
+Tries,Maximum XOR With an Element From Array,,Hard
+Tries,Number of Distinct Substrings in a String,,Hard
+String,Minimum number of bracket reversals needed to make an expression balanced,,Medium
+String,Rabin Karp,,Hard
+String,Z-Function,,Easy
+String,KMP algo / LPS(pi) array,,Hard
