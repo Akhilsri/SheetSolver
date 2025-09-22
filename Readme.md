@@ -1,7 +1,7 @@
 # SheetSolver - Collaborative DSA Platform 🚀
 
 <p align="center">
-  <img src="https://res.cloudinary.com/dnrg0ji04/image/upload/v1758554754/WhatsApp_Image_2025-09-22_at_20.45.11_096cd3eb_waehjl.jpg" alt="SheetSolver App Screenshot" width="300"/>
+  <img src="https://res.cloudinary.com/dnrg0ji04/image/upload/v1758554754/WhatsApp_Image_2025-09-22_at_20.45.11_096cd3eb_waehjl.jpg" alt="SheetSolver App Screenshot" width="200"/>
   <br>
   <i>An end-to-end mobile application that transforms solitary DSA practice into a collaborative, competitive, and engaging team sport.</i>
 </p>
