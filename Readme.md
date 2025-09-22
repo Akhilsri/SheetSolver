@@ -29,7 +29,7 @@ The core vision is to combat the procrastination and lack of motivation inherent
 
 | Profile Dashboard | Compete Mode | Room Details |
 | :---: | :---: | :---: |
-| <img src="URL_to_your_screenshot" width="200"/> | <img src="URL_to_your_screenshot" width="200"/> | <img src="URL_to_your_screenshot" width="200"/> |
+| <img src="https://res.cloudinary.com/dnrg0ji04/image/upload/v1758554907/m4_qaato7.jpg" width="200"/> | <img src="https://res.cloudinary.com/dnrg0ji04/image/upload/v1758554987/m2_blcjqf.jpg" width="200"/> | <img src="https://res.cloudinary.com/dnrg0ji04/image/upload/v1758555026/m1_sqmh0m.jpg" width="200"/> |
 
 *(**Note:** You can upload your screenshots like [this one]() to a site like Imgur and place the URLs in the `src` attribute above.)*
 
