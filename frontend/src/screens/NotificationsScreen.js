@@ -41,18 +41,29 @@ const NotificationsScreen = () => {
     }
   };
 
-  useFocusEffect(useCallback(() => {
+  useFocusEffect(
+  useCallback(() => {
     fetchData();
-    const timer = setTimeout(async () => {
+    const markAsRead = async () => {
       try {
         await apiClient.put('/notifications/read-all');
         fetchUnreadCount();
+        // also update local UI
+        setSections(prev =>
+          prev.map(section => 
+            section.title === 'Activity'
+              ? { ...section, data: section.data.map(n => ({ ...n, is_read: true })) }
+              : section
+          )
+        );
       } catch (error) {
         console.error('Failed to mark notifications as read:', error);
       }
-    }, 3000);
-    return () => clearTimeout(timer);
-  }, []));
+    };
+    markAsRead();
+  }, [])
+);
+
 
   const handleAccept = async (invitationId) => {
     setIsResponding(true);
@@ -180,7 +191,7 @@ const NotificationsScreen = () => {
                     renderItem={({ item: subItem }) => renderItem({ item: subItem, section: item })}
                 />
             )}
-            ListHeaderComponent={<Text style={styles.headerTitle}>Notifications</Text>}
+            // ListHeaderComponent={<Text style={styles.headerTitle}>Notifications</Text>}
             ListEmptyComponent={<View style={styles.centered}><Text style={styles.emptyText}>No new notifications.</Text></View>}
             showsVerticalScrollIndicator={false}
         />

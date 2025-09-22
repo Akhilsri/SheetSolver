@@ -47,8 +47,8 @@ const MainTabNavigator = () => {
         }} 
       />
       <Tab.Screen name="SearchTab" component={SearchScreen} options={{ title: 'Search' }} />
-      <Tab.Screen name="CompeteTab" component={CompeteScreen} options={{ title: 'Compete' }} />
-      <Tab.Screen name="ProfileTab" component={ProfileScreen} options={{ title: 'Profile' }}/>
+      <Tab.Screen name="CompeteTab" component={CompeteScreen} options={{ title: 'Compete',headerShown:false }} />
+      <Tab.Screen name="ProfileTab" component={ProfileScreen} options={{ title: 'Profile',headerShown:false }}/>
     </Tab.Navigator>
   );
 };

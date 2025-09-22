@@ -4,7 +4,8 @@ import { AuthProvider } from './src/context/AuthContext';
 import { SocketProvider } from './src/context/SocketContext';
 import AppNavigator from './src/navigation/AppNavigator';
 import messaging from '@react-native-firebase/messaging';
-
+// import { LogBox } from 'react-native';
+// LogBox.ignoreAllLogs(true)
 
 const App = () => {
 
