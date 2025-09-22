@@ -9,5 +9,6 @@ router.post('/register', authController.handleRegister);
 // --- Add the new route for login ---
 router.post('/login', authController.handleLogin);
 router.post('/refresh', authController.handleRefreshToken);
+router.post('/check-username', authController.handleCheckUsername);
 
 module.exports = router;

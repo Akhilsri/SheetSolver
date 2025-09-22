@@ -61,9 +61,31 @@ async function handleRefreshToken(req, res) {
   }
 }
 
+async function handleCheckUsername(req, res) {
+  const { username } = req.body;
+
+  // Basic validation
+  if (!username || typeof username !== 'string' || username.length < 3) {
+    return res.status(400).json({ available: false, message: 'Invalid username. Must be at least 3 characters.' });
+  }
+
+  try {
+    const exists = await authService.checkUsernameExists(username);
+    if (exists) {
+      return res.json({ available: false, message: 'Username already exists.' });
+    } else {
+      return res.json({ available: true, message: 'Username is available.' });
+    }
+  } catch (error) {
+    console.error('Error in handleCheckUsername:', error);
+    res.status(500).json({ message: 'Server error during username check.' });
+  }
+}
+
 // Update the exports to include the new function
 module.exports = {
   handleRegister,
   handleLogin,
-  handleRefreshToken
+  handleRefreshToken,
+  handleCheckUsername
 };

@@ -1,10 +1,13 @@
 import React from 'react';
-import { View, Text, StyleSheet, FlatList, ActivityIndicator, TouchableOpacity, Image } from 'react-native';
-import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import { 
+  View, Text, StyleSheet, FlatList, ActivityIndicator, 
+  TouchableOpacity, Image 
+} from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import Icon from 'react-native-vector-icons/Ionicons';
 import apiClient from '../api/apiClient';
 import { COLORS, SIZES, FONTS } from '../styles/theme';
 import { useAuth } from '../context/AuthContext';
-import Icon from 'react-native-vector-icons/Ionicons';
 
 const ConnectionsScreen = () => {
   const navigation = useNavigation();
@@ -26,43 +29,45 @@ const ConnectionsScreen = () => {
   };
 
   React.useLayoutEffect(() => {
-    const unsubscribe = navigation.addListener('focus', () => {
-      fetchConnections();
-    });
+    const unsubscribe = navigation.addListener('focus', fetchConnections);
     return unsubscribe;
   }, [navigation]);
-
 
   if (isLoading) {
     return <ActivityIndicator size="large" style={styles.centered} />;
   }
-  
+
   const renderItem = ({ item }) => (
-    <TouchableOpacity 
-      style={styles.itemContainer}
-      onPress={() => navigation.navigate('DirectMessage', {
-        connectionUserId: item.friend_id,
-        connectionUsername: item.friend_username,
-      })}
+    <TouchableOpacity
+      style={styles.chatCard}
+      activeOpacity={0.8}
+      onPress={() =>
+        navigation.navigate('DirectMessage', {
+          connectionUserId: item.friend_id,
+          connectionUsername: item.friend_username,
+        })
+      }
     >
       <Image
-        // This logic now correctly handles the 'null' URL from your log
-        source={item.friend_avatar_url ? { uri: item.friend_avatar_url } : require('../assets/images/default_avatar.png')}
+        source={
+          item.friend_avatar_url
+            ? { uri: item.friend_avatar_url }
+            : require('../assets/images/default_avatar.png')
+        }
         style={styles.avatar}
       />
-      <View style={styles.textContainer}>
-        <Text style={styles.username}>{item.friend_username}</Text>
+      <View style={styles.textWrapper}>
+        <View style={styles.topRow}>
+          <Text style={styles.username}>{item.friend_username}</Text>
+        </View>
         <Text style={styles.lastMessage} numberOfLines={1}>
-          {item.unread_messages > 0 && <Text style={styles.unreadLabel}>New Message: </Text>}
           {item.last_message || 'No messages yet.'}
         </Text>
       </View>
-      
+
       {item.unread_messages > 0 && (
-        <View style={styles.unreadContainer}>
-          <View style={styles.unreadDot}>
-            <Text style={styles.unreadCount}>{item.unread_messages}</Text>
-          </View>
+        <View style={styles.unreadBadge}>
+          <Text style={styles.unreadText}>{item.unread_messages}</Text>
         </View>
       )}
     </TouchableOpacity>
@@ -70,69 +75,99 @@ const ConnectionsScreen = () => {
 
   return (
     <View style={styles.container}>
+      {/* Header */}
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>Messages</Text>
+      </View>
+
       <FlatList
         data={connections}
         keyExtractor={(item) => item.friend_id.toString()}
         renderItem={renderItem}
-        ListHeaderComponent={<Text style={styles.title}>Messages</Text>}
-        ListEmptyComponent={<Text style={styles.emptyText}>You haven't made any connections yet. Use the Search tab to find people!</Text>}
+        contentContainerStyle={{ padding: SIZES.padding }}
+        ListEmptyComponent={
+          <View style={styles.emptyState}>
+            <Icon name="chatbubble-ellipses-outline" size={60} color={COLORS.textSecondary} />
+            <Text style={styles.emptyTitle}>No conversations yet</Text>
+            <Text style={styles.emptySubtitle}>
+              Start a chat by finding people in the Search tab.
+            </Text>
+          </View>
+        }
       />
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: COLORS.surface },
-    centered: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-    title: { ...FONTS.h1, paddingHorizontal: SIZES.padding, paddingTop: SIZES.padding, paddingBottom: SIZES.base, backgroundColor: COLORS.surface },
-    emptyText: { ...FONTS.caption, textAlign: 'center', marginTop: SIZES.padding * 2 },
-    itemContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        paddingVertical: SIZES.base * 1.5,
-        paddingHorizontal: SIZES.padding,
-        backgroundColor: COLORS.surface,
-    },
-    avatar: {
-        width: 50,
-        height: 50,
-        borderRadius: 25,
-    },
-    textContainer: {
-        flex: 1,
-        marginLeft: SIZES.padding,
-        justifyContent: 'center',
-    },
-    username: {
-        ...FONTS.h3,
-    },
-    lastMessage: {
-        ...FONTS.body,
-        color: COLORS.textSecondary,
-    },
-    unreadLabel: {
-        color: COLORS.primary,
-        fontWeight: 'bold',
-    },
-    unreadContainer: {
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    unreadDot: {
-        minWidth: 22,
-        height: 22,
-        borderRadius: 11,
-        backgroundColor: COLORS.success,
-        justifyContent: 'center',
-        alignItems: 'center',
-        paddingHorizontal: 5,
-    },
-    unreadCount: {
-        ...FONTS.caption,
-        color: COLORS.surface,
-        fontWeight: 'bold',
-        fontSize: 12,
-    },
+  container: { flex: 1, backgroundColor: COLORS.background },
+  centered: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+
+  // Header
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: SIZES.padding,
+    paddingVertical: SIZES.base * 2,
+    backgroundColor: COLORS.surface,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: COLORS.border,
+  },
+  headerTitle: { ...FONTS.h2, fontWeight: '600' },
+  headerIcons: { flexDirection: 'row' },
+  iconBtn: { marginLeft: 16 },
+
+  // Chat Card
+  chatCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.surface,
+    padding: SIZES.base * 1.5,
+    borderRadius: 16,
+    marginBottom: 12,
+    shadowColor: '#000',
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  avatar: { width: 52, height: 52, borderRadius: 26 },
+  textWrapper: { flex: 1, marginLeft: 12 },
+  topRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 2,
+  },
+  username: { ...FONTS.h3, fontWeight: '600' },
+  time: { ...FONTS.caption, color: COLORS.textSecondary },
+  lastMessage: { ...FONTS.body, color: COLORS.textSecondary },
+
+  // Unread badge
+  unreadBadge: {
+    minWidth: 22,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: COLORS.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 6,
+  },
+  unreadText: {
+    color: COLORS.surface,
+    fontSize: 12,
+    fontWeight: 'bold',
+  },
+
+  // Empty state
+  emptyState: { flex: 1, alignItems: 'center', marginTop: 80 },
+  emptyTitle: { ...FONTS.h3, marginTop: 12, fontWeight: '600' },
+  emptySubtitle: {
+    ...FONTS.body,
+    color: COLORS.textSecondary,
+    textAlign: 'center',
+    marginTop: 4,
+    paddingHorizontal: 40,
+  },
 });
 
 export default ConnectionsScreen;

@@ -1,5 +1,8 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, ImageBackground, TextInput, StyleSheet, FlatList, KeyboardAvoidingView, Platform, ActivityIndicator, TouchableOpacity } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { 
+  View, Text, ImageBackground, TextInput, StyleSheet, FlatList, 
+  KeyboardAvoidingView, Platform, ActivityIndicator, TouchableOpacity, SafeAreaView 
+} from 'react-native';
 import { useRoute } from '@react-navigation/native';
 import { useHeaderHeight } from '@react-navigation/elements';
 import { useAuth } from '../context/AuthContext';
@@ -11,25 +14,22 @@ import { COLORS, SIZES, FONTS } from '../styles/theme';
 const DirectMessageScreen = () => {
   const route = useRoute();
   const headerHeight = useHeaderHeight();
-  const { connectionUserId, connectionUsername } = route.params;
-  const { userId, username, fetchUnreadMessageCount } = useAuth(); // Get the global refresh function
+  const { connectionUserId } = route.params;
+  const { userId, username, fetchUnreadMessageCount } = useAuth();
   const socket = useSocket();
 
   const [messages, setMessages] = useState([]);
   const [text, setText] = useState('');
   const [isLoading, setIsLoading] = useState(true);
 
-  // Effect #1: Fetches history and marks messages as read
+  // Fetch chat history
   useEffect(() => {
     const loadChat = async () => {
       try {
         setIsLoading(true);
-        // Step 1: Tell the backend to mark all messages from this user as read.
         await apiClient.put(`/chat/direct/${connectionUserId}/read`);
-        // Step 2: Refresh the global badge count in the tab bar.
         fetchUnreadMessageCount();
-        
-        // Step 3: Fetch the conversation history for display.
+
         const response = await apiClient.get(`/chat/direct/${connectionUserId}`);
         const formattedMessages = response.data.map(msg => ({
           ...msg,
@@ -37,7 +37,7 @@ const DirectMessageScreen = () => {
         }));
         setMessages(formattedMessages);
       } catch (error) {
-        console.error("Failed to load direct message history:", error);
+        console.error('Failed to load chat:', error);
       } finally {
         setIsLoading(false);
       }
@@ -45,24 +45,19 @@ const DirectMessageScreen = () => {
     loadChat();
   }, [connectionUserId]);
 
-  // Effect #2: Manages real-time socket events for private messages
+  // Socket listener
   useEffect(() => {
     if (!socket.current) return;
-
-    // Listen for 'receive_private_message'
     const onReceivePrivateMessage = (newMessage) => {
-      // Only add the message if it's from the person we're currently chatting with
       if (newMessage.user._id === Number(connectionUserId)) {
-        const formattedMessage = { ...newMessage, createdAt: new Date(newMessage.createdAt) };
-        setMessages(previousMessages => [formattedMessage, ...previousMessages]);
+        setMessages(prev => [
+          { ...newMessage, createdAt: new Date(newMessage.createdAt) },
+          ...prev,
+        ]);
       }
     };
     socket.current.on('receive_private_message', onReceivePrivateMessage);
-
-    // Clean up the listener when the screen is left
-    return () => {
-      socket.current.off('receive_private_message', onReceivePrivateMessage);
-    };
+    return () => socket.current.off('receive_private_message', onReceivePrivateMessage);
   }, [socket.current, connectionUserId]);
 
   const handleSend = () => {
@@ -70,74 +65,89 @@ const DirectMessageScreen = () => {
 
     const messageData = {
       _id: Math.random().toString(),
-      text: text,
+      text,
       createdAt: new Date(),
       user: { _id: Number(userId), name: username },
     };
 
-    // Emit 'send_private_message' with the recipient's ID
     socket.current.emit('send_private_message', {
       senderId: userId,
       recipientId: connectionUserId,
       messageText: text,
-      ...messageData
+      ...messageData,
     });
 
-    setMessages(previousMessages => [messageData, ...previousMessages]);
+    setMessages(prev => [messageData, ...prev]);
     setText('');
   };
 
   const renderItem = ({ item }) => {
     const isMyMessage = item.user._id === Number(userId);
     return (
-      <View style={[ styles.messageRow, { justifyContent: isMyMessage ? 'flex-end' : 'flex-start' } ]}>
-        <View style={[styles.messageBubble, isMyMessage ? styles.myMessageBubble : styles.theirMessageBubble]}>
-          <Text style={isMyMessage ? styles.myMessageText : styles.theirMessageText}>{item.text}</Text>
-          <View style={styles.timestampContainer}>
-            <Text style={isMyMessage ? styles.myTimestamp : styles.theirTimestamp}>
+      <View style={[
+        styles.messageRow,
+        { justifyContent: isMyMessage ? 'flex-end' : 'flex-start' }
+      ]}>
+        <View style={[
+          styles.messageBubble,
+          isMyMessage ? styles.myMessage : styles.theirMessage
+        ]}>
+          <Text style={styles.messageText}>{item.text}</Text>
+          <View style={styles.timestampWrapper}>
+            <Text style={styles.timestamp}>
               {new Date(item.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
             </Text>
-            {isMyMessage && <Icon name="checkmark-done-outline" size={16} color={COLORS.textSecondary} style={{opacity: 0.7}}/>}
+            {isMyMessage && (
+              <Icon name="checkmark-done-outline" size={14} color={COLORS.textSecondary} style={{ marginLeft: 4 }} />
+            )}
           </View>
         </View>
       </View>
     );
   };
-  
+
   if (isLoading) {
     return <ActivityIndicator size="large" style={styles.centered} />;
   }
 
   return (
     <ImageBackground source={require('../assets/images/chat_bg.png')} style={styles.container}>
-      <KeyboardAvoidingView
-        style={{ flex: 1 }}
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        keyboardVerticalOffset={headerHeight}
-      >
-        <FlatList
-          style={styles.messageList}
-          contentContainerStyle={{ paddingVertical: SIZES.base }}
-          data={messages}
-          keyExtractor={(item) => item._id.toString()}
-          renderItem={renderItem}
-          inverted
-          ListEmptyComponent={<View style={styles.emptyContainer}><Text style={styles.emptyText}>No messages yet. Send the first message!</Text></View>}
-        />
-        <View style={styles.inputContainer}>
-          <TextInput
-            style={styles.input}
-            value={text}
-            onChangeText={setText}
-            placeholder="Type a message..."
-            placeholderTextColor={COLORS.textSecondary}
-            multiline
+      <SafeAreaView style={{ flex: 1 }}>
+        <KeyboardAvoidingView
+          style={{ flex: 1 }}
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          keyboardVerticalOffset={headerHeight + 10}
+        >
+          <FlatList
+            data={messages}
+            inverted
+            keyExtractor={(item) => item._id.toString()}
+            renderItem={renderItem}
+            contentContainerStyle={{ padding: SIZES.padding }}
+            ListEmptyComponent={
+              <View style={styles.emptyState}>
+                <Text style={styles.emptyText}>No messages yet. Say hi 👋</Text>
+              </View>
+            }
           />
-          <TouchableOpacity style={styles.sendButton} onPress={handleSend}>
-            <Icon name="paper-plane" size={22} color={COLORS.surface} />
-          </TouchableOpacity>
-        </View>
-      </KeyboardAvoidingView>
+
+          {/* Floating Input Bar */}
+          <View style={styles.inputBar}>
+  <TextInput
+    style={styles.input}
+    value={text}
+    onChangeText={setText}
+    placeholder="Type a message..."
+    placeholderTextColor="#999"
+    multiline
+  />
+  <TouchableOpacity style={styles.sendButton} onPress={handleSend}>
+    <Icon name="send" size={20} color="#fff" />
+  </TouchableOpacity>
+</View>
+
+        </KeyboardAvoidingView>
+      </SafeAreaView>
     </ImageBackground>
   );
 };
@@ -145,44 +155,85 @@ const DirectMessageScreen = () => {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   centered: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  emptyContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', transform: [{ scaleY: -1 }] },
-  emptyText: { ...FONTS.caption, backgroundColor: '#00000020', padding: SIZES.base, borderRadius: SIZES.radius },
-  messageList: { flex: 1, paddingHorizontal: SIZES.base * 2 },
-  inputContainer: {
-    flexDirection: 'row', paddingVertical: SIZES.base, paddingHorizontal: SIZES.base,
-    alignItems: 'flex-end', borderTopWidth: 1, borderTopColor: COLORS.border,
-    backgroundColor: COLORS.background,
+
+  // Messages
+  messageRow: { marginVertical: 6, flexDirection: 'row' },
+  messageBubble: {
+    maxWidth: '75%',
+    padding: 12,
+    borderRadius: 18,
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  myMessage: { backgroundColor: '#DCF8C6', borderBottomRightRadius: 6 },
+  theirMessage: { backgroundColor: COLORS.surface, borderBottomLeftRadius: 6 },
+  messageText: { ...FONTS.body, color: COLORS.textPrimary },
+  timestampWrapper: { flexDirection: 'row', alignItems: 'center', marginTop: 4 },
+  timestamp: { ...FONTS.caption, fontSize: 11, color: COLORS.textSecondary },
+
+  // Input
+  inputWrapper: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    margin: SIZES.padding,
+    paddingHorizontal: SIZES.padding,
+    backgroundColor: COLORS.surface,
+    borderRadius: 24,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
   },
   input: {
-    flex: 1, ...FONTS.body, backgroundColor: COLORS.surface, borderRadius: 22,
-    paddingHorizontal: SIZES.padding, paddingVertical: Platform.OS === 'ios' ? 12 : 8,
-    maxHeight: 120, marginRight: SIZES.base, borderWidth: 1, borderColor: COLORS.border,
+    flex: 1,
+    minHeight: 40,
+    maxHeight: 120,
+    ...FONTS.body,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+  },
+  sendBtn: {
+    width: 42, height: 42, borderRadius: 21,
+    backgroundColor: COLORS.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: 8,
+  },
+
+  // Empty state
+  emptyState: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  emptyText: { ...FONTS.body, color: COLORS.textSecondary, textAlign: 'center' },
+  inputBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    margin: 10,
+    backgroundColor: '#fff',
+    borderRadius: 25,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    paddingHorizontal: 10,
+  },
+  input: {
+    flex: 1,
+    fontSize: 16,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    maxHeight: 120,
   },
   sendButton: {
-    width: 44, height: 44, borderRadius: 22, backgroundColor: COLORS.primary,
-    justifyContent: 'center', alignItems: 'center', elevation: 2,
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    backgroundColor: '#128C7E', // WhatsApp green
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: 6,
+    marginRight:-10
   },
-  messageRow: { marginVertical: 4 },
-  messageBubble: {
-    maxWidth: '80%', borderRadius: SIZES.radius, paddingVertical: SIZES.base,
-    paddingHorizontal: SIZES.base * 1.5, elevation: 1,
-  },
-  myMessageBubble: {
-    alignSelf: 'flex-end', backgroundColor: '#DCF8C6',
-    borderBottomRightRadius: SIZES.base / 2,
-  },
-  theirMessageBubble: {
-    alignSelf: 'flex-start', backgroundColor: COLORS.surface,
-    borderBottomLeftRadius: SIZES.base / 2,
-  },
-  myMessageText: { ...FONTS.body, color: COLORS.textPrimary },
-  theirMessageText: { ...FONTS.body, color: COLORS.textPrimary },
-  timestampContainer: {
-    flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center',
-    marginTop: 4,
-  },
-  myTimestamp: { ...FONTS.caption, fontSize: 11, color: COLORS.textSecondary, opacity: 0.7, marginRight: 4 },
-  theirTimestamp: { ...FONTS.caption, fontSize: 11, color: COLORS.textSecondary },
 });
 
 export default DirectMessageScreen;

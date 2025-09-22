@@ -80,7 +80,7 @@ const AppNavigator = () => {
           // No token found, user isn't signed in
           <>
             <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
-            <Stack.Screen name="Register" component={RegisterScreen} />
+            <Stack.Screen name="Register" component={RegisterScreen} options={{ headerShown: false }} />
           </>
         ) : (
           // User is signed in

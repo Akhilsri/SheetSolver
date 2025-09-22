@@ -2,7 +2,7 @@ const crypto = require('crypto');
 const pool = require('../../config/db');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-
+const db = require('../../config/db');
 /**
  * Creates a new user in the database.
  * @param {string} username - The user's username.
@@ -102,9 +102,15 @@ async function refreshAccessToken(oldRefreshToken) {
   return { accessToken: newAccessToken };
 }
 
+async function checkUsernameExists(username) {
+  const [rows] = await db.query('SELECT id FROM users WHERE username = ?', [username]);
+  return rows.length > 0; // Returns true if username exists, false otherwise
+}
+
 // Update the exports to include the new function
 module.exports = {
   registerUser,
   loginUser,
-  refreshAccessToken 
+  refreshAccessToken,
+  checkUsernameExists
 };

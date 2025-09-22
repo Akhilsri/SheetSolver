@@ -40,7 +40,8 @@ const MainTabNavigator = () => {
        <Tab.Screen 
         name="ConnectionsTab" 
         component={ConnectionsScreen} 
-        options={{ 
+        options={{
+          headerShown :false, 
           title: 'Messages',
           tabBarBadge: unreadMessageCount > 0 ? unreadMessageCount : null, // <-- The Badge!
         }} 
