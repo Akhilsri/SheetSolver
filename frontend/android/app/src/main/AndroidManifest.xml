@@ -12,6 +12,11 @@
       android:allowBackup="false"
       android:theme="@style/AppTheme"
       android:supportsRtl="true">
+
+      <meta-data
+          android:name="com.google.android.gms.ads.APPLICATION_ID"
+          android:value="ca-app-pub-6531825256228112~5401966809"
+          tools:replace="android:value" />
       
       <meta-data
         android:name="com.google.firebase.messaging.default_notification_channel_id"

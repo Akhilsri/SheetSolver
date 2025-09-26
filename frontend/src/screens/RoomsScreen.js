@@ -14,6 +14,7 @@ import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import apiClient from '../api/apiClient';
 import { useAuth } from '../context/AuthContext';
 import Icon from 'react-native-vector-icons/Ionicons';
+// import {BannerAd, BannerAdSize, TestIds} from 'react-native-google-mobile-ads';
 
 const RoomsScreen = () => {
   const navigation = useNavigation();
@@ -207,6 +208,13 @@ const RoomsScreen = () => {
          {/* <TouchableOpacity onPress={() => navigation.navigate('CreateCustomSheet')}>
                     <Text style={styles.createText}>Create a Sheet from CSV</Text>
                 </TouchableOpacity> */}
+                {/* <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
+      <BannerAd
+        unitId={TestIds.BANNER} // replace with your ad unit ID when live
+        size={BannerAdSize.FULL_BANNER}
+        requestOptions={{requestNonPersonalizedAdsOnly: true}}
+      />
+    </View>  */}
       </View>
     </SafeAreaView>
   );

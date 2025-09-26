@@ -22,8 +22,8 @@ WORKDIR /app
 # Copy only the necessary files from the 'builder' stage
 COPY --from=builder /app ./
 
-# Tell Docker that your app runs on port 3000
-EXPOSE 3000
+# Cloud Run expects the container to listen on PORT (default 8080)
+EXPOSE 8080
 
 # The command to run your application
 CMD ["node", "src/server.js"]

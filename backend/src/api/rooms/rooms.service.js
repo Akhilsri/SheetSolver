@@ -1,15 +1,37 @@
 const pool = require('../../config/db');
-const { customAlphabet } = require('nanoid');
 const redisClient = require('../../config/redis');
 
-// Helper to generate a unique 6-character invite code
-const generateInviteCode = customAlphabet('ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789', 6);
+// Declare customAlphabet globally but without immediate assignment
+let customAlphabet;
+let generateInviteCodeFunc; // Declare the generator function variable
+
+// Asynchronously load nanoid and initialize customAlphabet and generateInviteCodeFunc
+(async () => {
+  const nanoid = await import('nanoid');
+  customAlphabet = nanoid.customAlphabet;
+  // Initialize the actual generator function once customAlphabet is loaded
+  generateInviteCodeFunc = customAlphabet('ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789', 6);
+})();
+
+// Helper function to get the invite code generator
+// This ensures generateInviteCodeFunc is always initialized before use
+function getInviteCodeGenerator() {
+  if (!generateInviteCodeFunc) {
+    // This should ideally not happen if the IIFE runs on startup,
+    // but it's a safeguard for race conditions or very fast initial requests.
+    // In a production environment, you might want a more robust error handling
+    // or a synchronous fallback if possible.
+    throw new Error("Invite code generator not initialized. nanoid import might have failed or not completed.");
+  }
+  return generateInviteCodeFunc;
+}
+
 
 async function createRoom(name, adminId) {
   const connection = await pool.getConnection();
   try {
     await connection.beginTransaction();
-    const inviteCode = generateInviteCode();
+    const inviteCode = getInviteCodeGenerator()(); // Call the helper to get the generator, then call the generator
     const [roomResult] = await connection.query(
       'INSERT INTO rooms (name, admin_id, invite_code) VALUES (?, ?, ?)',
       [name, adminId, inviteCode]
