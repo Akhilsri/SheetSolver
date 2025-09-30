@@ -287,6 +287,152 @@ async function deleteRoom(roomId, adminId) {
   return result;
 }
 
+async function getJourneyDashboard(roomId, userId) {
+  // 1. Get Room Details and Sheet ID
+  const [roomInfoRows] = await pool.query('SELECT sheet_id, name FROM rooms WHERE id = ?', [roomId]);
+  if (!roomInfoRows || roomInfoRows.length === 0) {
+    throw new Error('Room not found');
+  }
+  const roomInfo = roomInfoRows[0];
+  const sheetId = roomInfo.sheet_id;
+
+  // Get total problems in the sheet
+  const [totalProblemsInSheetResult] = await pool.query(
+    'SELECT COUNT(id) as total FROM problems WHERE sheet_id = ?',
+    [sheetId]
+  );
+  const totalProblemsInSheet = totalProblemsInSheetResult[0].total;
+
+
+  // 2. Get Topic-wise Progress (You vs The Room)
+  // Removed 's.status = 'approved'' from LEFT JOIN condition
+  const [topicProgress] = await pool.query(`
+    SELECT
+      p.topic,
+      COUNT(p.id) AS total_in_topic,
+      SUM(CASE WHEN s.user_id = ? THEN 1 ELSE 0 END) AS user_solved,
+      (SELECT COUNT(DISTINCT user_id) FROM room_members WHERE room_id = ?) AS member_count
+    FROM problems p
+    LEFT JOIN submissions s ON p.id = s.problem_id AND s.room_id = ? /* Removed AND s.status = 'approved' */
+    JOIN rooms r ON r.id = ?
+    WHERE p.sheet_id = r.sheet_id
+    GROUP BY p.topic
+    ORDER BY p.topic ASC
+  `, [userId, roomId, roomId, roomId]);
+
+  // Calculate room average for each topic and fetch solved by any member
+  for (const topic of topicProgress) {
+    // Removed 's.status = 'approved''
+    const [roomSolves] = await pool.query(`
+      SELECT COUNT(DISTINCT s.problem_id) as room_solved_in_topic
+      FROM submissions s
+      JOIN problems p ON s.problem_id = p.id
+      WHERE s.room_id = ? AND p.topic = ? /* Removed AND s.status = 'approved' */
+    `, [roomId, topic.topic]);
+    topic.room_total_solved_by_any_member = roomSolves[0].room_solved_in_topic; // Total unique problems solved in topic by ANY member
+  }
+
+  // 3. Get data for the Interactive Problem Grid
+  // Removed 'status = 'approved'' from subqueries
+  const [problemGrid] = await pool.query(`
+    SELECT
+      p.id, p.title, p.problem_order, p.url, p.difficulty, p.topic,
+      (SELECT COUNT(*) > 0 FROM submissions WHERE problem_id = p.id AND user_id = ? AND room_id = ?) as solved_by_user, /* Removed AND status = 'approved' */
+      (SELECT COUNT(*) > 0 FROM submissions WHERE problem_id = p.id AND room_id = ? AND user_id != ?) as solved_by_teammate /* Removed AND status = 'approved' */
+    FROM problems p
+    JOIN rooms r ON p.sheet_id = r.sheet_id
+    WHERE r.id = ?
+    ORDER BY p.problem_order ASC
+  `, [userId, roomId, roomId, userId, roomId]);
+
+  // 4. Get data for the Burndown Chart
+  // Removed 'AND status = 'approved''
+  const [burndownDataRaw] = await pool.query(`
+    SELECT
+      DATE(submitted_at) as date,
+      COUNT(DISTINCT problem_id) as problems_solved_on_date
+    FROM submissions
+    WHERE user_id = ? AND room_id = ?
+    GROUP BY DATE(submitted_at)
+    ORDER BY date ASC
+  `, [userId, roomId]);
+
+  // 5. Get Top Solvers (Leaderboard snippet)
+  // Removed 'AND s.status = 'approved''
+  const [topSolvers] = await pool.query(`
+    SELECT
+      u.username,
+      COUNT(DISTINCT s.problem_id) as solved_count
+    FROM users u
+    JOIN submissions s ON u.id = s.user_id
+    WHERE s.room_id = ?
+    GROUP BY u.id, u.username
+    ORDER BY solved_count DESC
+    LIMIT 5
+  `, [roomId]);
+
+  // Calculate room's average solved problems
+  // Removed 'AND status = 'approved''
+  const [roomAvgSolvedResult] = await pool.query(`
+    SELECT
+      AVG(solved_count) as avg_solved
+    FROM (
+      SELECT
+        user_id,
+        COUNT(DISTINCT problem_id) as solved_count
+      FROM submissions
+      WHERE room_id = ?
+      GROUP BY user_id
+    ) as user_solved_counts;
+  `, [roomId]);
+  const roomAverageSolved = roomAvgSolvedResult[0]?.avg_solved !== null 
+                            ? parseFloat(roomAvgSolvedResult[0].avg_solved) 
+                            : 0;
+
+  return {
+    roomName: roomInfo.name,
+    totalProblemsInSheet,
+    userTotalSolved: problemGrid.filter(p => p.solved_by_user).length, // Recalculate based on grid, which is accurate now
+    roomAverageSolved,
+    topicProgress,
+    problemGrid,
+    burndownData: burndownDataRaw,
+    topSolvers,
+  };
+}
+
+async function getDailyRoomProgress(roomId, userId) {
+  // 1. Get today's problems for the room
+  const dailyProblems = await getDailyProblems(roomId); // We can reuse our existing function
+  if (dailyProblems.length === 0) {
+    return { dailyProblems: [], membersProgress: [] };
+  }
+  const problemIds = dailyProblems.map(p => p.id);
+
+  // 2. Get all room members
+  const members = await getRoomMembers(roomId);
+  
+  // 3. Get all of today's submissions for this room
+  const [todaysSubmissions] = await pool.query(
+    'SELECT user_id, problem_id FROM submissions WHERE room_id = ? AND DATE(submitted_at) = CURDATE() AND problem_id IN (?)',
+    [roomId, problemIds]
+  );
+
+  // 4. Process the data to create a progress map for each member
+  const membersProgress = members.map(member => {
+    const solved = todaysSubmissions.filter(s => s.user_id === member.id);
+    return {
+      userId: member.id,
+      username: member.username,
+      solvedCount: solved.length,
+      totalCount: dailyProblems.length,
+    };
+  });
+
+  return { dailyProblems, membersProgress };
+}
+
+
 module.exports = {
   createRoom,
   getRoomsForUser,
@@ -300,5 +446,7 @@ module.exports = {
   removeMember,
   getPendingJoinRequests, approveJoinRequest, denyJoinRequest,
   leaveRoom,
-  deleteRoom
+  deleteRoom,
+  getJourneyDashboard,
+  getDailyRoomProgress
 };

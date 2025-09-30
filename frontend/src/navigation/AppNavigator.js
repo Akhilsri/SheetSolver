@@ -19,6 +19,8 @@ import ChatScreen from '../screens/ChatScreen';
 import GameScreen from '../screens/GameScreen';
 import EditProfileScreen from '../screens/EditProfileScreen';
 import DirectMessageScreen from '../screens/DirectMessageScreen';
+import DailyProgressTracker from '../components/room/DailyProgressTracker';
+import JourneyDashboardScreen from '../screens/JourneyDashboardScreen';
 // import CreateSheetScreen from '../screens/CreateSheetScreen';
 
 const Stack = createNativeStackNavigator();
@@ -97,7 +99,8 @@ const AppNavigator = () => {
             <Stack.Screen name="GameScreen" component={GameScreen} options={{ title: 'Competition' }} />
             <Stack.Screen name="EditProfile" component={EditProfileScreen} options={{ title: 'Edit Profile' }} />
             <Stack.Screen name="DirectMessage" component={DirectMessageScreen} options={({ route }) => ({ title: route.params.connectionUsername })} />
-
+            <Stack.Screen name="SheetViewer" component={DailyProgressTracker} options={({ route }) => ({ title: route.params.connectionUsername })} />
+            <Stack.Screen name="JourneyDashboard" component={JourneyDashboardScreen} options={({ route }) => ({ title: `${route.params.roomName} Journey` })} />
           </>
         )}
       </Stack.Navigator>

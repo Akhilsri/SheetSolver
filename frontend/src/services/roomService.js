@@ -31,3 +31,7 @@ export const approveJoinRequest = (requestId) => {
 export const denyJoinRequest = (requestId) => {
   return apiClient.put(`/rooms/join-requests/${requestId}/deny`);
 };
+
+export const getDailyRoomProgress = (roomId) => {
+  return apiClient.get(`/rooms/${roomId}/daily-progress`);
+};

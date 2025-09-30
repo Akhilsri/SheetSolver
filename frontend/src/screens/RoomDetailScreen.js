@@ -28,6 +28,7 @@ import * as sheetService from '../services/sheetService';
 import Sound from 'react-native-sound';
 import { COLORS, SIZES, FONTS } from '../styles/theme';
 import Card from '../components/common/Card';
+import DailyProgressTracker from '../components/room/DailyProgressTracker'; // <-- NEW IMPORT
 
 const RoomDetailScreen = ({ navigation }) => {
   // --- Hooks and State Initialization ---
@@ -49,6 +50,7 @@ const RoomDetailScreen = ({ navigation }) => {
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
   const [uploadingProblemId, setUploadingProblemId] = useState(null);
+  const [dailyProgressData, setDailyProgressData] = useState([]); // <-- NEW STATE
   
 
   // --- THIS IS THE NEW, MORE ROBUST DATA FETCHING LOGIC ---
@@ -74,10 +76,12 @@ const RoomDetailScreen = ({ navigation }) => {
       const promises = [
         roomService.getRoomMembers(roomId),
         submissionService.getTodaysSubmissions(roomId),
+        roomService.getDailyRoomProgress(roomId),
       ];
       if (isAdmin) {
         promises.push(roomService.getJoinRequests(roomId));
         promises.push(sheetService.getAllSheets());
+        
       }
 
       // Execute all promises
@@ -86,11 +90,13 @@ const RoomDetailScreen = ({ navigation }) => {
       // Safely assign the responses to state
       setMembers(responses[0].data);
       const submissionsData = responses[1].data;
+      setDailyProgressData(responses[2].data.membersProgress);
       
       if (isAdmin) {
         // These will only exist in the array if the user is an admin
-        setJoinRequests(responses[2].data);
-        setSheets(responses[3].data);
+        setJoinRequests(responses[3].data);
+        setSheets(responses[4].data);
+        adminPromiseOffset = 2;
       } else {
         setJoinRequests([]); // Ensure it's empty for non-admins
       }
@@ -489,6 +495,18 @@ const confirmDeleteRoom = () => {
         }}
         ListHeaderComponent={
           <>
+          <Button 
+    title="View Journey Dashboard" 
+    onPress={() => navigation.navigate('JourneyDashboard', { roomId: roomId, roomName: roomDetails.name })}
+    color={COLORS.accent} // A different color to make it stand out
+/>
+<View>
+  
+  {dailyProgressData.length > 0 && ( // Only render if there's data
+    <DailyProgressTracker dailyProgressData={dailyProgressData} />
+  )}
+  {/* ... rest of your RoomDetailScreen content (AdminPanel, SectionList, etc.) */}
+</View>
             <View style={styles.header}>
               <Text style={styles.roomName}>{roomDetails.name}</Text>
               <Text style={styles.inviteCode}>Invite Code: {roomDetails.invite_code}</Text>

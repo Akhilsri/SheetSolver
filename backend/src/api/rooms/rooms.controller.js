@@ -207,6 +207,30 @@ async function handleDeleteRoom(req, res) {
   }
 }
 
+async function handleGetJourneyDashboard(req, res) {
+  try {
+    const { roomId } = req.params;
+    const userId = req.user.userId;
+    const dashboardData = await roomsService.getJourneyDashboard(roomId, userId);
+    res.status(200).json(dashboardData);
+  } catch (error) {
+    console.error("Get Journey Dashboard Error:", error);
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+}
+
+async function handleGetDailyRoomProgress(req, res) {
+  try {
+    const { roomId } = req.params;
+    const userId = req.user.userId; // This comes from your authMiddleware
+    const progressData = await roomsService.getDailyRoomProgress(roomId, userId);
+    res.status(200).json(progressData);
+  } catch (error) {
+    console.error("Get Daily Room Progress Error:", error);
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+}
+
 module.exports = {
   handleCreateRoom,
   handleGetRooms,
@@ -220,5 +244,7 @@ module.exports = {
    handleRemoveMember,
    handleGetPendingJoinRequests, handleApproveJoinRequest, handleDenyJoinRequest,
    handleLeaveRoom,
-   handleDeleteRoom
+   handleDeleteRoom,
+   handleGetJourneyDashboard,
+   handleGetDailyRoomProgress
 };

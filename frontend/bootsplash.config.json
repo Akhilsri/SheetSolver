@@ -1,0 +1,15 @@
+{
+  "logo": {
+    "uri": "./src/assets/images/SS-logo.png",
+    "width": 150
+  },
+  "assets": {
+    "path": "./assets",
+    "brand": {
+      "path": "./assets/brand.png"
+    }
+  },
+  "RNBootSplash.storyboard": {
+    "backgroundColor": "FFFFFF"
+  }
+}

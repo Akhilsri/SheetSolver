@@ -31,5 +31,7 @@ router.put('/join-requests/:requestId/approve', adminAuthMiddleware, roomsContro
 router.put('/join-requests/:requestId/deny', adminAuthMiddleware, roomsController.handleDenyJoinRequest);
 router.delete('/:roomId/leave', authMiddleware, roomsController.handleLeaveRoom);
 router.delete('/:roomId', adminAuthMiddleware, roomsController.handleDeleteRoom);
+router.get('/:roomId/journey-dashboard', authMiddleware, roomsController.handleGetJourneyDashboard);
+router.get('/:roomId/daily-progress', authMiddleware, roomsController.handleGetDailyRoomProgress);
 
 module.exports = router;
