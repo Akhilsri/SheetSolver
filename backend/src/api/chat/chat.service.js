@@ -5,14 +5,18 @@ async function getChatHistory(roomId) {
   // table to get the sender's details, formatted for react-native-gifted-chat.
   const sql = `
     SELECT 
-      cm.id as _id,
-      cm.message_text as text,
-      cm.created_at as createdAt,
-      JSON_OBJECT('_id', u.id, 'name', u.username) as user
-    FROM chat_messages cm
-    JOIN users u ON cm.sender_id = u.id
-    WHERE cm.room_id = ?
-    ORDER BY cm.created_at DESC
+      m.id as _id,
+      m.message_text as text,
+      m.created_at as createdAt,
+      JSON_OBJECT(
+        '_id', u.id, 
+        'name', u.username,
+        'avatar_url', u.avatar_url
+      ) as user
+    FROM chat_messages m
+    JOIN users u ON m.sender_id = u.id
+    WHERE m.room_id = ?
+    ORDER BY m.created_at DESC
     LIMIT 50;
   `;
   const [messages] = await pool.query(sql, [roomId]);

@@ -11,6 +11,22 @@ import apiClient from '../api/apiClient';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { COLORS, SIZES, FONTS } from '../styles/theme';
 
+// --- Helper: format date like WhatsApp ---
+const formatChatDate = (date) => {
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(today.getDate() - 1);
+
+    const isSameDay = (d1, d2) =>
+        d1.getDate() === d2.getDate() &&
+        d1.getMonth() === d2.getMonth() &&
+        d1.getFullYear() === d2.getFullYear();
+
+    if (isSameDay(date, today)) return "Today";
+    if (isSameDay(date, yesterday)) return "Yesterday";
+    return date.toLocaleDateString("en-US", { day: "numeric", month: "short", year: "numeric" });
+};
+
 const DirectMessageScreen = () => {
     const route = useRoute();
     const headerHeight = useHeaderHeight();
@@ -22,96 +38,132 @@ const DirectMessageScreen = () => {
     const [text, setText] = useState('');
     const [isLoading, setIsLoading] = useState(true);
 
+    // --- Insert date separators into raw messages ---
+    const processMessagesForDisplay = useCallback((rawMessages) => {
+        const displayItems = [];
+        let lastDate = null;
+
+        const sorted = [...rawMessages].sort((a, b) => a.createdAt - b.createdAt);
+
+        sorted.forEach(msg => {
+            const msgDate = new Date(msg.createdAt);
+            if (!lastDate || !(
+                lastDate.getDate() === msgDate.getDate() &&
+                lastDate.getMonth() === msgDate.getMonth() &&
+                lastDate.getFullYear() === msgDate.getFullYear()
+            )) {
+                displayItems.push({
+                    _id: `date-${msgDate.getTime()}`,
+                    type: 'dateSeparator',
+                    date: msgDate
+                });
+                lastDate = msgDate;
+            }
+            displayItems.push({ ...msg, type: 'message' });
+        });
+
+        // reverse for inverted FlatList
+        return displayItems.reverse();
+    }, []);
+
     // Fetch chat history
     useEffect(() => {
         const loadChat = async () => {
             try {
                 setIsLoading(true);
-                // Mark messages as read and fetch count
                 await apiClient.put(`/chat/direct/${connectionUserId}/read`);
                 fetchUnreadMessageCount();
 
                 const response = await apiClient.get(`/chat/direct/${connectionUserId}`);
-                const formattedMessages = response.data.map(msg => ({
+                const formatted = response.data.map(msg => ({
                     ...msg,
                     createdAt: new Date(msg.createdAt),
+                    user: typeof msg.user === "string" ? JSON.parse(msg.user) : msg.user,
                 }));
-                setMessages(formattedMessages);
+                setMessages(processMessagesForDisplay(formatted));
             } catch (error) {
-                console.error('Failed to load chat:', error);
+                console.error("Failed to load chat:", error);
             } finally {
                 setIsLoading(false);
             }
         };
         loadChat();
-    }, [connectionUserId, fetchUnreadMessageCount]);
+    }, [connectionUserId, fetchUnreadMessageCount, processMessagesForDisplay]);
 
     // Socket listener
     useEffect(() => {
         if (!socket.current) return;
         const onReceivePrivateMessage = (newMessage) => {
-            // Check if the message is from the user we're currently chatting with
             if (newMessage.user._id === Number(connectionUserId)) {
-                setMessages(prev => [
-                    { ...newMessage, createdAt: new Date(newMessage.createdAt) },
-                    ...prev,
-                ]);
+                const formatted = {
+                    ...newMessage,
+                    createdAt: new Date(newMessage.createdAt),
+                    type: "message"
+                };
+                setMessages(prev => {
+                    const rawMsgs = [formatted, ...prev.filter(m => m.type === "message")];
+                    return processMessagesForDisplay(rawMsgs);
+                });
             }
         };
-        socket.current.on('receive_private_message', onReceivePrivateMessage);
-        return () => socket.current.off('receive_private_message', onReceivePrivateMessage);
-    }, [socket.current, connectionUserId]);
+        socket.current.on("receive_private_message", onReceivePrivateMessage);
+        return () => socket.current.off("receive_private_message", onReceivePrivateMessage);
+    }, [socket.current, connectionUserId, processMessagesForDisplay]);
 
     const handleSend = useCallback(() => {
         if (text.trim() === '' || !socket.current) return;
-
         const messageData = {
-            _id: Math.random().toString(), // Temp ID for immediate display
+            _id: Math.random().toString(),
             text,
             createdAt: new Date(),
             user: { _id: Number(userId), name: username },
-            // Add a temporary 'isSent' status if needed for delivery indicator
+            type: "message"
         };
-
         socket.current.emit('send_private_message', {
             senderId: userId,
             recipientId: connectionUserId,
             messageText: text,
             ...messageData,
         });
-
-        setMessages(prev => [messageData, ...prev]);
+        setMessages(prev => {
+            const rawMsgs = [messageData, ...prev.filter(m => m.type === "message")];
+            return processMessagesForDisplay(rawMsgs);
+        });
         setText('');
-    }, [text, userId, username, connectionUserId, socket.current]);
+    }, [text, userId, username, connectionUserId, socket.current, processMessagesForDisplay]);
 
     const renderItem = ({ item }) => {
-        const isMyMessage = item.user._id === Number(userId);
-        
-        // Use a fixed timestamp format
+        if (item.type === "dateSeparator") {
+            return (
+                <View style={styles.dateSeparatorContainer} key={item._id}>
+                    <Text style={styles.dateSeparatorText}>{formatChatDate(item.date)}</Text>
+                </View>
+            );
+        }
+
+        const isMyMessage = item.user && (item.user._id === Number(userId) || item.user.id === Number(userId));
         const timeString = new Date(item.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
         return (
             <View style={[
-                chatStyles.messageRow,
+                styles.messageRow,
                 { justifyContent: isMyMessage ? 'flex-end' : 'flex-start' }
             ]}>
                 <View style={[
-                    chatStyles.messageBubble,
-                    // Apply distinct background colors and border radii
-                    isMyMessage ? chatStyles.myMessage : chatStyles.theirMessage
+                    styles.messageBubble,
+                    isMyMessage ? styles.myMessage : styles.theirMessage
                 ]}>
-                    <Text style={chatStyles.messageText}>{item.text}</Text>
-                    <View style={chatStyles.timestampWrapper}>
-                        <Text style={chatStyles.timestamp}>
+                    <Text style={isMyMessage ? styles.myMessageText : styles.theirMessageText}>{item.text}</Text>
+                    <View style={styles.timestampWrapper}>
+                        <Text style={isMyMessage ? styles.myTimestamp : styles.theirTimestamp}>
                             {timeString}
                         </Text>
                         {isMyMessage && (
-                            // Read/Sent indicator (using a common color like light grey for visibility)
                             <Icon 
                                 name="checkmark-done-outline" 
                                 size={14} 
-                                color={COLORS.textSecondary} 
-                                style={{ marginLeft: 4 }} 
+                                color={COLORS.surface} 
+                                style={{ marginLeft: 4, opacity: 0.8 }} 
                             />
                         )}
                     </View>
@@ -121,72 +173,68 @@ const DirectMessageScreen = () => {
     };
 
     if (isLoading) {
-        return <ActivityIndicator size="large" color={COLORS.primary} style={chatStyles.centered} />;
+        return <ActivityIndicator size="large" color={COLORS.primary} style={styles.centered} />;
     }
 
     return (
-        // Note: ImageBackground might need custom styling depending on the image used.
-        <ImageBackground source={require('../assets/images/chat_bg.png')} style={chatStyles.container}>
+        <ImageBackground source={require('../assets/images/chat_bg.png')} style={styles.container}>
             <SafeAreaView style={{ flex: 1 }}>
                 <KeyboardAvoidingView
                     style={{ flex: 1 }}
                     behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-                    keyboardVerticalOffset={headerHeight + 10}
+                    keyboardVerticalOffset={headerHeight}
                 >
                     <FlatList
                         data={messages}
                         inverted
                         keyExtractor={(item) => item._id.toString()}
                         renderItem={renderItem}
-                        contentContainerStyle={{ padding: SIZES.padding }}
+                        contentContainerStyle={{ padding: SIZES.base }}
                         ListEmptyComponent={
-                            <View style={chatStyles.emptyState}>
-                                <Text style={chatStyles.emptyText}>No messages yet. Say hi 👋</Text>
+                            <View style={styles.emptyState}>
+                                <Text style={styles.emptyText}>No messages yet. Say hi 👋</Text>
                             </View>
                         }
                     />
 
-                    {/* Input Bar */}
-                    <View style={chatStyles.inputBar}>
+                    <View style={styles.inputBar}>
                         <TextInput
-                            style={chatStyles.input}
+                            style={styles.input}
                             value={text}
                             onChangeText={setText}
                             placeholder="Type a message..."
                             placeholderTextColor={COLORS.textSecondary}
                             multiline
-                            maxHeight={120} // Enforce max height for multiline input
                         />
                         <TouchableOpacity 
                             style={[
-                                chatStyles.sendButton, 
-                                { opacity: text.trim().length > 0 ? 1 : 0.6 } // Dim button when empty
+                                styles.sendButton, 
+                                { opacity: text.trim().length > 0 ? 1 : 0.6 }
                             ]} 
                             onPress={handleSend} 
                             disabled={text.trim().length === 0}
                         >
-                            <Icon name="send" size={20} color={COLORS.textInverse} />
+                            <Icon name="send" size={20} color={COLORS.surface} />
                         </TouchableOpacity>
                     </View>
-
                 </KeyboardAvoidingView>
             </SafeAreaView>
         </ImageBackground>
     );
 };
 
-const chatStyles = StyleSheet.create({
+const styles = StyleSheet.create({
     container: { flex: 1 },
     centered: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-
+    
     // --- Message Bubbles ---
     messageRow: { 
-        marginVertical: 6, 
+        marginVertical: 4, 
         flexDirection: 'row', 
-        paddingHorizontal: SIZES.base, // Add slight horizontal padding for margin from screen edge
+        paddingHorizontal: SIZES.base,
     },
     messageBubble: {
-        maxWidth: '80%', // Increased from 75% for more realistic chat width
+        maxWidth: '80%',
         paddingVertical: 8,
         paddingHorizontal: 12,
         borderRadius: 18,
@@ -195,81 +243,90 @@ const chatStyles = StyleSheet.create({
         shadowRadius: 3,
         elevation: 2,
     },
-    // Message sent by the user (Right side)
     myMessage: { 
-        backgroundColor: COLORS.primary, // Use the primary theme color
-        borderTopRightRadius: 6, 
-        borderBottomRightRadius: 6,
-        borderBottomLeftRadius: 18, 
-        borderTopLeftRadius: 18,
+        backgroundColor: COLORS.primary,
+        borderBottomRightRadius: 4, 
     },
-    // Message received from the other person (Left side)
     theirMessage: { 
-        backgroundColor: COLORS.surface, // Use white/light background for contrast
-        borderTopLeftRadius: 6, 
-        borderBottomLeftRadius: 6,
-        borderBottomRightRadius: 18,
-        borderTopRightRadius: 18,
+        backgroundColor: COLORS.surface,
+        borderBottomLeftRadius: 4,
     },
-    messageText: { 
-        ...FONTS.body, 
-        fontSize: 15,
-        color: COLORS.textPrimary, // Dark text on both bubbles, as 'myMessage' is dark enough
-    },
-    // Adjust text color for your messages if primary color is dark
     myMessageText: {
-        color: COLORS.textInverse, // White text for your message
+        ...FONTS.body,
+        color: COLORS.surface,
+    },
+    theirMessageText: {
+        ...FONTS.body,
+        color: COLORS.textPrimary,
     },
     timestampWrapper: { 
         flexDirection: 'row', 
         alignItems: 'center', 
-        justifyContent: 'flex-end', // Ensure time is right-aligned inside the bubble
+        justifyContent: 'flex-end',
         marginTop: 4 
     },
-    timestamp: { 
+    myTimestamp: { 
         ...FONTS.caption, 
-        fontSize: 10, 
+        fontSize: 11, 
+        color: COLORS.surface,
+        opacity: 0.8,
+    },
+    theirTimestamp: { 
+        ...FONTS.caption, 
+        fontSize: 11, 
         color: COLORS.textSecondary,
     },
 
     // --- Input Bar ---
     inputBar: {
         flexDirection: 'row',
-        alignItems: 'flex-end', // Aligns with multiline input expansion
-        marginHorizontal: SIZES.padding,
-        marginBottom: SIZES.base,
-        backgroundColor: COLORS.surface,
-        borderRadius: 25,
-        borderWidth: 1,
-        borderColor: COLORS.border,
-        paddingRight: 6, // Space for the floating button effect
-        shadowColor: '#000',
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-        elevation: 3,
+        alignItems: 'flex-end',
+        paddingHorizontal: SIZES.base,
+        paddingVertical: SIZES.base,
+        backgroundColor: COLORS.background,
+        borderTopWidth: 1,
+        borderTopColor: COLORS.border,
     },
     input: {
         flex: 1,
         fontSize: 16,
         paddingHorizontal: SIZES.padding,
-        paddingTop: 10, // Adjust padding to center single line text
-        paddingBottom: 10,
+        paddingVertical: Platform.OS === 'ios' ? 12 : 8,
         ...FONTS.body,
         color: COLORS.textPrimary,
-        minHeight: 48, // Minimum height for comfortable tapping
+        backgroundColor: COLORS.surface,
+        borderRadius: 25,
+        borderWidth: 1,
+        borderColor: COLORS.border,
+        maxHeight: 120,
     },
     sendButton: {
-        width: 40,
-        height: 40,
-        borderRadius: 20,
+        width: 44,
+        height: 44,
+        borderRadius: 22,
         backgroundColor: COLORS.primary,
         justifyContent: 'center',
         alignItems: 'center',
-        marginVertical: 4, // Center vertically within the bar
+        marginLeft: SIZES.base,
+    },
+
+    // --- Date Separator ---
+    dateSeparatorContainer: {
+        marginVertical: 10,
+        alignItems: 'center',
+    },
+    dateSeparatorText: {
+        backgroundColor: COLORS.border,
+        color: COLORS.textSecondary,
+        ...FONTS.caption,
+        fontSize: 12,
+        paddingVertical: 5,
+        paddingHorizontal: 10,
+        borderRadius: 15,
     },
 
     // Empty state
-    emptyState: { flex: 1, justifyContent: 'center', alignItems: 'center', height: '100%' },
+    emptyState: { padding: SIZES.padding * 2, alignItems: 'center' },
     emptyText: { ...FONTS.body, color: COLORS.textSecondary, textAlign: 'center' },
 });
 
