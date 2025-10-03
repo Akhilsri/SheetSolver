@@ -4,7 +4,7 @@ import { useAuth } from './AuthContext';
 
 // IMPORTANT: Double-check that this is your computer's correct IP address
 // const SOCKET_URL = 'https://sheetsolver-backend-715219399445.asia-south1.run.app'; 
-const SOCKET_URL = 'http://192.168.1.13:3000'; 
+const SOCKET_URL = 'http://192.168.1.8:3000'; 
 
 const SocketContext = createContext();
 

@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useLayoutEffect } from 'react';
+import React, { useState, useCallback, useLayoutEffect, useMemo, useRef } from 'react';
 import {
   View,
   Text,
@@ -6,16 +6,17 @@ import {
   SectionList,
   ActivityIndicator,
   TextInput,
-  Button,
   Alert,
   TouchableOpacity,
-  Linking,
   Platform,
   PermissionsAndroid,
   Modal,
-  Image
+  Image,
+  SafeAreaView,
+  Dimensions,
+  ScrollView
 } from 'react-native';
-import { useRoute, useFocusEffect, useNavigation } from '@react-navigation/native';
+import { useRoute, useFocusEffect } from '@react-navigation/native';
 import { Picker } from '@react-native-picker/picker';
 import apiClient from '../api/apiClient';
 import { useAuth } from '../context/AuthContext';
@@ -28,14 +29,130 @@ import * as sheetService from '../services/sheetService';
 import Sound from 'react-native-sound';
 import { COLORS, SIZES, FONTS } from '../styles/theme';
 import Card from '../components/common/Card';
-import DailyProgressTracker from '../components/room/DailyProgressTracker'; // <-- NEW IMPORT
+import DailyProgressTracker from '../components/room/DailyProgressTracker';
 
+// Constants
+const SCREEN_WIDTH = Dimensions.get('window').width;
+const SIDEBAR_WIDTH = SCREEN_WIDTH * 0.85;
+
+/* -------------------------
+   Small memo components
+   -------------------------*/
+const IconButton = React.memo(({ name, color = COLORS.primary, size = 24, onPress, style }) => (
+  <TouchableOpacity onPress={onPress} style={[{ padding: SIZES.base }, style]} activeOpacity={0.7}>
+    <Icon name={name} size={size} color={color} />
+  </TouchableOpacity>
+));
+
+const CustomButton = React.memo(({ title, onPress, color = COLORS.primary, outline = false, style = {} }) => (
+  <TouchableOpacity
+    onPress={onPress}
+    style={[
+      styles.customButton,
+      { backgroundColor: outline ? COLORS.surface : color, borderColor: color },
+      style
+    ]}
+  >
+    <Text style={[styles.customButtonText, { color: outline ? color : COLORS.surface }]}>
+      {title}
+    </Text>
+  </TouchableOpacity>
+));
+
+/* -------------------------
+   Today's Standing Sidebar
+   -------------------------*/
+const TodayStandingSidebar = React.memo(({ visible, onClose, data = [], userId }) => {
+  if (!visible) return null;
+
+  if (!data || data.length === 0) {
+    return (
+      <Modal transparent visible={visible} animationType="slide">
+        <View style={styles.overlay}>
+          <View style={styles.sidebar}>
+            <View style={styles.sidebarHeader}>
+              <Text style={styles.sidebarTitle}>Today's Standings</Text>
+              <TouchableOpacity onPress={onClose}>
+                <Icon name="close" size={24} color={COLORS.textPrimary} />
+              </TouchableOpacity>
+            </View>
+            <Text style={styles.noData}>No data available</Text>
+          </View>
+        </View>
+      </Modal>
+    );
+  }
+
+  const sortedData = useMemo(() => {
+    return [...data].sort((a, b) => {
+      if (Number(a.userId) === Number(userId)) return -1;
+      if (Number(b.userId) === Number(userId)) return 1;
+      return (b.solvedCount || 0) - (a.solvedCount || 0);
+    });
+  }, [data, userId]);
+
+  return (
+    <Modal transparent visible={visible} animationType="slide">
+      <View style={styles.overlay}>
+        <View style={styles.sidebar}>
+          <View style={styles.sidebarHeader}>
+            <Text style={styles.sidebarTitle}>Today's Standings</Text>
+            <TouchableOpacity onPress={onClose}>
+              <Icon name="close" size={24} color={COLORS.textPrimary} />
+            </TouchableOpacity>
+          </View>
+
+          <ScrollView showsVerticalScrollIndicator={false}>
+            {sortedData.map((member, index) => {
+              const isCurrentUser = Number(member.userId) === Number(userId);
+              const total = Number(member.totalCount) || 0;
+              const solved = Number(member.solvedCount) || 0;
+              const progressPercentage = total > 0 ? Math.round((solved / total) * 100) : 0;
+
+              return (
+                <View
+                  key={member.userId ?? index}
+                  style={[styles.memberRow, isCurrentUser && styles.currentUserRow]}
+                >
+                  <Text style={[styles.rank, isCurrentUser && styles.currentUserText]}>
+                    #{index + 1}
+                  </Text>
+                  <Text style={[styles.memberNameText, isCurrentUser && styles.currentUserText]}>
+                    {member.username} {isCurrentUser ? '(You)' : ''}
+                  </Text>
+                  <View style={styles.progressWrapper}>
+                    <View
+                      style={[
+                        styles.progressFill,
+                        {
+                          width: `${progressPercentage}%`,
+                          backgroundColor: isCurrentUser ? COLORS.primary : COLORS.success,
+                        },
+                      ]}
+                    />
+                    <Text style={styles.progressText}>
+                      {solved}/{total}
+                    </Text>
+                  </View>
+                </View>
+              );
+            })}
+          </ScrollView>
+        </View>
+      </View>
+    </Modal>
+  );
+});
+
+/* -------------------------
+   Main Screen
+   -------------------------*/
 const RoomDetailScreen = ({ navigation }) => {
-  // --- Hooks and State Initialization ---
   const route = useRoute();
   const { userId, logout } = useAuth();
-  const { roomId, roomName: initialRoomName } = route.params;
+  const { roomId, roomName: initialRoomName } = route.params ?? {};
 
+  // state
   const [isLoading, setIsLoading] = useState(true);
   const [roomDetails, setRoomDetails] = useState(null);
   const [members, setMembers] = useState([]);
@@ -44,113 +161,139 @@ const RoomDetailScreen = ({ navigation }) => {
   const [isUploading, setIsUploading] = useState(false);
   const [todaysSubmissions, setTodaysSubmissions] = useState({});
   const [joinRequests, setJoinRequests] = useState([]);
-  const [solvedProblemIds, setSolvedProblemIds] = useState([]); // <-- State for all-time solved status
-  const [selectedSheet, setSelectedSheet] = useState();
+  const [solvedProblemIds, setSolvedProblemIds] = useState([]);
+  const [selectedSheet, setSelectedSheet] = useState(null);
   const [duration, setDuration] = useState('90');
   const [modalVisible, setModalVisible] = useState(false);
+  const [actionModalVisible, setActionModalVisible] = useState(false);
+  const [sidebarVisible, setSidebarVisible] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
   const [uploadingProblemId, setUploadingProblemId] = useState(null);
-  const [dailyProgressData, setDailyProgressData] = useState([]); // <-- NEW STATE
-  
+  const [dailyProgressData, setDailyProgressData] = useState([]);
 
-  // --- THIS IS THE NEW, MORE ROBUST DATA FETCHING LOGIC ---
- const fetchData = async () => {
+  const isMounted = useRef(true);
+
+  // stable fetchData
+  const fetchData = useCallback(async () => {
     try {
       setIsLoading(true);
-      
-      // First, get the core room details.
       const detailsRes = await roomService.getRoomDetails(roomId);
-      const roomData = detailsRes.data;
-
-      // Important: If for some reason the room doesn't exist, stop here.
+      const roomData = detailsRes?.data;
       if (!roomData) {
-        setIsLoading(false);
         Alert.alert('Error', 'Could not find room details.');
+        setRoomDetails(null);
         return;
       }
-
       setRoomDetails(roomData);
       const isAdmin = roomData.admin_id === Number(userId);
 
-      // Prepare the list of API calls to run in parallel
       const promises = [
         roomService.getRoomMembers(roomId),
         submissionService.getTodaysSubmissions(roomId),
         roomService.getDailyRoomProgress(roomId),
       ];
+
       if (isAdmin) {
         promises.push(roomService.getJoinRequests(roomId));
         promises.push(sheetService.getAllSheets());
-        
       }
 
-      // Execute all promises
       const responses = await Promise.all(promises);
-      
-      // Safely assign the responses to state
-      setMembers(responses[0].data);
-      const submissionsData = responses[1].data;
-      setDailyProgressData(responses[2].data.membersProgress);
-      
-      if (isAdmin) {
-        // These will only exist in the array if the user is an admin
-        setJoinRequests(responses[3].data);
-        setSheets(responses[4].data);
-        adminPromiseOffset = 2;
-      } else {
-        setJoinRequests([]); // Ensure it's empty for non-admins
-      }
-      
-      // Process submissions after they've been fetched
-      setTodaysSubmissions(submissionsData.reduce((acc, sub) => {
-        if (!acc[sub.problem_id]) acc[sub.problem_id] = [];
-        acc[sub.problem_id].push(sub);
-        return acc;
-      }, {}));
+      if (!isMounted.current) return;
 
-      // Fetch daily problems and their status if the journey is active
+      setMembers(responses[0]?.data || []);
+      const submissionsData = responses[1]?.data || [];
+      setDailyProgressData(responses[2]?.data?.membersProgress || []);
+
+      if (isAdmin) {
+        setJoinRequests(responses[3]?.data || []);
+        setSheets(responses[4]?.data || []);
+      } else {
+        setJoinRequests([]);
+      }
+
+      const grouped = submissionsData.reduce((acc, sub) => {
+        const pid = sub.problem_id;
+        if (!acc[pid]) acc[pid] = [];
+        acc[pid].push(sub);
+        return acc;
+      }, {});
+      setTodaysSubmissions(grouped);
+
       if (roomData.status === 'active') {
         const problemsRes = await roomService.getDailyProblems(roomId);
-        const dailyProblemsData = problemsRes.data;
+        const dailyProblemsData = problemsRes?.data || [];
         setDailyProblems(dailyProblemsData);
 
         if (dailyProblemsData.length > 0) {
           const problemIds = dailyProblemsData.map(p => p.id);
           const statusRes = await submissionService.getSubmissionStatus(problemIds);
-          setSolvedProblemIds(statusRes.data);
+          setSolvedProblemIds(statusRes?.data || []);
+        } else {
+          setSolvedProblemIds([]);
         }
+      } else {
+        setDailyProblems([]);
+        setSolvedProblemIds([]);
       }
     } catch (error) {
       console.error('Failed to fetch screen data:', error);
       Alert.alert('Error', 'Could not load room details.');
     } finally {
-      setIsLoading(false);
+      if (isMounted.current) setIsLoading(false);
     }
-  };
+  }, [roomId, userId]);
 
-  useFocusEffect(useCallback(() => { fetchData(); }, [roomId]));
+  useFocusEffect(
+    useCallback(() => {
+      isMounted.current = true;
+      fetchData();
+      return () => {
+        isMounted.current = false;
+      };
+    }, [fetchData])
+  );
+
+  // header
+  const renderHeaderRight = useCallback((roomData) => {
+    const isRoomActive = roomData?.status === 'active';
+    return (
+      <View style={styles.headerRightContainer}>
+        <IconButton
+          name="chatbubbles-outline"
+          onPress={() => navigation.navigate('Chat', { roomId, roomName: roomData?.name })}
+          color={COLORS.primary}
+        />
+        {isRoomActive && (
+          <IconButton name="ribbon-outline" onPress={() => setSidebarVisible(true)} color={COLORS.primary} />
+        )}
+        <IconButton
+          name="trophy-outline"
+          onPress={() => navigation.navigate('Leaderboard', { roomId, roomName: roomData?.name })}
+          color={COLORS.primary}
+        />
+        <IconButton
+          name="bar-chart-outline"
+          onPress={() => navigation.navigate('JourneyDashboard', { roomId, roomName: roomData?.name })}
+          color={COLORS.primary}
+        />
+        {isRoomActive && (
+          <IconButton name="list-outline" onPress={() => navigation.navigate('FullSheet', { roomId, roomName: roomData?.name })} color={COLORS.primary} />
+        )}
+        <IconButton name="ellipsis-vertical" onPress={() => setActionModalVisible(true)} color={COLORS.text} />
+      </View>
+    );
+  }, [navigation, roomId]);
 
   useLayoutEffect(() => {
     navigation.setOptions({
       title: roomDetails?.name || initialRoomName,
-      headerRight: () => (
-        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-          <TouchableOpacity onPress={() => navigation.navigate('Chat', { roomId: roomId, roomName: roomDetails?.name })} style={{ marginRight: 15 }}>
-            <Icon name="chatbubbles-outline" size={24} color="#007BFF" />
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => navigation.navigate('Leaderboard', { roomId: roomId, roomName: roomDetails?.name })} style={{ marginRight: 15 }}>
-            <Icon name="trophy-outline" size={24} color="#007BFF" />
-          </TouchableOpacity>
-          {/* <Button onPress={logout} title="Logout" /> */}
-        </View>
-      ),
+      headerRight: () => renderHeaderRight(roomDetails),
     });
-  }, [navigation, logout, roomId, roomDetails]);
+  }, [navigation, roomDetails, initialRoomName, renderHeaderRight]);
 
-  
-  
-  // --- Permission and Handlers ---
-  const requestCameraPermission = async () => {
+  // Permissions helper
+  const requestCameraPermission = useCallback(async () => {
     if (Platform.OS === 'android') {
       try {
         const granted = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.CAMERA, {
@@ -166,123 +309,101 @@ const RoomDetailScreen = ({ navigation }) => {
       }
     }
     return true;
-  };
+  }, []);
 
-  const showSubmissionPicker = (submissions) => {
+  // show submission picker
+  const showSubmissionPicker = useCallback((submissions) => {
+    if (!submissions || submissions.length === 0) return;
     if (submissions.length === 1) {
-      openSnap(submissions[0].photo_url);
+      setSelectedImage(submissions[0].photo_url);
+      setModalVisible(true);
       return;
     }
 
-    const buttons = submissions.map(submission => ({
-      text: `View ${submission.username}'s Snap`,
-      onPress: () => openSnap(submission.photo_url),
+    const buttons = submissions.map(sub => ({
+      text: `View ${sub.username}'s Snap`,
+      onPress: () => {
+        setSelectedImage(sub.photo_url);
+        setModalVisible(true);
+      }
     }));
-
     buttons.push({ text: 'Cancel', style: 'cancel' });
+    // Using Alert.alert as before
+    Alert.alert('View a Submission', 'Choose a user to see their proof.', buttons);
+  }, []);
 
-    Alert.alert('View a Submission','Choose a user to see their proof.',buttons);
-  };
-
-  const handleMarkAsDone = (problem) => {
-    requestCameraPermission().then(hasPermission => {
+  // camera + upload wrapped in async
+  const handleMarkAsDone = useCallback((problem) => {
+    (async () => {
+      const hasPermission = await requestCameraPermission();
       if (!hasPermission) return;
 
       launchCamera({ mediaType: 'photo', quality: 1.0, saveToPhotos: true }, async (response) => {
-        if (response.didCancel) {
-          console.log('User cancelled image picker');
-          return;
-        }
+        if (response.didCancel) return;
         if (response.errorCode) {
           Alert.alert('Error', 'ImagePicker Error: ' + response.errorMessage);
           return;
         }
-        if (!response.assets || response.assets.length === 0) {
-          console.log('No image asset found.');
-          return;
-        }
+        const original = response.assets && response.assets[0];
+        if (!original) return;
 
-        const originalImage = response.assets[0];
         setUploadingProblemId(problem.id);
-        setIsUploading(true); // Also set the global uploading flag
+        setIsUploading(true);
 
         try {
-          console.log('DEBUG: Image captured, preparing to resize...');
-          const resizedImage = await ImageResizer.createResizedImage(
-            originalImage.uri,
-            1280, // Max width
-            1280, // Max height
-            'JPEG', // Format
-            80, // Quality (0-100)
-            0, // Rotation
-            null // Output path
+          const resized = await ImageResizer.createResizedImage(
+            original.uri,
+            1280,
+            1280,
+            'JPEG',
+            80,
+            0,
+            null
           );
-          console.log('DEBUG: Image resized successfully. URI:', resizedImage.uri);
 
-          const formData = new FormData();
-          formData.append('proofImage', {
-            uri: resizedImage.uri,
+          const fd = new FormData();
+          fd.append('proofImage', {
+            uri: resized.uri,
             type: 'image/jpeg',
-            name: resizedImage.name,
+            name: resized.name || `upload_${Date.now()}.jpg`,
           });
-          formData.append('roomId', roomId);
-          formData.append('problemId', problem.id);
-          
-          console.log('DEBUG: FormData created. Attempting to upload...');
-          const submissionResponse = await submissionService.createSubmission(formData);
+          fd.append('roomId', roomId);
+          fd.append('problemId', problem.id);
 
-          const successSound = new Sound('success.mp3', Sound.MAIN_BUNDLE, (error) => {
-              if (error) {
-                  console.log('failed to load the sound', error);
-                  return;
-              }
-              successSound.play((success) => {
-                  if (success) {
-                      console.log('successfully finished playing');
-                  } else {
-                      console.log('playback failed due to audio decoding errors');
-                  }
-                  successSound.release(); // Release the audio player resource
-              });
+          const submissionResponse = await submissionService.createSubmission(fd);
+
+          // play success sound (non-blocking)
+          const successSound = new Sound('success.mp3', Sound.MAIN_BUNDLE, (err) => {
+            if (!err) {
+              successSound.play(() => successSound.release());
+            }
           });
-          
-          console.log('DEBUG: Upload successful! Server response:', submissionResponse.data);
-          
-          const newBadges = submissionResponse.data.newBadges;
+
+          const newBadges = submissionResponse?.data?.newBadges || [];
           let alertMessage = 'Your proof has been submitted.';
-          if (newBadges && newBadges.length > 0) {
-            alertMessage += `\n\n🎉 Badge Unlocked: ${newBadges.map(b => b.name).join(', ')}!`;
-          }
+          if (newBadges.length) alertMessage += `\n\n🎉 Badge Unlocked: ${newBadges.map(b => b.name).join(', ')}!`;
 
           Alert.alert('Success!', alertMessage, [{ text: 'OK', onPress: () => fetchData() }]);
-        
         } catch (error) {
-          // --- THIS IS THE MOST IMPORTANT PART ---
-          console.error('--- UPLOAD FAILED ---');
-          if (error.response) {
-            // The request was made and the server responded with a status code
-            // that falls out of the range of 2xx
-            console.error('Server Response Data:', JSON.stringify(error.response.data, null, 2));
-            console.error('Server Response Status:', error.response.status);
-          } else if (error.request) {
-            // The request was made but no response was received
-            console.error('No response received from server. This is likely a Network Error.');
-            console.error('Request details:', error.request);
+          console.error('Upload error:', error);
+          if (error?.response) {
+            console.error('Server Response:', error.response.data);
+          } else if (error?.request) {
+            console.error('No response from server:', error.request);
           } else {
-            // Something happened in setting up the request that triggered an Error
-            console.error('Error setting up the request:', error.message);
+            console.error('Upload setup error:', error.message);
           }
-          console.error('----------------------');
           Alert.alert('Upload Failed', 'There was an error submitting your proof. Please try again.');
         } finally {
           setUploadingProblemId(null);
           setIsUploading(false);
         }
       });
-    });
-  };
+    })();
+  }, [requestCameraPermission, roomId, fetchData]);
 
-  const confirmRemoveMember = (member) => {
+  // member remove
+  const confirmRemoveMember = useCallback((member) => {
     Alert.alert(
       "Remove Member",
       `Are you sure you want to remove ${member.username} from this room?`,
@@ -291,20 +412,20 @@ const RoomDetailScreen = ({ navigation }) => {
         { text: "Yes, Remove", onPress: () => removeMember(member.id), style: "destructive" }
       ]
     );
-  };
+  }, []);
 
-  const removeMember = async (memberId) => {
+  const removeMember = useCallback(async (memberId) => {
     try {
       await roomService.removeMember(roomId, memberId);
       Alert.alert('Success', 'Member has been removed.');
       fetchData();
     } catch (error) {
-      const errorMessage = error.response?.data?.message || 'Could not remove member.';
+      const errorMessage = error?.response?.data?.message || 'Could not remove member.';
       Alert.alert('Error', errorMessage);
     }
-  };
+  }, [roomId, fetchData]);
 
-  const handleStartJourney = async () => {
+  const handleStartJourney = useCallback(async () => {
     if (!selectedSheet || !duration) {
       Alert.alert('Error', 'Please select a sheet and set a duration.');
       return;
@@ -317,15 +438,15 @@ const RoomDetailScreen = ({ navigation }) => {
       console.error('Failed to start journey:', error);
       Alert.alert('Error', 'Could not start the journey.');
     }
-  };
+  }, [selectedSheet, duration, roomId, fetchData]);
 
-  const openSnap = (imageUrl) => {
+  const openSnap = useCallback((imageUrl) => {
     setSelectedImage(imageUrl);
     setModalVisible(true);
-  };
+  }, []);
 
-  // NEW: Approve/Deny join requests
-  const handleApproveRequest = async (requestId) => {
+  // Approve / deny requests
+  const handleApproveRequest = useCallback(async (requestId) => {
     try {
       await roomService.approveJoinRequest(requestId);
       Alert.alert('Success', 'Member has been added to the room.');
@@ -333,9 +454,9 @@ const RoomDetailScreen = ({ navigation }) => {
     } catch (error) {
       Alert.alert('Error', 'Could not approve request.');
     }
-  };
+  }, [fetchData]);
 
-  const handleDenyRequest = async (requestId) => {
+  const handleDenyRequest = useCallback(async (requestId) => {
     try {
       await roomService.denyJoinRequest(requestId);
       Alert.alert('Success', 'Request has been denied.');
@@ -343,283 +464,521 @@ const RoomDetailScreen = ({ navigation }) => {
     } catch (error) {
       Alert.alert('Error', 'Could not deny request.');
     }
-  };
+  }, [fetchData]);
 
-  const handleLeaveRoom = () => {
-    Alert.alert(
-        "Leave Room",
-        "Are you sure you want to leave this room?",
-        [
-            { text: "Cancel", style: "cancel" },
-            { text: "Yes, Leave", onPress: async () => {
-                try {
-                    await apiClient.delete(`/rooms/${roomId}/leave`);
-                    Alert.alert('Success', 'You have left the room.');
-                    navigation.navigate('RoomsTab'); // Go back to the rooms list
-                } catch (error) {
-                    Alert.alert('Error', error.response?.data?.message || 'Could not leave the room.');
-                }
-            }, style: "destructive" }
-        ]
+  const handleLeaveRoom = useCallback(() => {
+    setActionModalVisible(false);
+    Alert.alert("Leave Room", "Are you sure you want to leave this room?",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Yes, Leave", onPress: async () => {
+            try {
+              await apiClient.delete(`/rooms/${roomId}/leave`);
+              Alert.alert('Success', 'You have left the room.');
+              navigation.navigate('RoomsTab');
+            } catch (error) {
+              Alert.alert('Error', error?.response?.data?.message || 'Could not leave the room.');
+            }
+          }, style: "destructive"
+        }
+      ]
     );
-};
+  }, [roomId, navigation]);
 
-const confirmDeleteRoom = () => {
-    Alert.alert(
-        "Delete Room",
-        "Are you sure you want to permanently delete this room? This action cannot be undone.",
-        [
-            { text: "Cancel", style: "cancel" },
-            { text: "Yes, Delete", onPress: handleDeleteRoom, style: "destructive" }
-        ]
+  const handleDeleteRoom = useCallback(async () => {
+    try {
+      await apiClient.delete(`/rooms/${roomId}`);
+      Alert.alert('Success', 'The room has been deleted.', [
+        { text: 'OK', onPress: () => navigation.navigate('RoomsTab') }
+      ]);
+    } catch (error) {
+      Alert.alert('Error', error?.response?.data?.message || 'Could not delete the room.');
+    }
+  }, [roomId, navigation]);
+
+  const confirmDeleteRoom = useCallback(() => {
+    setActionModalVisible(false);
+    Alert.alert("Delete Room", "Are you sure you want to permanently delete this room?",
+      [{ text: "Cancel", style: "cancel" },
+       { text: "Yes, Delete", onPress: handleDeleteRoom, style: "destructive" }]
     );
-  };
+  }, [handleDeleteRoom]);
 
-  const handleDeleteRoom = async () => {
-      try {
-          await apiClient.delete(`/rooms/${roomId}`);
-          Alert.alert('Success', 'The room has been deleted.', [
-              { text: 'OK', onPress: () => navigation.navigate('RoomsTab') }
-          ]);
-      } catch (error) {
-          Alert.alert('Error', error.response?.data?.message || 'Could not delete the room.');
-      }
-  };
+  // sections memo
+  const isAdmin = useMemo(() => roomDetails && roomDetails.admin_id === Number(userId), [roomDetails, userId]);
+  const sections = useMemo(() => {
+    const s = [];
+    if (isAdmin && joinRequests.length > 0) s.push({ title: 'Pending Join Requests', data: joinRequests });
+    if (roomDetails?.status === 'active') s.push({ title: "Today's Problems", data: dailyProblems });
+    s.push({ title: `Members (${members.length})`, data: members });
+    return s;
+  }, [isAdmin, joinRequests, roomDetails, dailyProblems, members]);
 
-  // --- Prepare Data for SectionList ---
-  const isAdmin = roomDetails && roomDetails.admin_id === Number(userId);
-  const sections = [];
-  if (isAdmin && joinRequests.length > 0) { sections.push({ title: 'Pending Join Requests', data: joinRequests }); }
-  if (roomDetails?.status === 'active') { sections.push({ title: "Today's Problems", data: dailyProblems }); }
-  sections.push({ title: `Members (${members.length})`, data: members });
+  // Render helpers (stable references)
+  const renderJoinRequest = useCallback((item) => (
+    <Card style={styles.requestCard}>
+      <Text style={styles.requestName}>{item.username}</Text>
+      <View style={styles.requestButtonContainer}>
+        <IconButton name="checkmark-circle-outline" color={COLORS.success} onPress={() => handleApproveRequest(item.id)} size={28} />
+        <IconButton name="close-circle-outline" color={COLORS.danger} onPress={() => handleDenyRequest(item.id)} size={28} />
+      </View>
+    </Card>
+  ), [handleApproveRequest, handleDenyRequest]);
 
-  if (isLoading) { return <ActivityIndicator size="large" style={styles.centered} />; }
-  if (!roomDetails) { return <View style={styles.centered}><Text>Room not found.</Text></View>; }
+  const renderMember = useCallback((item) => {
+    const isRoomAdmin = Number(item.id) === Number(roomDetails?.admin_id);
+    const isCurrentUser = Number(item.id) === Number(userId);
+    return (
+      <Card style={styles.memberCard}>
+        <View style={styles.nameContainer}>
+          <Text style={styles.memberNameText}>{item.username}</Text>
+          {isRoomAdmin && (
+            <View style={styles.adminTag}>
+              <Text style={styles.adminTagText}>ADMIN</Text>
+            </View>
+          )}
+          {isCurrentUser && !isRoomAdmin && (
+            <View style={[styles.adminTag, { backgroundColor: COLORS.secondary }]}>
+              <Text style={styles.adminTagText}>YOU</Text>
+            </View>
+          )}
+        </View>
 
+        {isAdmin && !isRoomAdmin && (
+          <IconButton name="person-remove-outline" color={COLORS.danger} onPress={() => confirmRemoveMember(item)} size={24} />
+        )}
+      </Card>
+    );
+  }, [roomDetails, userId, isAdmin, confirmRemoveMember]);
 
+  const renderDailyProblem = useCallback((item) => {
+    const isSolvedByMe = solvedProblemIds.includes(item.id);
+    const mySubmission = isSolvedByMe ? (todaysSubmissions[item.id] || []).find(s => Number(s.user_id) === Number(userId)) : null;
+    const otherSubmissions = (todaysSubmissions[item.id] || []).filter(s => Number(s.user_id) !== Number(userId));
+
+    return (
+      <Card style={[styles.problemCard, isSolvedByMe && styles.problemCardCompleted]}>
+        <View style={styles.problemContent}>
+          <Text style={styles.problemTitle}>{item.title}</Text>
+          <Text style={styles.problemSubtext}>{item.topic} | Difficulty: {item.difficulty}</Text>
+          {otherSubmissions.length > 0 && (
+            <TouchableOpacity onPress={() => showSubmissionPicker(otherSubmissions)} style={{ marginTop: SIZES.base }}>
+              <Text style={styles.othersCompletedText}>
+                <Icon name="people-outline" size={SIZES.font} color={COLORS.gray} /> Completed by {otherSubmissions.length} other(s).
+              </Text>
+            </TouchableOpacity>
+          )}
+        </View>
+
+        <View style={styles.problemActionContainer}>
+          {uploadingProblemId === item.id ? (
+            <ActivityIndicator color={COLORS.primary} size="small" />
+          ) : isSolvedByMe ? (
+            <TouchableOpacity style={styles.completedButton} onPress={() => openSnap(mySubmission?.photo_url)}>
+              <Icon name="checkmark-circle" size={32} color={COLORS.success} />
+              <Text style={styles.completedText}>View Proof</Text>
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity style={styles.doneButton} onPress={() => handleMarkAsDone(item)} disabled={isUploading}>
+                <Icon name="camera-outline" size={28} color={COLORS.surface} />
+                <Text style={styles.doneButtonText}>Done</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+      </Card>
+    );
+  }, [solvedProblemIds, todaysSubmissions, uploadingProblemId, isUploading, showSubmissionPicker, openSnap, handleMarkAsDone]);
+
+  // Action modal component
+  const ActionModal = ({ visible, onClose }) => (
+    <Modal animationType="fade" transparent visible={visible} onRequestClose={onClose}>
+      <TouchableOpacity style={styles.actionModalOverlay} activeOpacity={1} onPress={onClose}>
+        <View style={styles.actionModalContent}>
+          {!isAdmin ? (
+            <TouchableOpacity style={styles.modalActionItem} onPress={handleLeaveRoom}>
+              <Icon name="log-out-outline" size={20} color={COLORS.danger} style={{ marginRight: SIZES.base }} />
+              <Text style={[styles.modalActionText, { color: COLORS.danger }]}>Leave Room</Text>
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity style={styles.modalActionItem} onPress={confirmDeleteRoom}>
+              <Icon name="trash-outline" size={20} color={COLORS.danger} style={{ marginRight: SIZES.base }} />
+              <Text style={[styles.modalActionText, { color: COLORS.danger }]}>Delete Room</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+      </TouchableOpacity>
+    </Modal>
+  );
+
+  // loading / not found states
+  if (isLoading) {
+    return <ActivityIndicator size="large" color={COLORS.primary} style={styles.centered} />;
+  }
+  if (!roomDetails) {
+    return <View style={styles.centered}><Text style={{ ...FONTS.body3 }}>Room not found.</Text></View>;
+  }
+
+  // main render
   return (
-    <View style={{flex: 1}}>
-      <Modal
-        animationType="slide"
-        transparent={false}
-        visible={modalVisible}
-        onRequestClose={() => setModalVisible(false)}
-      >
+    <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.background }}>
+      {/* Photo View Modal */}
+      <Modal animationType="fade" transparent visible={modalVisible} onRequestClose={() => setModalVisible(false)}>
         <View style={styles.modalContainer}>
           <Image source={{ uri: selectedImage }} style={styles.modalImage} resizeMode="contain" />
-          <Button title="Close" onPress={() => setModalVisible(false)} />
+          <IconButton name="close-circle" size={48} color={COLORS.surface} onPress={() => setModalVisible(false)} style={styles.modalCloseButton} />
         </View>
       </Modal>
+
+      {/* Action Menu Modal */}
+      <ActionModal visible={actionModalVisible} onClose={() => setActionModalVisible(false)} />
+
+      {/* Today's Standing Sidebar */}
+      <TodayStandingSidebar
+        visible={sidebarVisible}
+        onClose={() => setSidebarVisible(false)}
+        data={dailyProgressData}
+        userId={userId}
+      />
 
       <SectionList
         style={styles.container}
         sections={sections}
-        keyExtractor={(item, index) => item.id.toString() + index}
+        keyExtractor={(item, index) => (item?.id ?? index).toString() + index}
         renderSectionHeader={({ section: { title } }) => <Text style={styles.sectionTitle}>{title}</Text>}
         renderItem={({ item, section }) => {
-          if (section.title === 'Pending Join Requests') {
-            return (
-              <View style={styles.itemRow}>
-                <Text style={styles.itemName}>{item.username}</Text>
-                <View style={styles.buttonContainer}>
-                  <Button title="Deny" color="red" onPress={() => handleDenyRequest(item.id)} />
-                  <Button title="Approve" onPress={() => handleApproveRequest(item.id)} />
-                </View>
-              </View>
-            );
-          }
-
-          if (section.title.startsWith('Members')) {
-            const isRoomAdmin = Number(item.id) === Number(roomDetails.admin_id);
-            return (
-          <View style={styles.itemRow}>
-            <View style={styles.nameContainer}> {/* Added a container for name and tag */}
-                <Text style={styles.itemName}>{item.username}</Text>
-                
-                {/* --- NEW: Admin Tag --- */}
-                {isRoomAdmin && (
-                    <View style={styles.adminTag}>
-                        <Text style={styles.adminTagText}> (Admin)</Text>
-                    </View>
-                )}
-                {/* --- END NEW --- */}
-            </View>
-
-            {/* Existing remove button logic */}
-            {isAdmin && Number(item.id) !== Number(roomDetails.admin_id) && (
-              <Button title="Remove" color={COLORS.danger} onPress={() => confirmRemoveMember(item)} />
-            )}
-          </View>
-        );
-      }
-
-          if (section.title === "Today's Problems") {
-            const isSolvedByMe = solvedProblemIds.includes(item.id);
-            const mySubmission = isSolvedByMe ? (todaysSubmissions[item.id] || []).find(s => Number(s.user_id) === Number(userId)) : null;
-            const otherSubmissions = (todaysSubmissions[item.id] || []).filter(s => Number(s.user_id) !== Number(userId));
-
-            return (
-              <View style={styles.itemRow}>
-                <View style={styles.itemContent}>
-                  <TouchableOpacity>
-                    <Text style={styles.itemName}>{item.title}</Text>
-                    <Text style={styles.itemSubtext}>Topic: {item.topic} | Difficulty: {item.difficulty}</Text>
-                  </TouchableOpacity>
-                  {otherSubmissions.length > 0 && (
-                    <TouchableOpacity onPress={() => showSubmissionPicker(otherSubmissions)}>
-                      <Text style={styles.othersCompletedText}>
-                        ✅ Also completed by: {otherSubmissions.map(s => `${s.username} (+${s.points_awarded} pts)`).join(', ')}
-                      </Text>
-                    </TouchableOpacity>
-                  )}
-                </View>
-                <View style={styles.actionContainer}>
-                {uploadingProblemId === item.id ? (
-                  <ActivityIndicator color="#007BFF" />
-                ) : (
-                  isSolvedByMe ? (
-                    <TouchableOpacity style={styles.completedContainer} onPress={() => openSnap(mySubmission?.photo_url)}>
-                      <Text style={styles.completedText}>✅</Text>
-                      <Text style={styles.completedBy}>You did it! (+{mySubmission?.points_awarded} pts)</Text>
-                    </TouchableOpacity>
-                  ) : (
-                    <Button title="Done" onPress={() => handleMarkAsDone(item)} disabled={isUploading} />
-                  )
-                )}
-              </View>
-              </View>
-            );
-          }
-
+          if (section.title === 'Pending Join Requests') return renderJoinRequest(item);
+          if (section.title.startsWith('Members')) return renderMember(item);
+          if (section.title === "Today's Problems") return renderDailyProblem(item);
           return null;
         }}
         ListHeaderComponent={
           <>
-          <Button 
-    title="View Journey Dashboard" 
-    onPress={() => navigation.navigate('JourneyDashboard', { roomId: roomId, roomName: roomDetails.name })}
-    color={COLORS.accent} // A different color to make it stand out
-/>
-<View>
-  
-  {dailyProgressData.length > 0 && ( // Only render if there's data
-    <DailyProgressTracker dailyProgressData={dailyProgressData} />
-  )}
-  {/* ... rest of your RoomDetailScreen content (AdminPanel, SectionList, etc.) */}
-</View>
-            <View style={styles.header}>
-              <Text style={styles.roomName}>{roomDetails.name}</Text>
-              <Text style={styles.inviteCode}>Invite Code: {roomDetails.invite_code}</Text>
-              {roomDetails.status === 'active' && (
-                <View style={{marginTop: 15}}>
-                  <Button 
-                    title="View Full Sheet" 
-                    onPress={() => navigation.navigate('FullSheet', { roomId: roomId, roomName: roomDetails.name })} 
-                  />
-                </View>
-              )}
-            </View>
             {isAdmin && roomDetails.status === 'pending' && (
-              <View style={styles.adminPanel}>
-                <Text style={styles.panelTitle}>Admin Controls: Setup Journey</Text>
+              <Card style={styles.adminPanel}>
+                <Text style={styles.panelTitle}>Setup Journey</Text>
                 <Text style={styles.label}>Select a Sheet:</Text>
-                <Picker selectedValue={selectedSheet} onValueChange={(itemValue) => setSelectedSheet(itemValue)}>
-                  <Picker.Item label="-- Choose a sheet --" value={null} />
-                  {sheets.map((sheet) => <Picker.Item label={sheet.name} value={sheet.id} key={sheet.id} />)}
-                </Picker>
-                <Text style={styles.label}>Set a Duration (in days):</Text>
-                <TextInput style={styles.input} placeholder="e.g., 90" value={duration} onChangeText={setDuration} keyboardType="numeric" />
-                <Button title="Start Journey for All Members" onPress={handleStartJourney} />
-              </View>
-              
-            )}
-            {!isAdmin && ( // Only show leave button if user is NOT the admin
-                    <View style={{padding: 20, backgroundColor: 'white'}}>
-                        <Button title="Leave Room" color="red" onPress={handleLeaveRoom} />
-                    </View>
-                )}
-           {isAdmin && (
-              <Card style={styles.actionCard}>
-                  <Button title="Delete Room" color={COLORS.danger} onPress={confirmDeleteRoom} />
+                <View style={styles.pickerContainer}>
+                  <Picker
+                    selectedValue={selectedSheet}
+                    onValueChange={(itemValue) => setSelectedSheet(itemValue)}
+                    dropdownIconColor={COLORS.primary}
+                    style={styles.picker}
+                  >
+                    <Picker.Item label="-- Choose a sheet --" value={null} style={FONTS.body4}/>
+                    {sheets.map((sheet) => (
+                      <Picker.Item label={sheet.name} value={sheet.id} key={sheet.id} style={FONTS.body4} />
+                    ))}
+                  </Picker>
+                </View>
+                <Text style={styles.label}>Set Duration (in days):</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="e.g., 90"
+                  value={duration}
+                  onChangeText={setDuration}
+                  keyboardType="numeric"
+                  placeholderTextColor={COLORS.gray}
+                />
+                <CustomButton title="Start Journey" onPress={handleStartJourney} color={COLORS.success} />
               </Card>
             )}
           </>
         }
         ListEmptyComponent={<Text style={styles.emptyText}>Nothing to show here yet.</Text>}
       />
-    </View>
+    </SafeAreaView>
   );
 };
 
-
-
-// --- Styles ---
+/* -------------------------
+   Styles (fixed duplicate keys)
+   -------------------------*/
 const styles = StyleSheet.create({
   centered: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  container: { flex: 1, backgroundColor: '#f5f5f5' },
-  header: { padding: 20, backgroundColor: 'white', borderBottomWidth: 1, borderBottomColor: '#ddd' },
-  roomName: { fontSize: 24, fontWeight: 'bold' },
-  inviteCode: { fontSize: 16, color: 'gray', marginTop: 5 },
-  sectionTitle: { fontSize: 18, fontWeight: 'bold', paddingHorizontal: 20, paddingTop: 20, paddingBottom: 10, backgroundColor: '#f5f5f5' },
-  itemRow: {
-        backgroundColor: COLORS.surface,
-        paddingVertical: SIZES.padding,
-        paddingHorizontal: SIZES.padding,
-        borderBottomWidth: 1,
-        borderBottomColor: COLORS.border,
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center'
-    },
-  itemContent: { flex: 1, marginRight: 10 },
-  itemName: { fontSize: 16 },
-  itemSubtext: { fontSize: 12, color: 'gray', marginTop: 4 },
-  adminPanel: { padding: 20, backgroundColor: '#fff', borderBottomWidth: 1, borderBottomColor: '#ddd' },
-  panelTitle: { fontSize: 18, fontWeight: 'bold', marginBottom: 15 },
-  label: { fontSize: 16, color: '#333', marginBottom: 5, marginTop: 10 },
-  input: { height: 40, borderColor: 'gray', borderWidth: 1, marginBottom: 20, paddingHorizontal: 10, borderRadius: 4 },
-  emptyText: { textAlign: 'center', marginTop: 50, color: 'gray' },
-  othersCompletedText: { fontSize: 12, color: 'gray', fontStyle: 'italic', marginTop: 8 },
-  completedContainer: { alignItems: 'center', width: 80 },
-  completedText: { fontSize: 24 },
-  completedBy: { fontSize: 10, color: 'green', fontWeight: 'bold' },
+  container: { flex: 1, backgroundColor: COLORS.background },
+
+  /* Header / nav right */
+  headerRightContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginRight: SIZES.base
+  },
+
+  sectionTitle: {
+    ...FONTS.h3,
+    color: COLORS.text,
+    paddingHorizontal: SIZES.padding,
+    paddingTop: SIZES.padding,
+    paddingBottom: SIZES.base,
+    backgroundColor: COLORS.background
+  },
+
+  // Cards & Lists
+  requestCard: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: SIZES.padding
+  },
+  memberCard: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: SIZES.base,
+    paddingLeft: SIZES.padding,
+    // Subtract SIZES.base (8) from SIZES.padding (20) to absorb the button's internal padding (8).
+    // New paddingRight = 20 - 8 = 12.
+    paddingRight: SIZES.padding + SIZES.base + 10, 
+  },
+  problemCard: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: SIZES.padding,
+    borderLeftWidth: 5,
+    borderLeftColor: COLORS.border,
+  },
+  problemCardCompleted: {
+    borderLeftColor: COLORS.success,
+  },
+
+  // Member
+  requestName: { ...FONTS.body3, fontWeight: '600' },
+  requestButtonContainer: { flexDirection: 'row', gap: SIZES.base },
+  memberNameText: { ...FONTS.body3 },
+  nameContainer: { flexDirection: 'row', alignItems: 'center' },
+  adminTag: {
+    marginLeft: SIZES.base,
+    paddingHorizontal: SIZES.base,
+    paddingVertical: 2,
+    backgroundColor: COLORS.primary,
+    borderRadius: SIZES.base,
+    marginRight:-10
+  },
+  adminTagText: {
+    ...FONTS.caption,
+    fontSize: 10,
+    color: COLORS.surface,
+    fontWeight: 'bold',
+  },
+
+  // Problem
+  problemContent: { flex: 1, marginRight: SIZES.padding },
+  problemTitle: { ...FONTS.h4, color: COLORS.text },
+  problemSubtext: { ...FONTS.body5, color: COLORS.gray, marginTop: SIZES.base / 2 },
+  othersCompletedText: { ...FONTS.body5, color: COLORS.gray },
+  problemActionContainer: { width: 80, alignItems: 'flex-end', justifyContent: 'center' },
+  completedButton: { alignItems: 'center' },
+  completedText: { ...FONTS.caption, color: COLORS.success, fontWeight: 'bold' },
+  doneButton: {
+    backgroundColor: COLORS.primary,
+    padding: SIZES.base,
+    borderRadius: SIZES.radius,
+    alignItems: 'center',
+    width: '100%',
+  },
+  doneButtonText: {
+    ...FONTS.caption,
+    color: COLORS.surface,
+    marginTop: SIZES.base / 2,
+    fontWeight: 'bold',
+  },
+
+  // Admin Panel & Inputs
+  adminPanel: { padding: SIZES.padding, margin: SIZES.padding },
+  panelTitle: { ...FONTS.h3, color: COLORS.primary, marginBottom: SIZES.padding },
+  label: { ...FONTS.body4, color: COLORS.text, marginBottom: SIZES.base, marginTop: SIZES.base },
+  pickerContainer: {
+    borderColor: COLORS.border,
+    borderWidth: 1,
+    borderRadius: SIZES.radius,
+    overflow: 'hidden',
+    marginBottom: SIZES.padding,
+  },
+  picker: { height: 50, width: '100%', color: COLORS.text },
+  input: {
+    ...FONTS.body4,
+    height: 48,
+    borderColor: COLORS.border,
+    borderWidth: 1,
+    marginBottom: SIZES.padding,
+    paddingHorizontal: SIZES.padding,
+    borderRadius: SIZES.radius,
+    color: COLORS.text
+  },
+  emptyText: { textAlign: 'center', marginTop: SIZES.padding * 2, ...FONTS.body3, color: COLORS.gray },
+
+  // Modals
   modalContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'black',
+    backgroundColor: 'rgba(0, 0, 0, 0.95)',
   },
-  modalImage: {
-    width: '100%',
-    height: '80%',
+  modalImage: { width: '100%', height: '80%' },
+  modalCloseButton: {
+    position: 'absolute',
+    top: Platform.OS === 'ios' ? 40 : 20,
+    right: 20,
   },
-  buttonContainer: {
-    flexDirection: 'row',
-    gap: 10,
-  },
-  actionContainer: {
-    width: 80, // Fixed width to prevent layout shifts
-    alignItems: 'center',
+
+  // Custom Button
+  customButton: {
+    height: 48,
+    borderRadius: SIZES.radius,
     justifyContent: 'center',
-    adminTag: {
-        marginLeft: SIZES.base, // Space between name and tag
-        paddingHorizontal: SIZES.base, // Horizontal padding inside the tag
-        paddingVertical: 2, // Vertical padding inside the tag
-        backgroundColor: COLORS.success, // Green background from your theme
-        borderRadius: SIZES.base / 2, // Slightly rounded corners
-    },
-    // NEW: Style for the text inside the "Admin" tag
-    adminTagText: {
-        ...FONTS.caption, // Using a smaller font style from your theme
-        fontSize: 10, // Explicitly set font size
-        color: COLORS.surface, // White text for contrast on green background
-        fontWeight: 'bold', // Bold text
-    },
+    alignItems: 'center',
+    borderWidth: 1,
   },
-  nameContainer: {
-        flexDirection: 'row', // Aligns name and tag horizontally
-        alignItems: 'center', // Centers them vertically
-    },
+  customButtonText: {
+    ...FONTS.h4,
+    fontWeight: 'bold',
+  },
+
+  // Action Modal
+  actionModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.1)',
+    justifyContent: 'flex-start',
+    alignItems: 'flex-end',
+    paddingTop: Platform.OS === 'ios' ? 100 : 50,
+    paddingRight: 10,
+  },
+  actionModalContent: {
+    backgroundColor: COLORS.surface,
+    borderRadius: SIZES.radius,
+    padding: SIZES.base,
+    ...Platform.select({
+      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.2, shadowRadius: 4 },
+      android: { elevation: 8 },
+    }),
+  },
+  modalActionItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: SIZES.base * 1.5,
+  },
+  modalActionText: { ...FONTS.body4, color: COLORS.text },
+
+  // Sidebar Styles
+  overlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.3)',
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+  },
+  sidebar: {
+    width: '80%',
+    backgroundColor: COLORS.surface,
+    padding: SIZES.padding,
+    borderTopLeftRadius: SIZES.radius * 2,
+    borderBottomLeftRadius: SIZES.radius * 2,
+    shadowColor: '#000',
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+    elevation: 8,
+  },
+  sidebarHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: SIZES.padding,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border,
+  },
+  sidebarTitle: {
+    ...FONTS.h3,
+    color: COLORS.text,
+    fontWeight: 'bold',
+  },
+  standingItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: SIZES.padding,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border,
+  },
+  standingItemEven: {
+    backgroundColor: COLORS.background,
+  },
+  standingItemCurrent: {
+    backgroundColor: COLORS.primary_light,
+    borderLeftWidth: 4,
+    borderLeftColor: COLORS.primary,
+  },
+  standingRankText: {
+    ...FONTS.h4,
+    fontWeight: 'bold',
+    width: 40,
+    color: COLORS.primary,
+    textAlign: 'center'
+  },
+  standingNameText: {
+    ...FONTS.body3,
+    flex: 1,
+    marginLeft: SIZES.base,
+    color: COLORS.text,
+  },
+  standingPointsText: {
+    ...FONTS.body3,
+    fontWeight: 'bold',
+    color: COLORS.success,
+  },
+
+  // member row & progress
+  memberRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: SIZES.base,
+    paddingVertical: SIZES.base,
+    paddingHorizontal: SIZES.base,
+    borderRadius: SIZES.radius / 2,
+    backgroundColor: COLORS.background,
+  },
+  currentUserRow: {
+    backgroundColor: COLORS.primaryLight,
+    borderWidth: 1,
+    borderColor: COLORS.primary,
+  },
+  rank: {
+    width: 30,
+    ...FONTS.body,
+    fontWeight: '600',
+    color: COLORS.textSecondary,
+  },
+  memberNameText: {
+    flex: 1,
+    ...FONTS.body,
+    color: COLORS.textPrimary,
+  },
+  currentUserText: {
+    fontWeight: 'bold',
+    color: COLORS.primaryDark,
+  },
+  progressWrapper: {
+    width: 100,
+    height: 20,
+    backgroundColor: COLORS.border,
+    borderRadius: SIZES.radius,
+    overflow: 'hidden',
+    justifyContent: 'center',
+    marginLeft: SIZES.base,
+    position: 'relative',
+  },
+  progressFill: {
+    height: '100%',
+    position: 'absolute',
+    left: 0,
+    borderRadius: SIZES.radius,
+  },
+  progressText: {
+    position: 'absolute',
+    right: SIZES.base / 2,
+    ...FONTS.caption,
+    fontWeight: 'bold',
+    color: COLORS.surface,
+  },
 });
 
 export default RoomDetailScreen;
