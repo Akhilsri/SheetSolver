@@ -27,24 +27,25 @@ async function handleGetRooms(req, res) {
 }
 
 async function handleJoinRoom(req, res) {
-  try {
-    const { invite_code } = req.body;
-    const userId = req.user.userId;
-    if (!invite_code) {
-      return res.status(400).json({ message: 'Invite code is required.' });
-    }
-    await roomsService.joinRoomByInviteCode(invite_code, userId);
-    res.status(200).json({ message: 'Successfully joined room' });
-  } catch (error) {
-    console.error('Join Room Error:', error);
-    if (error.message === 'ROOM_NOT_FOUND') {
-      return res.status(404).json({ message: 'Room with this invite code not found.' });
-    }
-    if (error.message === 'ALREADY_IN_ROOM') {
-      return res.status(409).json({ message: 'You are already a member of this room.' });
-    }
-    res.status(500).json({ message: 'Internal Server Error' });
-  }
+  try {
+    const { invite_code } = req.body;
+    const userId = req.user.userId;
+    if (!invite_code) {
+      return res.status(400).json({ message: 'Invite code is required.' });
+    }
+    await roomsService.joinRoomByInviteCode(invite_code, userId);
+    res.status(200).json({ message: 'Request to join sent successfully.' });
+  } catch (error) {
+    console.error('Join Room Error:', error);
+    if (error.message === 'ROOM_NOT_FOUND') {
+      return res.status(404).json({ message: 'Room with this invite code not found.' });
+    }
+    // 🌟 FIX: Handle ALREADY_IN_ROOM error gracefully
+    if (error.message === 'ALREADY_IN_ROOM') {
+      return res.status(409).json({ message: 'You are already a member of this room.' });
+    }
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
 }
 
 async function handleGetRoomMembers(req, res) {

@@ -17,6 +17,7 @@ import { COLORS, SIZES, FONTS } from '../styles/theme';
 import StyledInput from '../components/common/StyledInput';
 import PrimaryButton from '../components/common/PrimaryButton';
 import { useNavigation } from '@react-navigation/native';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 
 // Screen dimensions
 const { width, height } = Dimensions.get('window');
@@ -40,6 +41,7 @@ const RegisterScreen = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [passwordVisible, setPasswordVisible] = useState(false);
 
   const [isCheckingUsername, setIsCheckingUsername] = useState(false);
   const [usernameStatus, setUsernameStatus] = useState({ available: null, message: '' });
@@ -186,12 +188,31 @@ const RegisterScreen = () => {
     keyboardType="email-address"
     autoCapitalize="none"
   />
+  <View style={{ position: 'relative', marginBottom: SIZES.base }}>
   <StyledInput
     value={password}
     onChangeText={setPassword}
     placeholder="Password"
-    secureTextEntry
+    secureTextEntry={!passwordVisible}
   />
+  <TouchableOpacity
+    onPress={() => setPasswordVisible(!passwordVisible)}
+    style={{
+      position: 'absolute',
+      right: 12,
+      top: 0,
+      bottom: 0,
+      justifyContent: 'center',
+    }}
+  >
+    <Ionicons
+      name={passwordVisible ? 'eye-off' : 'eye'}
+      size={22}
+      color={COLORS.textSecondary}
+    />
+  </TouchableOpacity>
+</View>
+
 
   <PrimaryButton
     title="Sign Up"
@@ -304,6 +325,27 @@ availableText: {
 unavailableText: {
   color: COLORS.danger,
 },
+passwordContainer: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  borderWidth: 1,
+  borderColor: COLORS.border,
+  borderRadius: SIZES.radius,
+  backgroundColor: COLORS.background,
+  marginBottom: SIZES.padding,
+  paddingHorizontal: SIZES.padding,
+  height: 55,
+},
+passwordInput: {
+  flex: 1,
+  color: COLORS.textPrimary,
+  ...FONTS.body,
+},
+eyeIcon: {
+  paddingHorizontal: 6,
+},
+
+
 });
 
 export default RegisterScreen;

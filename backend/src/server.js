@@ -6,9 +6,19 @@ const pool = require('./config/db');
 const cron = require('node-cron');
 const { deleteOldSubmissions } = require('./services/cleanupService');
 const eloService = require('./services/eloService');
+const { initSocketIO } = require('./api/utils/socket-utils');
+const chatService = require('./api/chat/chat.service'); // Your chat service file
 
 const server = http.createServer(app);
 const io = new Server(server, { cors: { origin: "*", methods: ["GET", "POST"] } });
+
+// after const io = new Server(...)
+io.engine.on('connection_error', (err) => {
+  console.error('⚠️ Engine.IO connection_error:', err);
+});
+
+
+initSocketIO(io);
 
 // --- Matchmaking queues ---
 const waitingQueues = {};
@@ -32,28 +42,50 @@ initializeWaitingQueues(); // Run the function on server startup
 const gameStates = {};
 
 io.on('connection', (socket) => {
-  console.log(`✅ A user connected: ${socket.id}`);
+  console.log(`✅ A user connected: ${socket.id}`);
 
-  // --- Chat Logic ---
-  socket.on('join_room', (roomName) => {
-    socket.join(roomName);
-    console.log(`User ${socket.id} joined chat room: ${roomName}`);
-  });
+  // --- 1. In-Room Chat Logic (Final Fix) ---
+  socket.on('join_room', (roomName) => {
+    socket.join(roomName);
+    console.log(`User ${socket.id} joined chat room: ${roomName}`);
+  });
 
-  socket.on('send_message', async (data) => {
-    try {
-      const { roomId, senderId, messageText } = data;
-      const cleanRoomId = roomId.replace('chat-','');
+  socket.on('send_message', async (data) => {
+  try {
+    const { roomId, senderId, messageText, user } = data; // roomId should be like "chat-123"
+    if (!roomId) return console.warn('send_message missing roomId');
 
-      const sql = 'INSERT INTO chat_messages (room_id, sender_id, message_text) VALUES (?, ?, ?)';
-      await pool.query(sql, [cleanRoomId, senderId, messageText]);
-      console.log(`Message from ${senderId} in room ${roomId} saved to DB.`);
+    // Convert roomId -> clean numeric id for DB (if your DB stores numeric room_id)
+    const cleanRoomId = String(roomId).replace(/^chat-/, '');
 
-      socket.to(roomId).emit('receive_message', data);
-    } catch (error) {
-      console.error('Error in send_message:', error);
-    }
-  });
+    // Insert and fetch the row back (so you get DB timestamp, id)
+    // Note: adjust created_at column name if different
+    const insertSql = 'INSERT INTO chat_messages (room_id, sender_id, message_text) VALUES (?, ?, ?)';
+    const [insertRes] = await pool.query(insertSql, [cleanRoomId, senderId, messageText]);
+
+    // Get the inserted row (so we have DB timestamp column if any)
+    const [rows] = await pool.query('SELECT id, room_id, sender_id, message_text, created_at FROM chat_messages WHERE id = ?', [insertRes.insertId]);
+    const saved = rows[0];
+
+    // Build the exact payload we want clients to receive
+    const messageToSend = {
+      _id: String(saved.id),
+      text: saved.message_text,
+      createdAt: (saved.created_at ? new Date(saved.created_at).toISOString() : new Date().toISOString()),
+      user: { _id: Number(senderId), name: user && user.name ? user.name : 'Unknown' },
+      roomId: roomId
+    };
+
+    console.log(`Message from ${senderId} in room ${roomId} saved to DB id=${saved.id}.`);
+
+    // IMPORTANT: emit to the whole room (including sender) — so everyone receives
+    io.to(roomId).emit('receive_message', messageToSend);
+
+  } catch (error) {
+    console.error('Error in send_message:', error);
+  }
+});
+
 
   // --- Matchmaking Logic ---
   socket.on('find_match', async ({ userId, username, topic }) => {
@@ -157,28 +189,44 @@ io.on('connection', (socket) => {
   });
 
   socket.on('register_user', (userId) => {
-    const userRoom = `user-${userId}`;
-    socket.join(userRoom);
-    console.log(`User ${socket.id} (User ID: ${userId}) has registered and joined their private room: ${userRoom}`);
-  });
+    const userRoom = `user-${userId}`;
+    socket.join(userRoom);
+    console.log(`User ${socket.id} (User ID: ${userId}) has registered and joined their private room: ${userRoom}`);
+  });
 
-  // When a user sends a private message
-  socket.on('send_private_message', async (data) => {
-    const { senderId, recipientId, messageText, ...messageData } = data;
-    const recipientRoom = `user-${recipientId}`;
+  // --- 2. Direct Message Logic (Final Fix) ---
+  socket.on('send_private_message', async (data) => {
+    const { senderId, recipientId, messageText, user, ...messageData } = data;
+    const recipientRoom = `user-${recipientId}`;
 
-    try {
-      // 1. Save the message to the database
-      const sql = 'INSERT INTO direct_messages (sender_id, recipient_id, message_text) VALUES (?, ?, ?)';
-      await pool.query(sql, [senderId, recipientId, messageText]);
+    try {
+        // 1. Save the message to the database (Persistence)
+        // 🌟 FIX: Capture the insert result to get the auto-generated ID
+        const sql = 'INSERT INTO direct_messages (sender_id, recipient_id, message_text) VALUES (?, ?, ?)';
+        const [insertResult] = await pool.query(sql, [senderId, recipientId, messageText]);
+        const newMessageId = insertResult.insertId;
 
-      // 2. Emit the message ONLY to the recipient's private room
-      io.to(recipientRoom).emit('receive_private_message', messageData);
-      console.log(`Message sent from ${senderId} to ${recipientId}`);
-    } catch (error) {
-      console.error('Error in send_private_message:', error);
-    }
-  });
+        // 2. Calculate the new unread count for the recipient
+        const { count: newUnreadCount } = await chatService.getUnreadDirectMessageCount(recipientId); 
+        
+        // 3. Construct the FINAL message object for the recipient
+        const messageToSend = {
+            _id: newMessageId, // CRITICAL: Use the real ID from the DB
+            text: messageText,
+            createdAt: new Date().toISOString(), // CRITICAL: Ensure timestamp is included
+            user: { _id: Number(senderId), name: user.name }, // Use user data passed from sender
+            newCount: newUnreadCount // Cost optimization fix
+        };
+
+        // 4. Emit the message to the recipient's room
+        io.to(recipientRoom).emit('receive_private_message', messageToSend); 
+        
+        console.log(`DM sent from ${senderId} to ${recipientId}. New unread count sent: ${newUnreadCount}`);
+
+    } catch (error) {
+        console.error('Error in send_private_message:', error);
+    }
+});
 });
  
 

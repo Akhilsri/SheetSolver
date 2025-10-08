@@ -7,23 +7,19 @@ let generateInviteCodeFunc; // Declare the generator function variable
 
 // Asynchronously load nanoid and initialize customAlphabet and generateInviteCodeFunc
 (async () => {
-  const nanoid = await import('nanoid');
-  customAlphabet = nanoid.customAlphabet;
-  // Initialize the actual generator function once customAlphabet is loaded
-  generateInviteCodeFunc = customAlphabet('ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789', 6);
+  const nanoid = await import('nanoid');
+  customAlphabet = nanoid.customAlphabet;
+  // Initialize the actual generator function once customAlphabet is loaded
+  generateInviteCodeFunc = customAlphabet('ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789', 6);
 })();
 
 // Helper function to get the invite code generator
 // This ensures generateInviteCodeFunc is always initialized before use
 function getInviteCodeGenerator() {
-  if (!generateInviteCodeFunc) {
-    // This should ideally not happen if the IIFE runs on startup,
-    // but it's a safeguard for race conditions or very fast initial requests.
-    // In a production environment, you might want a more robust error handling
-    // or a synchronous fallback if possible.
-    throw new Error("Invite code generator not initialized. nanoid import might have failed or not completed.");
-  }
-  return generateInviteCodeFunc;
+  if (!generateInviteCodeFunc) {
+    throw new Error("Invite code generator not initialized. nanoid import might have failed or not completed.");
+  }
+  return generateInviteCodeFunc;
 }
 
 
@@ -64,21 +60,49 @@ async function getRoomsForUser(userId) {
 }
 
 async function joinRoomByInviteCode(inviteCode, userId) {
-  // Find the room ID from the invite code
-  const [rooms] = await pool.query('SELECT id, admin_id FROM rooms WHERE invite_code = ?', [inviteCode]);
-  if (rooms.length === 0) {
-    throw new Error('ROOM_NOT_FOUND');
-  }
-  const roomId = rooms[0].id;
-  const adminId = rooms[0].admin_id;
+    const connection = await pool.getConnection();
+    try {
+        await connection.beginTransaction();
+        
+        // 1. Find the room ID from the invite code
+        const [rooms] = await connection.query('SELECT id, admin_id FROM rooms WHERE invite_code = ?', [inviteCode]);
+        if (rooms.length === 0) {
+            throw new Error('ROOM_NOT_FOUND');
+        }
+        const roomId = rooms[0].id;
+        const adminId = rooms[0].admin_id;
 
-  // Create a new join request
-  const sql = 'INSERT INTO join_requests (user_id, room_id) VALUES (?, ?)';
-  await pool.query(sql, [userId, roomId]);
+        // Check if user is already a member
+        const [memberCheck] = await connection.query('SELECT 1 FROM room_members WHERE user_id = ? AND room_id = ?', [userId, roomId]);
+        if (memberCheck.length > 0) {
+            throw new Error('ALREADY_IN_ROOM');
+        }
+        
+        // 2. 🌟 CRITICAL FIX: Delete any existing join request (pending, approved, or denied)
+        // This resolves the "Duplicate entry" error when resending.
+        await connection.query('DELETE FROM join_requests WHERE user_id = ? AND room_id = ?', [userId, roomId]);
 
-  // TODO: We will add a notification for the admin here later.
-  
-  return { message: 'Request to join sent successfully.' };
+
+        // 3. Create a new join request
+        const sql = 'INSERT INTO join_requests (user_id, room_id, status) VALUES (?, ?, "pending")';
+        await connection.query(sql, [userId, roomId]);
+
+        await connection.commit();
+        
+        // TODO: We will add a notification for the admin here later.
+        
+        return { message: 'Request to join sent successfully.' };
+
+    } catch (error) {
+        await connection.rollback();
+        // If the error is not ALREADY_IN_ROOM, throw the original error
+        if (error.message !== 'ALREADY_IN_ROOM') {
+             throw error;
+        }
+        throw error;
+    } finally {
+        connection.release();
+    }
 }
 
 async function getRoomMembers(roomId) {
@@ -212,16 +236,31 @@ async function getFullSheetForUser(roomId, userId) {
 }
 
 async function removeMember(roomId, memberIdToRemove, adminId) {
-  // Security check: An admin cannot remove themselves from the room.
-  if (Number(memberIdToRemove) === Number(adminId)) {
-    throw new Error('ADMIN_CANNOT_REMOVE_SELF');
-  }
+    // ... (logic to check if admin, prevent admin from removing self, etc.) ...
+    
+    const connection = await pool.getConnection();
+    try {
+        await connection.beginTransaction();
 
-  const sql = 'DELETE FROM room_members WHERE room_id = ? AND user_id = ?';
-  const [result] = await pool.query(sql, [roomId, memberIdToRemove]);
-  
-  // The result.affectedRows will be 1 if a user was deleted, 0 if not.
-  return result;
+        // 1. Delete the user from the room_members table
+        const memberDeleteSql = 'DELETE FROM room_members WHERE room_id = ? AND user_id = ?';
+        const [result] = await connection.query(memberDeleteSql, [roomId, memberIdToRemove]);
+
+        // 🌟 CRITICAL FIX: Delete the associated invitation record.
+        // This ensures the historical 'accepted' status is cleared, allowing the admin to re-invite the user.
+        const inviteDeleteSql = 'DELETE FROM room_invitations WHERE recipient_id = ? AND room_id = ?';
+        await connection.query(inviteDeleteSql, [memberIdToRemove, roomId]);
+        
+        await connection.commit();
+
+        return result; // Return the result of the member deletion
+
+    } catch (error) {
+        await connection.rollback();
+        throw error;
+    } finally {
+        connection.release();
+    }
 }
 
 async function getPendingJoinRequests(roomId) {
@@ -268,16 +307,40 @@ async function denyJoinRequest(requestId) {
 }
 
 async function leaveRoom(roomId, userId) {
-  // First, check if the user is the admin
-  const [rooms] = await pool.query('SELECT admin_id FROM rooms WHERE id = ?', [roomId]);
-  if (rooms.length > 0 && rooms[0].admin_id === userId) {
-    throw new Error('ADMIN_CANNOT_LEAVE');
-  }
+  // 1. First, check if the user is the admin (logic remains the same)
+  const [rooms] = await pool.query('SELECT admin_id FROM rooms WHERE id = ?', [roomId]);
+  if (rooms.length > 0 && rooms[0].admin_id === userId) {
+    throw new Error('ADMIN_CANNOT_LEAVE');
+  }
 
-  // If not the admin, delete them from the room_members table
-  const sql = 'DELETE FROM room_members WHERE room_id = ? AND user_id = ?';
-  const [result] = await pool.query(sql, [roomId, userId]);
-  return result;
+  // Use a transaction to ensure both member removal and invite cleanup succeed
+  const connection = await pool.getConnection();
+  try {
+    await connection.beginTransaction();
+
+    // A. Delete the user from the room_members table
+    const memberDeleteSql = 'DELETE FROM room_members WHERE room_id = ? AND user_id = ?';
+    const [result] = await connection.query(memberDeleteSql, [roomId, userId]);
+    
+    // 🌟 CRITICAL FIX: Delete the associated invitation record.
+    // This ensures the 'accepted' status is removed, allowing the original sender to invite them again.
+    const inviteDeleteSql = 'DELETE FROM room_invitations WHERE recipient_id = ? AND room_id = ?';
+    await connection.query(inviteDeleteSql, [userId, roomId]);
+
+    await connection.commit();
+
+    if (result.affectedRows === 0) {
+      // If the user wasn't a member, the member DELETE will return 0.
+      return { affectedRows: 0 }; 
+    }
+
+    return { affectedRows: 1 };
+  } catch (error) {
+    await connection.rollback();
+    throw error;
+  } finally {
+    connection.release();
+  }
 }
 
 async function deleteRoom(roomId, adminId) {

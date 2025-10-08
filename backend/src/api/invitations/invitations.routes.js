@@ -10,6 +10,9 @@ router.post('/', invitationsController.handleCreateInvitation);
 router.get('/pending', invitationsController.handleGetPendingInvitations);
 router.put('/:invitationId/accept', invitationsController.handleAcceptInvitation);
 router.put('/:invitationId/decline', invitationsController.handleDeclineInvitation);
-router.get('/sent-pending', invitationsController.handleGetSentPendingInvites);
+router.get(
+    '/sent-status/:recipientId', 
+    invitationsController.handleGetSentInviteStatus
+);
 
 module.exports = router;

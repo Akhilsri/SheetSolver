@@ -115,7 +115,7 @@ const TodayStandingSidebar = React.memo(({ visible, onClose, data = [], userId }
                   style={[styles.memberRow, isCurrentUser && styles.currentUserRow]}
                 >
                   <Text style={[styles.rank, isCurrentUser && styles.currentUserText]}>
-                    #{index + 1}
+                    {index + 1}.
                   </Text>
                   <Text style={[styles.memberNameText, isCurrentUser && styles.currentUserText]}>
                     {member.username} {isCurrentUser ? '(You)' : ''}
@@ -476,7 +476,7 @@ const RoomDetailScreen = ({ navigation }) => {
             try {
               await apiClient.delete(`/rooms/${roomId}/leave`);
               Alert.alert('Success', 'You have left the room.');
-              navigation.navigate('RoomsTab');
+              navigation.navigate('Main');
             } catch (error) {
               Alert.alert('Error', error?.response?.data?.message || 'Could not leave the room.');
             }
@@ -796,7 +796,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     marginBottom: SIZES.padding,
   },
-  picker: { height: 50, width: '100%', color: COLORS.text },
+  picker: { height: 60, width: '100%', color: COLORS.text },
   input: {
     ...FONTS.body4,
     height: 48,
@@ -977,7 +977,7 @@ const styles = StyleSheet.create({
     right: SIZES.base / 2,
     ...FONTS.caption,
     fontWeight: 'bold',
-    color: COLORS.surface,
+    color: 'black',
   },
 });
 

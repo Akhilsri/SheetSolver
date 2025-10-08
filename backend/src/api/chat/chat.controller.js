@@ -30,7 +30,9 @@ async function handleGetUnreadCount(req, res) {
     const countObject = await chatService.getUnreadDirectMessageCount(userId);
     
     // Send the result (e.g., { "count": 5 }) back as JSON
-    res.status(200).json(countObject);
+    res.status(200).json({ 
+        count: Number(countObject.count) || 0 // Ensure it's a number, default to 0
+    });
   } catch (error) {
     console.error("Get Unread DM Count Error:", error);
     res.status(500).json({ message: 'Internal Server Error' });

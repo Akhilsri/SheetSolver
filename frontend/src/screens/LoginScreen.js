@@ -9,31 +9,32 @@ import {
   Platform,
   Animated,
   Image,
-  Dimensions
+  Dimensions,
+  TextInput,
 } from 'react-native';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useAuth } from '../context/AuthContext';
 import { COLORS, SIZES, FONTS } from '../styles/theme';
 import StyledInput from '../components/common/StyledInput';
 import PrimaryButton from '../components/common/PrimaryButton';
 
 const appLogo = require('../assets/images/SS-logo.png');
-
 const { width, height } = Dimensions.get('window');
 
 const LoginScreen = ({ navigation }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const { login } = useAuth();
 
-  // Animations
+  // animations
   const translateX = useRef(new Animated.Value(0)).current;
   const translateY = useRef(new Animated.Value(0)).current;
   const rotateAnim = useRef(new Animated.Value(0)).current;
   const logoAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    // Background animation
     Animated.loop(
       Animated.sequence([
         Animated.timing(translateX, {
@@ -72,7 +73,6 @@ const LoginScreen = ({ navigation }) => {
       })
     ).start();
 
-    // Floating logo effect
     Animated.loop(
       Animated.sequence([
         Animated.timing(logoAnim, {
@@ -128,15 +128,8 @@ const LoginScreen = ({ navigation }) => {
           { transform: [{ translateX: translateY }, { translateY: translateX }] },
         ]}
       />
-      <Animated.View
-        style={[
-          styles.blob,
-          styles.blob3,
-          { transform: [{ rotate }] },
-        ]}
-      />
+      <Animated.View style={[styles.blob, styles.blob3, { transform: [{ rotate }] }]} />
 
-      {/* Overlay */}
       <View style={styles.overlay}>
         <Animated.Image
           source={appLogo}
@@ -156,17 +149,34 @@ const LoginScreen = ({ navigation }) => {
             keyboardType="email-address"
             autoCapitalize="none"
           />
-          <StyledInput
-            value={password}
-            onChangeText={setPassword}
-            placeholder="Password"
-            secureTextEntry
-          />
-          <PrimaryButton
-            title="Log In"
-            onPress={handleLogin}
-            isLoading={isLoading}
-          />
+
+          {/* Password Input */}
+          <View style={styles.passwordContainer}>
+            <TextInput
+              value={password}
+              onChangeText={setPassword}
+              placeholder="Password"
+              placeholderTextColor={COLORS.textSecondary}
+              style={styles.passwordInput}
+              autoCapitalize="none"
+              secureTextEntry={!showPassword}
+              importantForAutofill="yes"
+              textContentType="password"
+            />
+            <TouchableOpacity
+              onPress={() => setShowPassword((prev) => !prev)}
+              style={styles.eyeIcon}
+              activeOpacity={0.7}
+            >
+              <Ionicons
+                name={showPassword ? 'eye-off' : 'eye'}
+                size={22}
+                color={COLORS.textSecondary}
+              />
+            </TouchableOpacity>
+          </View>
+
+          <PrimaryButton title="Log In" onPress={handleLogin} isLoading={isLoading} />
         </View>
 
         <TouchableOpacity onPress={() => navigation.navigate('Register')}>
@@ -214,6 +224,25 @@ const styles = StyleSheet.create({
   form: {
     width: '100%',
     marginBottom: SIZES.padding * 2,
+  },
+  passwordContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    borderRadius: SIZES.radius,
+    backgroundColor: COLORS.background,
+    marginBottom: SIZES.padding,
+    paddingHorizontal: SIZES.padding,
+    height: 55,
+  },
+  passwordInput: {
+    flex: 1,
+    color: COLORS.textPrimary,
+    ...FONTS.body,
+  },
+  eyeIcon: {
+    paddingHorizontal: 6,
   },
   linkText: {
     ...FONTS.body,

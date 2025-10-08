@@ -379,9 +379,9 @@ const JourneyDashboardScreen = ({ navigation }) => {
               </Text>
             </View>
           ))}
-          <TouchableOpacity style={lightStyles.viewFullLeaderboardButton} onPress={() => Alert.alert("Feature", "Navigate to full leaderboard soon!")}>
+          {/* <TouchableOpacity style={lightStyles.viewFullLeaderboardButton} onPress={() => Alert.alert("Feature", "Navigate to full leaderboard soon!")}>
             <Text style={lightStyles.viewFullLeaderboardText}>View Full Leaderboard <Icon name="arrow-forward" size={FONTS.caption.fontSize} color={LIGHT_COLORS.PRIMARY} /></Text>
-          </TouchableOpacity>
+          </TouchableOpacity> */}
         </LightPanel>
       )}
 

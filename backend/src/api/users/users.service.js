@@ -37,17 +37,38 @@ async function getUserProfile(userId) {
 }
 
 async function updateUserProfile(userId, profileData) {
-  const { fullName, collegeName, course, graduationYear, branch, linkedin_url, github_url, twitter_url } = profileData;
+  const { 
+    full_name, // Changed from fullName
+    college_name, // Changed from collegeName
+    course, 
+    graduation_year, // Changed from graduationYear
+    branch, 
+    linkedin_url, 
+    github_url, 
+    twitter_url 
+  } = profileData;
+
   const sql = `
     UPDATE users 
     SET full_name = ?, college_name = ?, course = ?, graduation_year = ?, branch = ?,
         linkedin_url = ?, github_url = ?, twitter_url = ?
     WHERE id = ?
   `;
-  await pool.query(sql, [fullName, collegeName, course, graduationYear, branch, linkedin_url, github_url, twitter_url, userId]);
+  await pool.query(sql, [
+    full_name,       // Use consistent variable names
+    college_name,    // Use consistent variable names
+    course,
+    graduation_year, // Use consistent variable names
+    branch,
+    linkedin_url,
+    github_url,
+    twitter_url,
+    userId
+  ]);
   await redisClient.del(`dashboard:${userId}`);
   return { message: 'Profile updated successfully.' };
 }
+
 
 async function searchUsers(query, userId) { // <-- ADD userId HERE
   const searchQuery = `%${query}%`;

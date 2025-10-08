@@ -39,6 +39,17 @@ const ChatScreen = () => {
     const [isLoading, setIsLoading] = useState(true);
     const flatListRef = useRef(null);
 
+    useEffect(() => {
+  if (socket.current) {
+    console.log('Socket connected?', socket.current.connected);
+
+    socket.current.on('connect', () => console.log('✅ Socket connected to server'));
+    socket.current.on('disconnect', (reason) => console.log('❌ Socket disconnected:', reason));
+    socket.current.on('connect_error', (err) => console.log('⚠️ Socket connect_error:', err.message));
+  }
+}, []);
+
+
     // --- Helper for day comparison ---
     const isSameDay = (d1, d2) => 
         d1.getDate() === d2.getDate() &&
@@ -97,23 +108,32 @@ const ChatScreen = () => {
         socket.current.emit('join_room', chatRoomName);
 
         const onReceiveMessage = (newMessage) => {
-            const formatted = { 
-                ...newMessage, 
-                createdAt: new Date(newMessage.createdAt),
-                user: typeof newMessage.user === 'string' ? JSON.parse(newMessage.user) : newMessage.user,
-            };
-            setMessages(prev => {
-                const updatedRaw = [formatted, ...prev.filter(m => m.type === 'message')];
-                return processMessagesForDisplay(updatedRaw);
-            });
-        };
-        socket.current.on('receive_message', onReceiveMessage);
+  const formatted = { 
+    ...newMessage, 
+    createdAt: new Date(newMessage.createdAt),
+    user: typeof newMessage.user === 'string' ? JSON.parse(newMessage.user) : newMessage.user,
+  };
 
-        return () => {
-            socket.current.off('receive_message', onReceiveMessage);
-            socket.current.emit('leave_room', chatRoomName);
-        };
-    }, [roomId, socket, processMessagesForDisplay]);
+  setMessages(prev => {
+    // Take only message items from prev (strip separators; your processMessagesForDisplay expects raw messages)
+    const prevMessagesRaw = prev.filter(m => m.type === 'message');
+
+    // attempt to replace a temp message that matches text + user + recent timestamp
+    const idx = prevMessagesRaw.findIndex(m => m._id && String(m._id).startsWith('temp-') && m.text === formatted.text && Number(m.user._id) === Number(formatted.user._id));
+    if (idx !== -1) {
+      prevMessagesRaw[idx] = formatted;
+    } else {
+      prevMessagesRaw.unshift(formatted);
+    }
+
+    return processMessagesForDisplay(prevMessagesRaw);
+  });
+};
+socket.current.on('receive_message', onReceiveMessage);
+    return () => {
+        socket.current.off('receive_message', onReceiveMessage);
+    };
+}, [socket, roomId, processMessagesForDisplay]);
 
     // --- Scroll to bottom when messages update ---
     useEffect(() => {
@@ -127,29 +147,29 @@ const ChatScreen = () => {
 
     // --- Handle sending ---
     const handleSend = useCallback(() => {
-        if (text.trim() === '' || !socket.current) return;
+  if (text.trim() === '' || !socket.current) return;
 
-        const messageData = {
-            _id: Math.random().toString(),
-            text,
-            createdAt: new Date(),
-            user: { _id: Number(userId), name: username },
-            type: 'message',
-        };
+  const tempId = `temp-${Date.now()}`; // optional temporary id if you want optimistic UI
+  const messageData = {
+    _id: tempId,
+    text,
+    createdAt: new Date().toISOString(),
+    user: { _id: Number(userId), name: username },
+    type: 'message',
+  };
 
-        socket.current.emit('send_message', {
-            roomId: `chat-${roomId}`,
-            senderId: userId,
-            messageText: text,
-            ...messageData 
-        });
+  socket.current.emit('send_message', {
+    roomId: `chat-${roomId}`,
+    senderId: userId,
+    messageText: text,
+    user: messageData.user
+  });
 
-        setMessages(prev => {
-            const updatedRaw = [messageData, ...prev.filter(m => m.type === 'message')];
-            return processMessagesForDisplay(updatedRaw);
-        });
-        setText('');
-    }, [text, userId, username, roomId, socket, processMessagesForDisplay]);
+  // Option A (recommended): show a tiny "sending" indicator rather than injecting a fully trusted message.
+  // Option B (simpler): append optimistic message but handle replacement when server echoes back with real id.
+  setText('');
+}, [text, userId, username, roomId, socket]);
+
 
     // --- Render each item ---
     const renderItem = ({ item }) => {

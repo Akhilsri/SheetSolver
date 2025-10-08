@@ -5,8 +5,8 @@ import { SocketProvider } from './src/context/SocketContext';
 import AppNavigator from './src/navigation/AppNavigator';
 import messaging from '@react-native-firebase/messaging';
 import BootSplash from 'react-native-bootsplash'; // ⬅️ KEEP THIS IMPORT
-// import { LogBox } from 'react-native';
-// LogBox.ignoreAllLogs(true)
+import { LogBox } from 'react-native';
+LogBox.ignoreAllLogs(true)
 
 const App = () => {
 
