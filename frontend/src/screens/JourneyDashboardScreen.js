@@ -329,7 +329,7 @@ const JourneyDashboardScreen = ({ navigation }) => {
       </LightPanel>
       
       {/* 4. Burndown Chart Section */}
-      <LightPanel title="Progress Burndown">
+      {/* <LightPanel title="Progress Burndown">
         {burndownChartData.labels.length > 1 && dashboardData.totalProblemsInSheet > 0 ? (
           <LineChart
             data={burndownChartData}
@@ -361,7 +361,7 @@ const JourneyDashboardScreen = ({ navigation }) => {
         ) : (
           <Text style={lightStyles.noDataText}>Solve a problem to start tracking your burndown!</Text>
         )}
-      </LightPanel>
+      </LightPanel> */}
       
       {/* 5. Top Solvers */}
       {dashboardData.topSolvers.length > 0 && (
