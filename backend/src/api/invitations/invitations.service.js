@@ -1,4 +1,5 @@
 const pool = require('../../config/db');
+const admin = require('firebase-admin');
 
 // Assuming the socket utility is imported here
 const { sendNotificationToUser } = require('../utils/socket-utils'); 
@@ -44,13 +45,30 @@ async function createInvitation(senderId, recipientId, roomId) {
     
     sendNotificationToUser(recipientId);
 
-    return result;
-  } catch (error) {
-    await connection.rollback();
-    throw error;
-  } finally {
-    connection.release();
-  }
+    // 🚀 NEW: Send a push notification (outside the transaction)
+    try {
+        const [recipient] = await pool.query('SELECT fcm_token FROM users WHERE id = ? AND fcm_token IS NOT NULL', [recipientId]);
+        if (recipient.length > 0) {
+            const message = {
+                notification: { title: notificationTitle, body: notificationBody },
+                token: recipient[0].fcm_token
+            };
+            // Assuming 'admin' is a globally available Firebase Admin object
+            await admin.messaging().send(message); 
+            console.log('Successfully send the invite via push notification');
+            
+        }
+    } catch(e) {
+        console.error("Failed to send room invitation push notification:", e);
+    }
+    
+    return result;
+  } catch (error) {
+    await connection.rollback();
+    throw error;
+  } finally {
+    connection.release();
+  }
 }
 
 async function getPendingInvitations(recipientId) {

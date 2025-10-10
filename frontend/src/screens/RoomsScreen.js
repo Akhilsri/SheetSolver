@@ -105,6 +105,7 @@ const RoomsScreen = () => {
 
   useLayoutEffect(() => {
     navigation.setOptions({
+      title: 'SheetSolver',
       headerRight: () => (
         <RoomsHeaderRight navigation={navigation} logout={logout} unreadCount={unreadCount} />
       ),
