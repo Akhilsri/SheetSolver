@@ -1,5 +1,6 @@
 const pool = require('../../config/db');
 const redisClient = require('../../config/redis');
+const admin = require('firebase-admin');
 
 // Declare customAlphabet globally but without immediate assignment
 let customAlphabet;
@@ -65,12 +66,13 @@ async function joinRoomByInviteCode(inviteCode, userId) {
         await connection.beginTransaction();
         
         // 1. Find the room ID from the invite code
-        const [rooms] = await connection.query('SELECT id, admin_id FROM rooms WHERE invite_code = ?', [inviteCode]);
+        const [rooms] = await connection.query('SELECT id, admin_id, name FROM rooms WHERE invite_code = ?', [inviteCode]);
         if (rooms.length === 0) {
             throw new Error('ROOM_NOT_FOUND');
         }
         const roomId = rooms[0].id;
-        const adminId = rooms[0].admin_id;
+        const adminId = rooms[0].admin_id; // Correctly get the admin_id
+        const roomName = rooms[0].name; // Get room name for notification
 
         // Check if user is already a member
         const [memberCheck] = await connection.query('SELECT 1 FROM room_members WHERE user_id = ? AND room_id = ?', [userId, roomId]);
@@ -78,10 +80,8 @@ async function joinRoomByInviteCode(inviteCode, userId) {
             throw new Error('ALREADY_IN_ROOM');
         }
         
-        // 2. 🌟 CRITICAL FIX: Delete any existing join request (pending, approved, or denied)
-        // This resolves the "Duplicate entry" error when resending.
+        // 2. Delete any existing join request (pending, approved, or denied)
         await connection.query('DELETE FROM join_requests WHERE user_id = ? AND room_id = ?', [userId, roomId]);
-
 
         // 3. Create a new join request
         const sql = 'INSERT INTO join_requests (user_id, room_id, status) VALUES (?, ?, "pending")';
@@ -89,7 +89,38 @@ async function joinRoomByInviteCode(inviteCode, userId) {
 
         await connection.commit();
         
-        // TODO: We will add a notification for the admin here later.
+        // --- NEW/FIXED: Send a push notification (outside the transaction) ---
+        // Get the username of the user who sent the join request
+        const [userRequesting] = await pool.query('SELECT username FROM users WHERE id = ?', [userId]);
+        const requestingUsername = userRequesting.length > 0 ? userRequesting[0].username : 'A user';
+
+        try {
+            // Find the admin's FCM token using the adminId
+            const [recipient] = await pool.query('SELECT fcm_token FROM users WHERE id = ? AND fcm_token IS NOT NULL', [adminId]); // Use adminId here
+            
+            if (recipient.length > 0) {
+                const notificationTitle = `New Join Request for "${roomName}"`;
+                const notificationBody = `${requestingUsername} wants to join your room.`;
+                
+                const message = {
+                    notification: { title: notificationTitle, body: notificationBody },
+                    data: { // Optional: send custom data to handle navigation on app side
+                      type: 'room_join_request',
+                      roomId: String(roomId), // FCM data values must be strings
+                      userId: String(userId),
+                    },
+                    token: recipient[0].fcm_token
+                };
+                
+                await admin.messaging().send(message); 
+                console.log(`Successfully sent new join request notification to admin ${adminId} for room ${roomId}`);
+            } else {
+                console.log(`Admin ${adminId} does not have an FCM token for notifications.`);
+            }
+        } catch(e) {
+            console.error("Failed to send room invitation push notification:", e);
+        }
+        // --- END NEW/FIXED ---
         
         return { message: 'Request to join sent successfully.' };
 
@@ -97,9 +128,9 @@ async function joinRoomByInviteCode(inviteCode, userId) {
         await connection.rollback();
         // If the error is not ALREADY_IN_ROOM, throw the original error
         if (error.message !== 'ALREADY_IN_ROOM') {
-             throw error;
+            throw error;
         }
-        throw error;
+        throw error; // Re-throw ALREADY_IN_ROOM error
     } finally {
         connection.release();
     }
