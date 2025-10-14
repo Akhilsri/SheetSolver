@@ -3,15 +3,13 @@ const usersService = require('./users.service');
 async function searchUsersController(req, res, next) {
   try {
     const { query } = req.query;
-    // Assuming req.user.id is available from your authentication middleware
-    const userId = req.user.id; // <-- GET THE LOGGED-IN USER'S ID
+    const userId = req.user.userId; // Corrected to req.user.userId
 
     if (!query) {
-      return res.status(200).json([]); // Return empty array if no query
+      return res.status(200).json([]);
     }
 
-    // Pass userId to the service function
-    const users = await usersService.searchUsers(query, userId); // <-- PASS userId HERE
+    const users = await usersService.searchUsers(query, userId);
     res.json(users);
   } catch (error) {
     next(error);
@@ -21,17 +19,36 @@ async function searchUsersController(req, res, next) {
 async function handleUpdateFcmToken(req, res) {
   try {
     const userId = req.user.userId;
-    const { token } = req.body;
-    if (!token) {
-      return res.status(400).json({ message: 'Token is required.' });
+    const { fcmToken } = req.body; // MODIFIED: Changed to fcmToken to match client
+    if (!fcmToken) { // MODIFIED: Check for fcmToken
+      return res.status(400).json({ message: 'FCM token is required.' });
     }
-    await usersService.updateFcmToken(userId, token);
-    res.status(200).json({ message: 'Token updated.' });
+    await usersService.updateFcmToken(userId, fcmToken);
+    res.status(200).json({ message: 'FCM token updated.' }); // MODIFIED: Message updated
   } catch (error) {
     console.error('Update FCM Token Error:', error);
     res.status(500).json({ message: 'Internal Server Error' });
   }
 }
+
+// NEW: Controller to handle removing FCM token (setting to NULL)
+async function handleRemoveFCMToken(req, res) {
+  try {
+    const userId = req.user.userId; // Get userId from authenticated user
+    // No token is sent in the body for removal, just the userId from the auth token is enough.
+
+    if (!userId) {
+      return res.status(400).json({ message: 'User ID is required.' });
+    }
+
+    await usersService.removeFCMToken(userId); // Call the new service function
+    res.status(200).json({ message: 'FCM token removed successfully.' });
+  } catch (error) {
+    console.error('Remove FCM Token Error:', error);
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+}
+
 
 async function handleGetUserProfile(req, res) {
   try {
@@ -55,11 +72,11 @@ async function handleUpdateUserProfile(req, res) {
 
 async function handleSearchUsers(req, res) {
   try {
-    const { query } = req.query; // Get search term from query parameters (e.g., /search?query=akhil)
+    const { query } = req.query;
     const currentUserId = req.user.userId;
 
     if (!query || query.trim() === '') {
-      return res.status(200).json([]); // Return empty if query is empty
+      return res.status(200).json([]);
     }
 
     const users = await usersService.searchUsers(query, currentUserId);
@@ -73,7 +90,7 @@ async function handleSearchUsers(req, res) {
 async function handleGetPublicUserProfile(req, res) {
   try {
     const { userId } = req.params;
-    const data = await usersService.getPublicUserProfile(userId); // The service now returns an object
+    const data = await usersService.getPublicUserProfile(userId);
     if (!data) {
       return res.status(404).json({ message: 'User not found.' });
     }
@@ -115,5 +132,15 @@ async function handleUpdateAvatar(req, res) {
   }
 }
 
-// Update the exports
-module.exports = { searchUsersController,handleUpdateFcmToken, handleGetUserProfile, handleUpdateUserProfile,handleSearchUsers,handleGetPublicUserProfile,handleGetProgressDashboard ,handleUpdateAvatar };
+// Update the exports to include the new controller
+module.exports = { 
+  searchUsersController,
+  handleUpdateFcmToken, 
+  handleRemoveFCMToken, // NEWLY ADDED
+  handleGetUserProfile, 
+  handleUpdateUserProfile,
+  handleSearchUsers,
+  handleGetPublicUserProfile,
+  handleGetProgressDashboard,
+  handleUpdateAvatar 
+};

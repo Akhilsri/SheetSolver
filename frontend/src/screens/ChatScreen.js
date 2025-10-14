@@ -11,6 +11,9 @@ import apiClient from '../api/apiClient';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { COLORS, SIZES, FONTS } from '../styles/theme';
 
+// --- Constants for Pagination ---
+const PAGE_SIZE = 50; // Number of messages to load per request
+
 // --- Helper: Format dates like WhatsApp ---
 const formatChatDate = (date) => {
     const today = new Date();
@@ -34,21 +37,26 @@ const ChatScreen = () => {
     const { userId, username } = useAuth();
     const socket = useSocket();
 
+    // ⚡ OPTIMIZATION: Pagination States
     const [messages, setMessages] = useState([]);
+    const [oldestMessageId, setOldestMessageId] = useState(null);
+    const [hasMoreMessages, setHasMoreMessages] = useState(true);
+    
+    // UI States
     const [text, setText] = useState('');
-    const [isLoading, setIsLoading] = useState(true);
+    const [isLoadingInitial, setIsLoadingInitial] = useState(true);
+    const [isPaginating, setIsPaginating] = useState(false);
+    
     const flatListRef = useRef(null);
 
+    // Initial Socket connection logging (preserved)
     useEffect(() => {
-  if (socket.current) {
-    console.log('Socket connected?', socket.current.connected);
-
-    socket.current.on('connect', () => console.log('✅ Socket connected to server'));
-    socket.current.on('disconnect', (reason) => console.log('❌ Socket disconnected:', reason));
-    socket.current.on('connect_error', (err) => console.log('⚠️ Socket connect_error:', err.message));
-  }
-}, []);
-
+        if (socket.current) {
+            socket.current.on('connect', () => console.log('✅ Socket connected to server'));
+            socket.current.on('disconnect', (reason) => console.log('❌ Socket disconnected:', reason));
+            socket.current.on('connect_error', (err) => console.log('⚠️ Socket connect_error:', err.message));
+        }
+    }, [socket]);
 
     // --- Helper for day comparison ---
     const isSameDay = (d1, d2) => 
@@ -61,6 +69,7 @@ const ChatScreen = () => {
         const displayItems = [];
         let lastDate = null;
 
+        // FlatList is inverted, so we process latest to oldest, but the input must be sorted oldest to latest
         const sorted = [...rawMessages].sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
 
         sorted.forEach(msg => {
@@ -76,31 +85,104 @@ const ChatScreen = () => {
             displayItems.push({ ...msg, type: 'message' });
         });
 
+        // The FlatList is inverted, so we reverse the display order
         return displayItems.reverse();
     }, []);
 
-    // --- Fetch chat history ---
+    // ⚡ OPTIMIZATION: Load previous pages of messages
+    const loadPreviousMessages = useCallback(async () => {
+        if (!hasMoreMessages || isPaginating || isLoadingInitial) return;
+        
+        setIsPaginating(true);
+        
+        try {
+            // Build the query string using the oldestMessageId as the cursor
+            const params = { limit: PAGE_SIZE };
+            if (oldestMessageId) {
+                params.beforeId = oldestMessageId;
+            }
+            
+            // NOTE: Your API must be updated to handle these parameters!
+            const response = await apiClient.get(`/chat/${roomId}`, { params });
+            const { messages: newRawMessages, hasMore } = response.data;
+
+            if (!newRawMessages || newRawMessages.length === 0) {
+                setHasMoreMessages(false);
+                return;
+            }
+
+            const formatted = newRawMessages.map(msg => ({
+                ...msg,
+                createdAt: new Date(msg.createdAt),
+                user: typeof msg.user === 'string' ? JSON.parse(msg.user) : msg.user || { _id: null, name: 'Unknown' },
+            }));
+
+            // Find the ID of the new oldest message to use as the next cursor
+            const newOldestId = formatted.length > 0 
+                ? formatted[formatted.length - 1]._id 
+                : oldestMessageId;
+            
+            setOldestMessageId(newOldestId);
+            setHasMoreMessages(hasMore);
+
+            // Merge the new messages with the existing ones
+            setMessages(prev => {
+                // 1. Get raw message data from current state (strip separators)
+                const existingRaw = prev.filter(m => m.type === 'message').reverse(); 
+                
+                // 2. Combine and sort
+                const combinedRaw = [...existingRaw, ...formatted]; 
+                
+                // 3. Process to re-insert date separators correctly
+                return processMessagesForDisplay(combinedRaw);
+            });
+
+        } catch (err) {
+            console.error("Failed to load previous messages:", err);
+            // Optionally, set an error state here
+        } finally {
+            setIsPaginating(false);
+        }
+    }, [roomId, oldestMessageId, hasMoreMessages, isPaginating, isLoadingInitial, processMessagesForDisplay]);
+
+
+    // ⚡ OPTIMIZATION: Initial load only fetches the first page
     useEffect(() => {
-        const fetchHistory = async () => {
+        const fetchFirstPage = async () => {
             try {
-                setIsLoading(true);
-                const response = await apiClient.get(`/chat/${roomId}`);
-                const formatted = response.data.map(msg => ({
+                setIsLoadingInitial(true);
+                // Fetch only the first page (latest messages)
+                const response = await apiClient.get(`/chat/${roomId}`, { params: { limit: PAGE_SIZE } });
+                const { messages: rawMessages, hasMore } = response.data;
+                
+                if (!rawMessages) return;
+
+                const formatted = rawMessages.map(msg => ({
                     ...msg,
                     createdAt: new Date(msg.createdAt),
                     user: typeof msg.user === 'string' ? JSON.parse(msg.user) : msg.user || { _id: null, name: 'Unknown' },
                 }));
+
+                // Set initial cursor and status
+                const newOldestId = formatted.length > 0 
+                    ? formatted[formatted.length - 1]._id 
+                    : null;
+                
+                setOldestMessageId(newOldestId);
+                setHasMoreMessages(hasMore);
                 setMessages(processMessagesForDisplay(formatted));
+                
             } catch (err) {
                 console.error("Failed to fetch chat history:", err);
             } finally {
-                setIsLoading(false);
+                setIsLoadingInitial(false);
             }
         };
-        fetchHistory();
+        fetchFirstPage();
     }, [roomId, processMessagesForDisplay]);
 
-    // --- Real-time socket handling ---
+
+    // --- Real-time socket handling (updated for message replacement) ---
     useEffect(() => {
         if (!socket.current) return;
 
@@ -108,70 +190,54 @@ const ChatScreen = () => {
         socket.current.emit('join_room', chatRoomName);
 
         const onReceiveMessage = (newMessage) => {
-  const formatted = { 
-    ...newMessage, 
-    createdAt: new Date(newMessage.createdAt),
-    user: typeof newMessage.user === 'string' ? JSON.parse(newMessage.user) : newMessage.user,
-  };
+            const formatted = { 
+                ...newMessage, 
+                createdAt: new Date(newMessage.createdAt),
+                user: typeof newMessage.user === 'string' ? JSON.parse(newMessage.user) : newMessage.user,
+            };
 
-  setMessages(prev => {
-    // Take only message items from prev (strip separators; your processMessagesForDisplay expects raw messages)
-    const prevMessagesRaw = prev.filter(m => m.type === 'message');
+            setMessages(prev => {
+                // 1. Get raw message data from current state (strip separators)
+                let prevMessagesRaw = prev.filter(m => m.type === 'message').reverse(); // oldest to latest
 
-    // attempt to replace a temp message that matches text + user + recent timestamp
-    const idx = prevMessagesRaw.findIndex(m => m._id && String(m._id).startsWith('temp-') && m.text === formatted.text && Number(m.user._id) === Number(formatted.user._id));
-    if (idx !== -1) {
-      prevMessagesRaw[idx] = formatted;
-    } else {
-      prevMessagesRaw.unshift(formatted);
-    }
+                // 2. Add the new message at the *latest* end (beginning of the array after reverse)
+                // We assume new messages are always newer than current latest.
+                prevMessagesRaw.push(formatted); 
 
-    return processMessagesForDisplay(prevMessagesRaw);
-  });
-};
-socket.current.on('receive_message', onReceiveMessage);
-    return () => {
-        socket.current.off('receive_message', onReceiveMessage);
-    };
-}, [socket, roomId, processMessagesForDisplay]);
+                // 3. Re-process and set state
+                return processMessagesForDisplay(prevMessagesRaw);
+            });
+        };
+        
+        socket.current.on('receive_message', onReceiveMessage);
+        return () => {
+            socket.current.off('receive_message', onReceiveMessage);
+        };
+    }, [socket, roomId, processMessagesForDisplay]);
 
-    // --- Scroll to bottom when messages update ---
-    useEffect(() => {
-        const timer = setTimeout(() => {
-            if (messages.length > 0 && flatListRef.current) {
-                flatListRef.current.scrollToOffset({ offset: 0, animated: true });
-            }
-        }, 100);
-        return () => clearTimeout(timer);
-    }, [messages]);
 
-    // --- Handle sending ---
+    // --- Handle sending (Optimistic UI removed for simplicity; relies on socket echo) ---
     const handleSend = useCallback(() => {
-  if (text.trim() === '' || !socket.current) return;
+        if (text.trim() === '' || !socket.current) return;
 
-  const tempId = `temp-${Date.now()}`; // optional temporary id if you want optimistic UI
-  const messageData = {
-    _id: tempId,
-    text,
-    createdAt: new Date().toISOString(),
-    user: { _id: Number(userId), name: username },
-    type: 'message',
-  };
+        const messageData = {
+            text,
+            createdAt: new Date().toISOString(), // Use ISO string for transport
+            user: { _id: Number(userId), name: username },
+        };
 
-  socket.current.emit('send_message', {
-    roomId: `chat-${roomId}`,
-    senderId: userId,
-    messageText: text,
-    user: messageData.user
-  });
+        socket.current.emit('send_message', {
+            roomId: `chat-${roomId}`,
+            senderId: userId,
+            messageText: text,
+            user: messageData.user
+        });
 
-  // Option A (recommended): show a tiny "sending" indicator rather than injecting a fully trusted message.
-  // Option B (simpler): append optimistic message but handle replacement when server echoes back with real id.
-  setText('');
-}, [text, userId, username, roomId, socket]);
+        setText('');
+    }, [text, userId, username, roomId, socket]);
 
 
-    // --- Render each item ---
+    // --- Render each item (No change) ---
     const renderItem = ({ item }) => {
         if (item.type === 'dateSeparator') {
             return (
@@ -208,8 +274,28 @@ socket.current.on('receive_message', onReceiveMessage);
             </View>
         );
     };
+    
+    // --- Render list footer (actually rendered at the top in inverted list) ---
+    const renderListFooter = () => {
+        if (isLoadingInitial) return null;
+        if (!hasMoreMessages) return <View style={styles.endOfHistory}><Text style={styles.endOfHistoryText}></Text></View>;
 
-    if (isLoading) {
+        return (
+            <View style={styles.paginationLoader}>
+                {isPaginating ? (
+                    <ActivityIndicator size="small" color={COLORS.primary} />
+                ) : (
+                    // Show a clickable element to invite loading if FlatList doesn't auto-trigger
+                    <TouchableOpacity onPress={loadPreviousMessages} style={styles.loadMoreButton}>
+                        <Text style={styles.loadMoreText}>Load Older Messages</Text>
+                    </TouchableOpacity>
+                )}
+            </View>
+        );
+    };
+
+
+    if (isLoadingInitial) {
         return <ActivityIndicator size="large" color={COLORS.primary} style={styles.centered} />;
     }
 
@@ -227,6 +313,12 @@ socket.current.on('receive_message', onReceiveMessage);
                 renderItem={renderItem}
                 inverted
                 contentContainerStyle={styles.flatListContentContainer}
+                
+                // ⚡ OPTIMIZATION: Pagination Handlers
+                onEndReached={loadPreviousMessages}
+                onEndReachedThreshold={0.5} 
+                ListFooterComponent={renderListFooter} // Renders at the TOP due to 'inverted'
+                
                 ListEmptyComponent={
                     <View style={styles.emptyState}>
                         <Text style={styles.emptyText}>No messages yet. Be the first to say something!</Text>
@@ -285,6 +377,18 @@ const styles = StyleSheet.create({
     sendButton: { width: 44, height: 44, borderRadius: 22, backgroundColor: COLORS.primary, justifyContent: 'center', alignItems: 'center' },
     dateSeparatorContainer: { marginVertical: 10, alignItems: 'center' },
     dateSeparatorText: { backgroundColor: COLORS.border, color: COLORS.textSecondary, ...FONTS.caption, fontSize: 12, paddingVertical: 5, paddingHorizontal: 10, borderRadius: 15 },
+    
+    // ⚡ NEW STYLES FOR PAGINATION LOADER
+    paginationLoader: { paddingVertical: SIZES.padding, alignItems: 'center' },
+    endOfHistory: { paddingVertical: SIZES.padding, alignItems: 'center' },
+    endOfHistoryText: { ...FONTS.caption, color: COLORS.textSecondary, opacity: 0.5 },
+    loadMoreButton: { 
+        backgroundColor: COLORS.primaryLight, 
+        paddingVertical: SIZES.base, 
+        paddingHorizontal: SIZES.padding,
+        borderRadius: SIZES.radius * 2 
+    },
+    loadMoreText: { ...FONTS.body, fontSize: 13, color: COLORS.primary, fontWeight: '600' }
 });
 
 export default ChatScreen;

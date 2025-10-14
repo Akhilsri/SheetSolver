@@ -9,7 +9,7 @@ import {
   TextInput,
   Alert,
   SafeAreaView,
-  Share, // <--- NEW: Import Share API
+  Share,
 } from 'react-native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import apiClient from '../api/apiClient';
@@ -18,7 +18,7 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import { useSocket } from '../context/SocketContext';
 
 // --- Header Component (Decoupled for Optimization) ---
-const RoomsHeaderRight = ({ navigation, logout, unreadCount }) => {
+const RoomsHeaderRight = React.memo(({ navigation, logout, unreadCount }) => {
   const count = Number(unreadCount);
 
   return (
@@ -31,7 +31,7 @@ const RoomsHeaderRight = ({ navigation, logout, unreadCount }) => {
         <View>
           <Icon name="notifications-outline" size={24} color="#6366F1" />
           {count > 0 && (
-            <View style={styles.badge}> {/* Using original badge style now */}
+            <View style={styles.badge}>
               <Text style={styles.badgeText}>
                 {count > 99 ? '99+' : count}
               </Text>
@@ -50,42 +50,78 @@ const RoomsHeaderRight = ({ navigation, logout, unreadCount }) => {
       </TouchableOpacity>
     </View>
   );
-};
+});
 
 // RoomsScreen component
 const RoomsScreen = () => {
   const navigation = useNavigation();
   const [rooms, setRooms] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
+  // ⚡ OPTIMIZATION CHANGE: Use isInitialLoading for first load only
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
+  // ⚡ OPTIMIZATION CHANGE: Use isRefreshing for background fetch (stale-while-revalidate)
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [inviteCode, setInviteCode] = useState('');
   const [isJoining, setIsJoining] = useState(false);
   const { logout, unreadCount, fetchUnreadCount, userToken } = useAuth();
   const socket = useSocket();
 
-  const fetchRooms = useCallback(async () => {
+  // ⚡ OPTIMIZATION: Refactored fetchRooms to support the stale-while-revalidate pattern
+  const fetchRooms = useCallback(async (isBackground = false) => {
     if (!userToken) {
       setRooms([]);
-      setIsLoading(false);
+      if (!isBackground) setIsInitialLoading(false);
       return;
     }
 
+    // Set appropriate loading state
+    if (rooms.length === 0 && !isBackground) {
+        setIsInitialLoading(true); // Show full spinner only on first visit/empty state
+    } else if (rooms.length > 0 && !isBackground) {
+        setIsRefreshing(true); // Show smaller indicator while stale data is visible
+    }
+    
+    // Use isRefreshing for both background and foreground for simplicity here
+    // as isInitialLoading handles the initial empty state.
+    if (isBackground) {
+        setIsRefreshing(true);
+    }
+
+
     try {
-      setIsLoading(true);
       const response = await apiClient.get('/rooms');
       setRooms(response.data || []);
     } catch (error) {
       console.error('Error fetching rooms:', error);
-      Alert.alert('Network Error', 'Could not load rooms. Check your connection.');
-      setRooms([]);
+      // Only show alert if it was a foreground fetch or initial load
+      if (!isBackground) {
+        Alert.alert('Network Error', 'Could not load rooms. Check your connection.');
+        // Don't clear existing rooms on background fetch failure
+      }
     } finally {
-      setIsLoading(false);
+      // Clear loading states
+      if (!isBackground) setIsInitialLoading(false);
+      setIsRefreshing(false);
     }
-  }, [userToken]);
+  }, [userToken, rooms.length]); // Added rooms.length to dependency to ensure correct loading state logic
 
+  // ⚡ OPTIMIZATION: Main logic shifted to focus effect with caching
   const fetchData = useCallback(() => {
-    fetchRooms();
+    // 1. Fetch unread count always
     fetchUnreadCount();
-  }, [fetchRooms, fetchUnreadCount]);
+
+    // 2. Decide how to fetch rooms:
+    if (rooms.length === 0) {
+      // FULL RE-LOAD: No data exists, show full loading spinner.
+      fetchRooms(false); 
+    } else {
+      // STALE-WHILE-REVALIDATE: Data exists, show stale data immediately and fetch in background.
+      fetchRooms(true); // Pass true to use background loading state
+    }
+    
+    // NOTE: We don't need a cleanup function here for a standard SWR pattern
+    // However, if there were a promise to abort, we would use it.
+    
+  }, [rooms.length, fetchRooms, fetchUnreadCount]);
 
   useFocusEffect(fetchData);
 
@@ -96,12 +132,21 @@ const RoomsScreen = () => {
       fetchUnreadCount();
     };
 
+    // ⚡ OPTIMIZATION: Also re-fetch rooms on new relevant server events (e.g., room status change or membership change)
+    const onRoomUpdate = (data) => {
+        console.log('[SOCKET DEBUG] Room data change received. Refreshing rooms...');
+        // Force a background refresh of the room list
+        fetchRooms(true); 
+    };
+
     socket.current.on('new_notification_received', onNewNotification);
+    socket.current.on('room_updated_or_joined', onRoomUpdate);
 
     return () => {
       socket.current.off('new_notification_received', onNewNotification);
+      socket.current.off('room_updated_or_joined', onRoomUpdate);
     };
-  }, [socket.current, fetchUnreadCount]);
+  }, [socket.current, fetchUnreadCount, fetchRooms]);
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -124,7 +169,8 @@ const RoomsScreen = () => {
       await apiClient.post('/rooms/join', { invite_code: trimmedCode });
       Alert.alert('Request Sent', 'Join request sent to admin.');
       setInviteCode('');
-      fetchRooms();
+      // After joining, force a foreground fetch (not background) to update the list immediately.
+      fetchRooms(false); 
     } catch (error) {
       const errorMessage = error.response?.data?.message || 'Could not send join request.';
       Alert.alert('Error', errorMessage);
@@ -145,27 +191,22 @@ const RoomsScreen = () => {
     });
   }, [navigation]);
 
-  // <--- NEW: handleShareRoom function ---
   const handleShareRoom = useCallback(async (roomName, inviteCode) => {
     try {
       const message = `Join my room "${roomName}" on SheetSolver! Use invite code: ${inviteCode}`;
       
       const result = await Share.share({
         message: message,
-        // Optional: title for some platforms (e.g., email)
         title: `Join "${roomName}" on SheetSolver!`,
       });
 
       if (result.action === Share.sharedAction) {
         if (result.activityType) {
-          // Shared with activity type of result.activityType
           console.log(`Shared with activity type: ${result.activityType}`);
         } else {
-          // Shared
           console.log('Content shared successfully.');
         }
       } else if (result.action === Share.dismissedAction) {
-        // Dismissed
         console.log('Share dismissed.');
       }
     } catch (error) {
@@ -173,7 +214,6 @@ const RoomsScreen = () => {
       Alert.alert('Sharing Error', 'Failed to share the room. Please try again later.');
     }
   }, []);
-  // --- END NEW: handleShareRoom function ---
 
   const renderRoomItem = useCallback(({ item }) => (
     <TouchableOpacity
@@ -188,21 +228,19 @@ const RoomsScreen = () => {
         <Text style={styles.roomName} numberOfLines={1}>{item.name}</Text>
         <Text style={styles.inviteCode}>Code: {item.invite_code}</Text>
       </View>
-      {/* <--- NEW: Share Button --- */}
       <TouchableOpacity
         style={styles.shareBtn}
         onPress={(e) => {
-          e.stopPropagation(); // Prevent handleRoomPress from being called
+          e.stopPropagation();
           handleShareRoom(item.name, item.invite_code);
         }}
         activeOpacity={0.6}
       >
         <Icon name="share-social-outline" size={20} color="#6366F1" />
       </TouchableOpacity>
-      {/* --- END NEW: Share Button --- */}
       <Icon name="chevron-forward" size={20} color="#9CA3AF" />
     </TouchableOpacity>
-  ), [handleRoomPress, handleShareRoom]); // <--- NEW: Add handleShareRoom to dependencies
+  ), [handleRoomPress, handleShareRoom]);
 
   const renderEmptyState = useCallback(() => (
     <View style={styles.emptyState}>
@@ -214,7 +252,8 @@ const RoomsScreen = () => {
     </View>
   ), []);
 
-  if (isLoading) {
+  // ⚡ OPTIMIZATION: Only show full spinner for isInitialLoading
+  if (isInitialLoading) {
     return (
       <SafeAreaView style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#6366F1" />
@@ -234,6 +273,9 @@ const RoomsScreen = () => {
         ListEmptyComponent={renderEmptyState}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 100 }}
+        // ⚡ OPTIMIZATION: Use isRefreshing for a subtle list refresh indicator (Pull-to-refresh style)
+        refreshing={isRefreshing}
+        onRefresh={() => fetchRooms(false)} // Force a foreground fetch on pull-to-refresh
         ListHeaderComponent={
           <View style={styles.roomsHeader}>
             <Text style={styles.sectionTitle}>Your Rooms</Text>
@@ -324,7 +366,7 @@ const styles = StyleSheet.create({
   roomCount: { fontSize: 14, color: '#6B7280', fontWeight: '600' },
 
   // Room card
- roomCard: {
+  roomCard: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: 'white',
@@ -347,13 +389,12 @@ const styles = StyleSheet.create({
   roomName: { fontSize: 16, fontWeight: '600', color: '#1F2937' },
   inviteCode: { fontSize: 13, color: '#6B7280', marginTop: 4 },
 
-  // <--- NEW: Share Button Styles ---
+  // Share Button Styles
   shareBtn: {
-    marginRight: 10, // space between share and arrow
+    marginRight: 10,
     padding: 6,
     borderRadius: 20,
   },
-  // --- END NEW: Share Button Styles ---
 
   // Empty state
   emptyState: { alignItems: 'center', paddingVertical: 60 },

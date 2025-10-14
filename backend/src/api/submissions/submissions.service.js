@@ -107,7 +107,7 @@ async function createSubmission({ userId, roomId, problemId, file, username }) {
         // 8. PUSH NOTIFICATIONS VIA FCM (MOVED OUTSIDE TRANSACTION)
         
         try {
-            console.log('\n--- PUSH NOTIFICATION DEBUG ---');
+            // console.log('\n--- PUSH NOTIFICATION DEBUG ---');
             if (membersToNotify.length > 0) {
                 const memberIds = membersToNotify.map(m => m.user_id);
                 // Use pool (safe outside transaction)

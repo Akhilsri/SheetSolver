@@ -4,7 +4,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Make sure this is your computer's correct local IP address
 const baseURL = 'https://sheetsolver-backend-715219399445.asia-south1.run.app';
-// const baseURL = 'http://192.168.1.10:3000'; 
+// const baseURL = 'http://192.168.1.9:3000'; 
 
 const apiClient = axios.create({
   baseURL: `${baseURL}/api`,

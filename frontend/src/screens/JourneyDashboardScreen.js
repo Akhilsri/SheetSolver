@@ -135,9 +135,12 @@ const JourneyDashboardScreen = ({ navigation }) => {
       setIsLoading(false);
       return;
     }
+    console.log('Fetching data for Room ID:', roomId); // <-- CHECK THIS
+    console.log('Using User ID:', userId);          // <-- CHECK THIS
     try {
         setIsLoading(true);
         const response = await apiClient.get(`/rooms/${roomId}/journey-dashboard`);
+        console.log('Successful API Response:', response.data);
         setDashboardData(response.data);
       } catch (error) {
         console.error('Error fetching journey dashboard data:', error);

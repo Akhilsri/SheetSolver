@@ -36,8 +36,8 @@ const SCREEN_WIDTH = Dimensions.get('window').width;
 const SIDEBAR_WIDTH = SCREEN_WIDTH * 0.85;
 
 /* -------------------------
-   Small memo components
-   -------------------------*/
+    Small memo components
+    -------------------------*/
 const IconButton = React.memo(({ name, color = COLORS.primary, size = 24, onPress, style }) => (
   <TouchableOpacity onPress={onPress} style={[{ padding: SIZES.base }, style]} activeOpacity={0.7}>
     <Icon name={name} size={size} color={color} />
@@ -60,8 +60,8 @@ const CustomButton = React.memo(({ title, onPress, color = COLORS.primary, outli
 ));
 
 /* -------------------------
-   Today's Standing Sidebar
-   -------------------------*/
+    Today's Standing Sidebar
+    -------------------------*/
 const TodayStandingSidebar = React.memo(({ visible, onClose, data = [], userId }) => {
   if (!visible) return null;
 
@@ -145,8 +145,8 @@ const TodayStandingSidebar = React.memo(({ visible, onClose, data = [], userId }
 });
 
 /* -------------------------
-   Main Screen
-   -------------------------*/
+    Main Screen
+    -------------------------*/
 const RoomDetailScreen = ({ navigation }) => {
   const route = useRoute();
   const { userId, logout } = useAuth();
@@ -155,7 +155,16 @@ const RoomDetailScreen = ({ navigation }) => {
   // state
   const [isLoading, setIsLoading] = useState(true);
   const [roomDetails, setRoomDetails] = useState(null);
-  const [members, setMembers] = useState([]);
+  
+  // ⚡ LAZY LOADING MEMBERS STATE
+  const [membersData, setMembersData] = useState({
+    count: 0,
+    list: [],
+    isLoaded: false, // Tracks if the full list has been fetched
+  });
+  const [isMembersListExpanded, setIsMembersListExpanded] = useState(false);
+  // ------------------------------
+  
   const [sheets, setSheets] = useState([]);
   const [dailyProblems, setDailyProblems] = useState([]);
   const [isUploading, setIsUploading] = useState(false);
@@ -173,7 +182,69 @@ const RoomDetailScreen = ({ navigation }) => {
 
   const isMounted = useRef(true);
 
-  // stable fetchData
+  // ⚡ LAZY LOADING MEMBERS LOGIC
+  // 1. Fetch only the member count on initial load
+  const fetchMemberCount = useCallback(async () => {
+    try {
+      // NOTE: Assuming your API supports getting a count, or you are fine with getting a small array to determine the count.
+      // If the API supports /rooms/{roomId}/members?countOnly=true, use that for optimal performance.
+      const res = await roomService.getRoomMembers(roomId); 
+      const list = res?.data || [];
+      const count = list.length;
+      
+      if (!isMounted.current) return;
+      
+      // If the full list was already loaded (e.g., from a previous expansion), keep it.
+      // Otherwise, just update the count and ensure the list is empty/small.
+      setMembersData(prev => ({
+        ...prev,
+        count: count,
+        list: prev.isLoaded ? prev.list : [],
+        isLoaded: prev.isLoaded && prev.list.length === count, // Re-validate load status
+      }));
+    } catch (error) {
+      console.error('Failed to fetch member count:', error);
+    }
+  }, [roomId]);
+  
+  // 2. Fetch the full member list on user click
+  const fetchFullMemberList = useCallback(async () => {
+    // Toggle logic: If expanded, collapse it. If collapsed, load/expand it.
+    if (isMembersListExpanded) {
+      setIsMembersListExpanded(false);
+      return;
+    }
+
+    if (membersData.isLoaded) {
+      // Already loaded, just expand
+      setIsMembersListExpanded(true);
+      return;
+    }
+    
+    // Start fetching and expand
+    try {
+      setIsLoading(true); // Can use a smaller indicator, but using main one for simplicity
+      const res = await roomService.getRoomMembers(roomId); // Fetch full list
+      if (!isMounted.current) return;
+      const list = res?.data || [];
+      
+      setMembersData({
+        count: list.length,
+        list: list,
+        isLoaded: true,
+      });
+      setIsMembersListExpanded(true); // Open the list after fetching
+    } catch (error) {
+      console.error('Failed to fetch full member list:', error);
+      Alert.alert('Error', 'Could not load room members.');
+    } finally {
+      if (isMounted.current) setIsLoading(false);
+    }
+  }, [roomId, membersData.isLoaded, isMembersListExpanded]);
+  // ---------------------------------
+
+
+  // stable fetchData - now calls fetchMemberCount instead of fetching full list
   const fetchData = useCallback(async () => {
     try {
       setIsLoading(true);
@@ -188,28 +259,36 @@ const RoomDetailScreen = ({ navigation }) => {
       const isAdmin = roomData.admin_id === Number(userId);
 
       const promises = [
-        roomService.getRoomMembers(roomId),
+        fetchMemberCount(), // ⚡ FETCH COUNT INSTEAD OF FULL LIST
         submissionService.getTodaysSubmissions(roomId),
         roomService.getDailyRoomProgress(roomId),
       ];
+      
+      // We will call fetchMemberCount inside this array and rely on it updating state
+      // We need to keep a dummy promise here to align array indices if needed, but since
+      // fetchMemberCount updates state and doesn't return data we need immediately,
+      // we'll restructure the promises.
 
-      if (isAdmin) {
-        promises.push(roomService.getJoinRequests(roomId));
-        promises.push(sheetService.getAllSheets());
-      }
+      const results = await Promise.all([
+        submissionService.getTodaysSubmissions(roomId),
+        roomService.getDailyRoomProgress(roomId),
+        isAdmin ? roomService.getJoinRequests(roomId) : Promise.resolve({ data: [] }),
+        isAdmin ? sheetService.getAllSheets() : Promise.resolve({ data: [] }),
+      ]);
+      
+      await fetchMemberCount(); // Call separately to ensure state update
 
-      const responses = await Promise.all(promises);
       if (!isMounted.current) return;
-
-      setMembers(responses[0]?.data || []);
-      const submissionsData = responses[1]?.data || [];
-      setDailyProgressData(responses[2]?.data?.membersProgress || []);
+      
+      const submissionsData = results[0]?.data || [];
+      setDailyProgressData(results[1]?.data?.membersProgress || []);
 
       if (isAdmin) {
-        setJoinRequests(responses[3]?.data || []);
-        setSheets(responses[4]?.data || []);
+        setJoinRequests(results[2]?.data || []);
+        setSheets(results[3]?.data || []);
       } else {
         setJoinRequests([]);
+        setSheets([]);
       }
 
       const grouped = submissionsData.reduce((acc, sub) => {
@@ -242,7 +321,7 @@ const RoomDetailScreen = ({ navigation }) => {
     } finally {
       if (isMounted.current) setIsLoading(false);
     }
-  }, [roomId, userId]);
+  }, [roomId, userId, fetchMemberCount]);
 
   useFocusEffect(
     useCallback(() => {
@@ -250,9 +329,13 @@ const RoomDetailScreen = ({ navigation }) => {
       fetchData();
       return () => {
         isMounted.current = false;
+        // Optionally collapse the list when leaving the screen
+        setIsMembersListExpanded(false);
       };
     }, [fetchData])
   );
+  
+  // ... (rest of the component logic)
 
   // header
   const renderHeaderRight = useCallback((roomData) => {
@@ -418,12 +501,19 @@ const RoomDetailScreen = ({ navigation }) => {
     try {
       await roomService.removeMember(roomId, memberId);
       Alert.alert('Success', 'Member has been removed.');
-      fetchData();
+      
+      // Update the loaded members list and the count after removal
+      setMembersData(prev => ({
+        ...prev,
+        count: prev.count - 1,
+        list: prev.list.filter(m => Number(m.id) !== Number(memberId)),
+      }));
+
     } catch (error) {
       const errorMessage = error?.response?.data?.message || 'Could not remove member.';
       Alert.alert('Error', errorMessage);
     }
-  }, [roomId, fetchData]);
+  }, [roomId]);
 
   const handleStartJourney = useCallback(async () => {
     if (!selectedSheet || !duration) {
@@ -450,7 +540,9 @@ const RoomDetailScreen = ({ navigation }) => {
     try {
       await roomService.approveJoinRequest(requestId);
       Alert.alert('Success', 'Member has been added to the room.');
-      fetchData();
+      
+      // Re-fetch everything, including the new member count/list
+      fetchData(); 
     } catch (error) {
       Alert.alert('Error', 'Could not approve request.');
     }
@@ -509,11 +601,22 @@ const RoomDetailScreen = ({ navigation }) => {
   const isAdmin = useMemo(() => roomDetails && roomDetails.admin_id === Number(userId), [roomDetails, userId]);
   const sections = useMemo(() => {
     const s = [];
-    if (isAdmin && joinRequests.length > 0) s.push({ title: 'Pending Join Requests', data: joinRequests });
-    if (roomDetails?.status === 'active') s.push({ title: "Today's Problems", data: dailyProblems });
-    s.push({ title: `Members (${members.length})`, data: members });
+    if (isAdmin && joinRequests.length > 0) s.push({ title: 'Pending Join Requests', data: joinRequests, key: 'requests' });
+    if (roomDetails?.status === 'active') s.push({ title: "Today's Problems", data: dailyProblems, key: 'problems' });
+    
+    // ⚡ LAZY LOAD MEMBER SECTION
+    s.push({ 
+      title: `Members (${membersData.count})`, 
+      data: isMembersListExpanded ? membersData.list : [], // Only provide data if expanded
+      isExpanded: isMembersListExpanded, 
+      memberCount: membersData.count,
+      isLoaded: membersData.isLoaded,
+      key: 'members',
+    });
+    // ----------------------------
+    
     return s;
-  }, [isAdmin, joinRequests, roomDetails, dailyProblems, members]);
+  }, [isAdmin, joinRequests, roomDetails, dailyProblems, membersData, isMembersListExpanded]);
 
   // Render helpers (stable references)
   const renderJoinRequest = useCallback((item) => (
@@ -552,7 +655,7 @@ const RoomDetailScreen = ({ navigation }) => {
     );
   }, [roomDetails, userId, isAdmin, confirmRemoveMember]);
 
-  const renderDailyProblem = useCallback((item) => {
+ const renderDailyProblem = useCallback((item) => {
     const isSolvedByMe = solvedProblemIds.includes(item.id);
     const mySubmission = isSolvedByMe ? (todaysSubmissions[item.id] || []).find(s => Number(s.user_id) === Number(userId)) : null;
     const otherSubmissions = (todaysSubmissions[item.id] || []).filter(s => Number(s.user_id) !== Number(userId));
@@ -563,10 +666,17 @@ const RoomDetailScreen = ({ navigation }) => {
           <Text style={styles.problemTitle}>{item.title}</Text>
           <Text style={styles.problemSubtext}>{item.topic} | Difficulty: {item.difficulty}</Text>
           {otherSubmissions.length > 0 && (
-            <TouchableOpacity onPress={() => showSubmissionPicker(otherSubmissions)} style={{ marginTop: SIZES.base }}>
-              <Text style={styles.othersCompletedText}>
-                <Icon name="people-outline" size={SIZES.font} color={COLORS.gray} /> Completed by {otherSubmissions.length} other(s).
-              </Text>
+            <TouchableOpacity 
+                onPress={() => showSubmissionPicker(otherSubmissions)} 
+                style={styles.othersCompletedContainer} // Apply padding/margin here
+                activeOpacity={0.7} // Add activeOpacity for visual feedback
+            >
+              <View style={styles.othersCompletedRow}> {/* New wrapper for alignment */}
+                <Icon name="people-outline" size={SIZES.font} color={COLORS.primary} /> 
+                <Text style={styles.othersCompletedLink}> 
+                  Completed by {otherSubmissions.length} other(s).
+                </Text>
+              </View>
             </TouchableOpacity>
           )}
         </View>
@@ -590,6 +700,41 @@ const RoomDetailScreen = ({ navigation }) => {
     );
   }, [solvedProblemIds, todaysSubmissions, uploadingProblemId, isUploading, showSubmissionPicker, openSnap, handleMarkAsDone]);
 
+  // ⚡ Custom Section Header for Lazy Loaded Members
+  const renderMemberSectionHeader = useCallback(({ section }) => {
+    if (section.key === 'members') {
+      const { title, isExpanded, isLoaded, memberCount } = section;
+      return (
+        <View>
+          <TouchableOpacity
+            onPress={fetchFullMemberList}
+            style={styles.memberSectionHeader}
+            disabled={memberCount === 0 && !isLoaded} // Disable if empty and not loaded
+          >
+            <Text style={styles.sectionTitle}>{title}</Text>
+            {memberCount > 0 && (
+                <Icon
+                    name={isExpanded ? "chevron-up-outline" : "chevron-down-outline"}
+                    size={24}
+                    color={COLORS.textPrimary}
+                />
+            )}
+            
+          </TouchableOpacity>
+          {/* Show loading indicator if expanding and data is not yet loaded */}
+          {isExpanded && memberCount > 0 && !isLoaded && (
+            <ActivityIndicator color={COLORS.primary} style={{ margin: SIZES.base }} />
+          )}
+          {memberCount === 0 && (
+            <Text style={styles.emptyText}>No members in this room.</Text>
+          )}
+        </View>
+      );
+    }
+    return <Text style={styles.sectionTitle}>{section.title}</Text>;
+  }, [fetchFullMemberList]);
+  // ---------------------------------
+
   // Action modal component
   const ActionModal = ({ visible, onClose }) => (
     <Modal animationType="fade" transparent visible={visible} onRequestClose={onClose}>
@@ -612,7 +757,7 @@ const RoomDetailScreen = ({ navigation }) => {
   );
 
   // loading / not found states
-  if (isLoading) {
+  if (isLoading && !roomDetails) { // Show full loading only if no details are present
     return <ActivityIndicator size="large" color={COLORS.primary} style={styles.centered} />;
   }
   if (!roomDetails) {
@@ -645,11 +790,16 @@ const RoomDetailScreen = ({ navigation }) => {
         style={styles.container}
         sections={sections}
         keyExtractor={(item, index) => (item?.id ?? index).toString() + index}
-        renderSectionHeader={({ section: { title } }) => <Text style={styles.sectionTitle}>{title}</Text>}
+        renderSectionHeader={renderMemberSectionHeader} // ⚡ USE CUSTOM HEADER
         renderItem={({ item, section }) => {
-          if (section.title === 'Pending Join Requests') return renderJoinRequest(item);
-          if (section.title.startsWith('Members')) return renderMember(item);
-          if (section.title === "Today's Problems") return renderDailyProblem(item);
+          if (section.key === 'requests') return renderJoinRequest(item);
+          if (section.key === 'members') {
+            if (section.isExpanded && section.isLoaded) { // Only render items if data is loaded and section is expanded
+                return renderMember(item);
+            }
+            return null; // Don't render items if not expanded/loaded
+          }
+          if (section.key === 'problems') return renderDailyProblem(item);
           return null;
         }}
         ListHeaderComponent={
@@ -685,15 +835,17 @@ const RoomDetailScreen = ({ navigation }) => {
             )}
           </>
         }
-        ListEmptyComponent={<Text style={styles.emptyText}>Nothing to show here yet.</Text>}
+        ListEmptyComponent={
+          sections.length === 0 ? <Text style={styles.emptyText}>Nothing to show here yet.</Text> : null
+        }
       />
     </SafeAreaView>
   );
 };
 
 /* -------------------------
-   Styles (fixed duplicate keys)
-   -------------------------*/
+    Styles (with addition for member header)
+    -------------------------*/
 const styles = StyleSheet.create({
   centered: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   container: { flex: 1, backgroundColor: COLORS.background },
@@ -711,8 +863,20 @@ const styles = StyleSheet.create({
     paddingHorizontal: SIZES.padding,
     paddingTop: SIZES.padding,
     paddingBottom: SIZES.base,
-    backgroundColor: COLORS.background
+    backgroundColor: COLORS.background,
   },
+  
+  // ⚡ NEW STYLE FOR DROPDOWN HEADER
+  memberSectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: SIZES.padding,
+    paddingTop: SIZES.padding,
+    paddingBottom: SIZES.base,
+    backgroundColor: COLORS.background,
+  },
+  // ---------------------------------
 
   // Cards & Lists
   requestCard: {
@@ -722,15 +886,15 @@ const styles = StyleSheet.create({
     padding: SIZES.padding
   },
   memberCard: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: SIZES.base,
-    paddingLeft: SIZES.padding,
-    // Subtract SIZES.base (8) from SIZES.padding (20) to absorb the button's internal padding (8).
-    // New paddingRight = 20 - 8 = 12.
-    paddingRight: SIZES.padding + SIZES.base + 10, 
-  },
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: SIZES.base,
+    paddingLeft: SIZES.padding,
+    // Subtract SIZES.base (8) from SIZES.padding (20) to absorb the button's internal padding (8).
+    // New paddingRight = 20 - 8 = 12.
+    paddingRight: SIZES.padding + SIZES.base + 10,
+  },
   problemCard: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -763,9 +927,34 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
 
+  // Problem Styles
+problemContent: { flex: 1, marginRight: SIZES.padding },
+problemTitle: { ...FONTS.h4, color: COLORS.text },
+problemSubtext: { ...FONTS.body5, color: COLORS.gray, marginTop: SIZES.base / 2 },
+
+// ⚡ NEW STYLES FOR CLICKABLE LINK
+othersCompletedContainer: { 
+    marginTop: SIZES.base,
+    alignSelf: 'flex-start', // Important: makes the touchable area only as wide as the content
+},
+othersCompletedRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+},
+othersCompletedLink: { 
+    ...FONTS.body5, 
+    color: COLORS.primary, // Actionable color
+    textDecorationLine: 'underline', // Underline to signal clickability
+    marginLeft: SIZES.base / 2, // Small spacing between icon and text
+    fontWeight: '600', // Make it stand out a bit more
+},
+// ------------------------------------
+
+problemActionContainer: { width: 80, alignItems: 'flex-end', justifyContent: 'center' },
+
   // Problem
   problemContent: { flex: 1, marginRight: SIZES.padding },
-  problemTitle: { ...FONTS.h4, color: COLORS.text },
+  problemTitle: { ...FONTS.h3, color: '#251cc9' },
   problemSubtext: { ...FONTS.body5, color: COLORS.gray, marginTop: SIZES.base / 2 },
   othersCompletedText: { ...FONTS.body5, color: COLORS.gray },
   problemActionContainer: { width: 80, alignItems: 'flex-end', justifyContent: 'center' },
@@ -892,40 +1081,12 @@ const styles = StyleSheet.create({
     color: COLORS.text,
     fontWeight: 'bold',
   },
-  standingItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: SIZES.padding,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
+  noData: {
+    ...FONTS.body4,
+    color: COLORS.gray,
+    textAlign: 'center',
+    marginTop: SIZES.padding,
   },
-  standingItemEven: {
-    backgroundColor: COLORS.background,
-  },
-  standingItemCurrent: {
-    backgroundColor: COLORS.primary_light,
-    borderLeftWidth: 4,
-    borderLeftColor: COLORS.primary,
-  },
-  standingRankText: {
-    ...FONTS.h4,
-    fontWeight: 'bold',
-    width: 40,
-    color: COLORS.primary,
-    textAlign: 'center'
-  },
-  standingNameText: {
-    ...FONTS.body3,
-    flex: 1,
-    marginLeft: SIZES.base,
-    color: COLORS.text,
-  },
-  standingPointsText: {
-    ...FONTS.body3,
-    fontWeight: 'bold',
-    color: COLORS.success,
-  },
-
   // member row & progress
   memberRow: {
     flexDirection: 'row',

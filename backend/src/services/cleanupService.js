@@ -35,11 +35,15 @@ async function deleteOldSubmissions() {
 
     // 3. Delete the corresponding records from our database in one go
     if (submissionIdsToDelete.length > 0) {
-      await connection.query('DELETE FROM submissions WHERE id IN (?)', [submissionIdsToDelete]);
-      console.log(`Deleted ${submissionIdsToDelete.length} records from the database.`);
-    }
-    
-    console.log('Cleanup job finished successfully.');
+    // We update the existing records, setting photo_url to NULL
+    await connection.query(
+        'UPDATE submissions SET photo_url = NULL WHERE id IN (?)', 
+        [submissionIdsToDelete]
+    );
+    console.log(`Updated ${submissionIdsToDelete.length} records: Removed photo_url.`);
+}
+
+console.log('Cleanup job finished successfully.');
 
   } catch (error) {
     console.error('An error occurred during the cleanup job:', error);

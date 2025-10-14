@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { 
     View, Text, ImageBackground, TextInput, StyleSheet, FlatList, 
     KeyboardAvoidingView, Platform, ActivityIndicator, TouchableOpacity, SafeAreaView 
@@ -10,6 +10,9 @@ import { useSocket } from '../context/SocketContext';
 import apiClient from '../api/apiClient';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { COLORS, SIZES, FONTS } from '../styles/theme';
+
+// --- Constants for Pagination ---
+const PAGE_SIZE = 50; 
 
 // --- Helper: format date like WhatsApp ---
 const formatChatDate = (date) => {
@@ -34,16 +37,24 @@ const DirectMessageScreen = () => {
     const { userId, username, fetchUnreadMessageCount } = useAuth();
     const socket = useSocket();
 
+    // ⚡ OPTIMIZATION: Pagination States
     const [messages, setMessages] = useState([]);
+    const [oldestMessageId, setOldestMessageId] = useState(null);
+    const [hasMoreMessages, setHasMoreMessages] = useState(true);
+    
+    // UI States
     const [text, setText] = useState('');
-    const [isLoading, setIsLoading] = useState(true);
+    const [isLoadingInitial, setIsLoadingInitial] = useState(true);
+    const [isPaginating, setIsPaginating] = useState(false);
+    
+    const flatListRef = useRef(null);
 
     // --- Insert date separators into raw messages ---
     const processMessagesForDisplay = useCallback((rawMessages) => {
         const displayItems = [];
         let lastDate = null;
 
-        const sorted = [...rawMessages].sort((a, b) => a.createdAt - b.createdAt);
+        const sorted = [...rawMessages].sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
 
         sorted.forEach(msg => {
             const msgDate = new Date(msg.createdAt);
@@ -66,71 +77,159 @@ const DirectMessageScreen = () => {
         return displayItems.reverse();
     }, []);
 
-    // Fetch chat history
+    // ⚡ OPTIMIZATION: Load previous pages of messages
+    const loadPreviousMessages = useCallback(async () => {
+        if (!hasMoreMessages || isPaginating || isLoadingInitial) return;
+        
+        setIsPaginating(true);
+        
+        try {
+            const params = { limit: PAGE_SIZE };
+            if (oldestMessageId) {
+                params.beforeId = oldestMessageId;
+            }
+            
+            const response = await apiClient.get(`/chat/direct/${connectionUserId}`, { params });
+            const { messages: newRawMessages, hasMore } = response.data;
+
+            if (!newRawMessages || newRawMessages.length === 0) {
+                setHasMoreMessages(false);
+                return;
+            }
+
+            const formatted = newRawMessages.map(msg => ({
+                ...msg,
+                createdAt: new Date(msg.createdAt),
+                user: typeof msg.user === 'string' ? JSON.parse(msg.user) : msg.user || { _id: null, name: 'Unknown' },
+            }));
+
+            // Find the ID of the new oldest message to use as the next cursor
+            const newOldestId = formatted.length > 0 
+                ? formatted[formatted.length - 1]._id 
+                : oldestMessageId;
+            
+            setOldestMessageId(newOldestId);
+            setHasMoreMessages(hasMore);
+
+            // Merge the new messages with the existing ones
+            setMessages(prev => {
+                const existingRaw = prev.filter(m => m.type === 'message').reverse(); 
+                const combinedRaw = [...existingRaw, ...formatted]; 
+                return processMessagesForDisplay(combinedRaw);
+            });
+
+        } catch (err) {
+            console.error("Failed to load previous DM messages:", err);
+        } finally {
+            setIsPaginating(false);
+        }
+    }, [connectionUserId, oldestMessageId, hasMoreMessages, isPaginating, isLoadingInitial, processMessagesForDisplay]);
+
+
+    // ⚡ OPTIMIZATION: Initial load only fetches the first page
     useEffect(() => {
-        const loadChat = async () => {
+        const fetchFirstPage = async () => {
             try {
-                setIsLoading(true);
+                setIsLoadingInitial(true);
+                
+                // Mark messages as read and update badge count
                 await apiClient.put(`/chat/direct/${connectionUserId}/read`);
                 fetchUnreadMessageCount();
 
-                const response = await apiClient.get(`/chat/direct/${connectionUserId}`);
-                const formatted = response.data.map(msg => ({
+                // Fetch only the first page (latest messages)
+                const response = await apiClient.get(`/chat/direct/${connectionUserId}`, { params: { limit: PAGE_SIZE } });
+                const { messages: rawMessages, hasMore } = response.data;
+                
+                if (!rawMessages) return;
+
+                const formatted = rawMessages.map(msg => ({
                     ...msg,
                     createdAt: new Date(msg.createdAt),
-                    user: typeof msg.user === "string" ? JSON.parse(msg.user) : msg.user,
+                    user: typeof msg.user === 'string' ? JSON.parse(msg.user) : msg.user || { _id: null, name: 'Unknown' },
                 }));
+
+                // Set initial cursor and status
+                const newOldestId = formatted.length > 0 
+                    ? formatted[formatted.length - 1]._id 
+                    : null;
+                
+                setOldestMessageId(newOldestId);
+                setHasMoreMessages(hasMore);
                 setMessages(processMessagesForDisplay(formatted));
+                
             } catch (error) {
-                console.error("Failed to load chat:", error);
+                console.error("Failed to load initial DM history:", error);
             } finally {
-                setIsLoading(false);
+                setIsLoadingInitial(false);
             }
         };
-        loadChat();
+        fetchFirstPage();
     }, [connectionUserId, fetchUnreadMessageCount, processMessagesForDisplay]);
+
 
     // Socket listener
     useEffect(() => {
         if (!socket.current) return;
+        
         const onReceivePrivateMessage = (newMessage) => {
-            if (newMessage.user._id === Number(connectionUserId)) {
+            // Only update if the message is from the current connection partner OR is my echo
+            if (newMessage.senderId === Number(connectionUserId) || newMessage.senderId === Number(userId)) {
+                
                 const formatted = {
                     ...newMessage,
                     createdAt: new Date(newMessage.createdAt),
-                    type: "message"
+                    type: "message",
+                    // Ensure user object is correct for display
+                    user: { _id: newMessage.senderId, name: newMessage.user.name },
                 };
+                
                 setMessages(prev => {
-                    const rawMsgs = [formatted, ...prev.filter(m => m.type === "message")];
-                    return processMessagesForDisplay(rawMsgs);
+                    // Filter out date separators, keeping only message objects (in reverse order)
+                    const prevMessagesRaw = prev.filter(m => m.type === "message").reverse(); 
+                    
+                    // Add the new message to the end (latest)
+                    prevMessagesRaw.push(formatted);
+                    
+                    return processMessagesForDisplay(prevMessagesRaw);
                 });
             }
         };
         socket.current.on("receive_private_message", onReceivePrivateMessage);
+        
         return () => socket.current.off("receive_private_message", onReceivePrivateMessage);
-    }, [socket.current, connectionUserId, processMessagesForDisplay]);
+    }, [socket.current, connectionUserId, userId, processMessagesForDisplay]);
+
 
     const handleSend = useCallback(() => {
         if (text.trim() === '' || !socket.current) return;
-        const messageData = {
-            _id: Math.random().toString(),
-            text,
-            createdAt: new Date(),
-            user: { _id: Number(userId), name: username },
-            type: "message"
+        
+        const currentMessage = text; // Capture text before clearing
+        
+        // Optimistic UI update: Append the message instantly
+        const tempMessageData = {
+             _id: `temp-${Date.now()}`,
+             text: currentMessage,
+             createdAt: new Date(),
+             user: { _id: Number(userId), name: username },
+             type: "message",
         };
+        
+        setMessages(prev => {
+            const rawMsgs = prev.filter(m => m.type === "message").reverse();
+            rawMsgs.push(tempMessageData); // Add to latest end
+            return processMessagesForDisplay(rawMsgs);
+        });
+        
         socket.current.emit('send_private_message', {
             senderId: userId,
             recipientId: connectionUserId,
-            messageText: text,
-            ...messageData,
+            messageText: currentMessage,
+            user: { _id: userId, name: username }
         });
-        setMessages(prev => {
-            const rawMsgs = [messageData, ...prev.filter(m => m.type === "message")];
-            return processMessagesForDisplay(rawMsgs);
-        });
+        
         setText('');
     }, [text, userId, username, connectionUserId, socket.current, processMessagesForDisplay]);
+
 
     const renderItem = ({ item }) => {
         if (item.type === "dateSeparator") {
@@ -172,7 +271,26 @@ const DirectMessageScreen = () => {
         );
     };
 
-    if (isLoading) {
+    // --- Render list footer (actually rendered at the top in inverted list) ---
+    const renderListFooter = () => {
+        if (isLoadingInitial) return null;
+        if (!hasMoreMessages) return <View style={styles.endOfHistory}><Text style={styles.endOfHistoryText}></Text></View>;
+
+        return (
+            <View style={styles.paginationLoader}>
+                {isPaginating ? (
+                    <ActivityIndicator size="small" color={COLORS.primary} />
+                ) : (
+                    <TouchableOpacity onPress={loadPreviousMessages} style={styles.loadMoreButton}>
+                        <Text style={styles.loadMoreText}>Load Older Messages</Text>
+                    </TouchableOpacity>
+                )}
+            </View>
+        );
+    };
+
+
+    if (isLoadingInitial) {
         return <ActivityIndicator size="large" color={COLORS.primary} style={styles.centered} />;
     }
 
@@ -185,11 +303,18 @@ const DirectMessageScreen = () => {
                     keyboardVerticalOffset={headerHeight}
                 >
                     <FlatList
+                        ref={flatListRef}
                         data={messages}
                         inverted
                         keyExtractor={(item) => item._id.toString()}
                         renderItem={renderItem}
                         contentContainerStyle={{ padding: SIZES.base }}
+                        
+                        // ⚡ OPTIMIZATION: Pagination Handlers
+                        onEndReached={loadPreviousMessages}
+                        onEndReachedThreshold={0.5} 
+                        ListFooterComponent={renderListFooter} // Renders at the TOP due to 'inverted'
+                        
                         ListEmptyComponent={
                             <View style={styles.emptyState}>
                                 <Text style={styles.emptyText}>No messages yet. Say hi 👋</Text>
@@ -328,6 +453,18 @@ const styles = StyleSheet.create({
     // Empty state
     emptyState: { padding: SIZES.padding * 2, alignItems: 'center' },
     emptyText: { ...FONTS.body, color: COLORS.textSecondary, textAlign: 'center' },
+    
+    // ⚡ NEW STYLES FOR PAGINATION LOADER
+    paginationLoader: { paddingVertical: SIZES.padding, alignItems: 'center' },
+    endOfHistory: { paddingVertical: SIZES.padding, alignItems: 'center' },
+    endOfHistoryText: { ...FONTS.caption, color: COLORS.textSecondary, opacity: 0.5 },
+    loadMoreButton: { 
+        backgroundColor: COLORS.primaryLight, 
+        paddingVertical: SIZES.base, 
+        paddingHorizontal: SIZES.padding,
+        borderRadius: SIZES.radius * 2 
+    },
+    loadMoreText: { ...FONTS.body, fontSize: 13, color: COLORS.primary, fontWeight: '600' }
 });
 
 export default DirectMessageScreen;
