@@ -15,6 +15,7 @@ const chatRoutes = require('./api/chat/chat.routes');
 const quizRoutes = require('./api/quiz/quiz.routes');
 // const invitationRoutes = require('./api/invitations/invitations.routes');
 const connectionRoutes = require('./api/connections/connections.routes');
+const redirectRouter = require('./api/redirect.routes');
 
 const app = express();
 
@@ -29,6 +30,7 @@ app.get('/', (req, res) => {
 });
 
 // --- Use the routes with a prefix ---
+app.use('/', redirectRouter);
 app.use('/api/auth', authRoutes);
 app.use('/api/rooms', roomRoutes);
 app.use('/api/sheets', sheetRoutes);

@@ -35,3 +35,13 @@ export const denyJoinRequest = (requestId) => {
 export const getDailyRoomProgress = (roomId) => {
   return apiClient.get(`/rooms/${roomId}/daily-progress`);
 };
+
+export const getJourneyDashboard = async (roomId) => {
+  return await apiClient.get(`/rooms/${roomId}/journey-dashboard`);
+};
+
+// ⚡️ ADD THIS FUNCTION IF IT'S MISSING OR CORRECT IT IF IT'S MISSPELLED ⚡️
+export const getLeaderboard = async (roomId) => {
+  // This endpoint should return the full list of members and their scores for the room
+  return await apiClient.get(`/rooms/${roomId}/leaderboard`); 
+};

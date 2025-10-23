@@ -12,6 +12,7 @@
   "type": "commonjs",
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
+    "@sendgrid/mail": "^8.1.6",
     "atob": "^2.1.2",
     "bcryptjs": "^3.0.2",
     "cloudinary": "^2.7.0",
@@ -23,13 +24,16 @@
     "dotenv": "^17.2.2",
     "exceljs": "^4.4.0",
     "express": "^5.1.0",
+    "express-rate-limit": "^8.1.0",
     "firebase-admin": "^13.5.0",
     "google-auth-library": "^10.4.0",
     "jsonwebtoken": "^9.0.2",
+    "moment": "^2.30.1",
     "multer": "^2.0.2",
     "mysql2": "^3.14.4",
     "nanoid": "^5.1.5",
     "node-cron": "^4.2.1",
+    "nodemailer": "^7.0.9",
     "redis": "^5.8.2",
     "socket.io": "^4.8.1"
   }

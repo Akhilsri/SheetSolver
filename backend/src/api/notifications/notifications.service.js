@@ -1,12 +1,24 @@
 const pool = require('../../config/db');
 
 async function getNotificationsForUser(userId) {
-  // Add the new columns to the SELECT statement
+  // ✅ ADDED: n.created_at AS timestamp
+  // ✅ ADDED: LEFT JOIN rooms r ON n.related_room_id = r.id
+  // ✅ ADDED: r.name AS related_room_name
   const sql = `
-    SELECT id, title, body, is_read, created_at, type, related_room_id, related_submission_id 
-    FROM notifications 
-    WHERE recipient_user_id = ? 
-    ORDER BY created_at DESC
+    SELECT 
+      n.id, 
+      n.title, 
+      n.body, 
+      n.is_read, 
+      n.created_at AS timestamp, 
+      n.type, 
+      n.related_room_id, 
+      n.related_submission_id,
+      r.name AS related_room_name -- Get room name for activity notifications
+    FROM notifications n
+    LEFT JOIN rooms r ON n.related_room_id = r.id
+    WHERE n.recipient_user_id = ? 
+    ORDER BY n.created_at DESC
   `;
   const [notifications] = await pool.query(sql, [userId]);
   return notifications;

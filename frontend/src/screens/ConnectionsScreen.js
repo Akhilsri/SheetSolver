@@ -7,7 +7,8 @@ import {
     ActivityIndicator, 
     TouchableOpacity, 
     Image,
-    RefreshControl // Import RefreshControl for pull-to-refresh
+    RefreshControl,
+    Alert // Import Alert
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useFocusEffect } from '@react-navigation/native';
@@ -15,7 +16,7 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import apiClient from '../api/apiClient';
 import { COLORS, SIZES, FONTS } from '../styles/theme';
 import { useAuth } from '../context/AuthContext';
-import { useSocket } from '../context/SocketContext'; // Assuming you can access socket here if needed
+import { useSocket } from '../context/SocketContext'; 
 
 const ConnectionsScreen = () => {
     const navigation = useNavigation();
@@ -29,15 +30,20 @@ const ConnectionsScreen = () => {
     const hasDataLoadedOnce = useRef(false);
     
     const { fetchUnreadMessageCount } = useAuth();
-    const socket = useSocket(); // Use socket for potential real-time invalidation
+    const socket = useSocket(); 
 
     // --- Optimized Fetch Function (SWR Core) ---
     const fetchConnections = useCallback(async (isBackground = false) => {
         
         // 1. Set appropriate loading state
         if (!hasDataLoadedOnce.current) {
+            // First visit ever: show full-screen loader
             setIsInitialLoading(true);
         } else if (isBackground) {
+            // Background sync (e.g., from socket): show top spinner
+            setIsRefreshing(true);
+        } else {
+            // ✨ FIX #1: Subsequent visit (foreground fetch): show top spinner
             setIsRefreshing(true);
         }
 
@@ -63,13 +69,10 @@ const ConnectionsScreen = () => {
     // --- SWR Logic in useFocusEffect ---
     useFocusEffect(
         useCallback(() => {
-            if (!hasDataLoadedOnce.current) {
-                // 1. First visit: Full foreground fetch
-                fetchConnections(false); 
-            } else {
-                // 2. Subsequent visits: Show stale data instantly, fetch in background
-                fetchConnections(true);
-            }
+            // ✨ FIX #2: ALWAYS fetch in the foreground (false) when the screen is focused.
+            // This ensures we get the latest unread counts from the server
+            // immediately after returning from a chat screen.
+            fetchConnections(false); 
             
             // Cleanup logic (optional, but good practice)
             return () => {
@@ -81,6 +84,7 @@ const ConnectionsScreen = () => {
     // --- Socket Invalidation (Optional but Best Practice for Chat) ---
     // If a new private message comes in for *any* conversation, refresh the connections list silently.
     React.useEffect(() => {
+        // Guard against socket not being ready
         if (!socket.current) return;
 
         const onNewPrivateMessage = (data) => {
@@ -92,7 +96,10 @@ const ConnectionsScreen = () => {
         socket.current.on('receive_private_message', onNewPrivateMessage);
         
         return () => {
-            socket.current.off('receive_private_message', onNewPrivateMessage);
+            // Guard against socket disconnecting before cleanup
+            if (socket.current) {
+                socket.current.off('receive_private_message', onNewPrivateMessage);
+            }
         };
     }, [socket, fetchConnections]);
 

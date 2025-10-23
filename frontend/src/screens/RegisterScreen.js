@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef, useEffect } from 'react';
+import React, { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import {
   View,
   Text,
@@ -22,7 +22,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 // Screen dimensions
 const { width, height } = Dimensions.get('window');
 
-// Debounce utility
+// 1. IMPROVEMENT: Debounce utility is moved outside the component for stability and clean code.
 const debounce = (func, delay) => {
   let timeout;
   return function executedFunction(...args) {
@@ -51,7 +51,9 @@ const RegisterScreen = () => {
   const translateY = useRef(new Animated.Value(0)).current;
   const rotateAnim = useRef(new Animated.Value(0)).current;
 
+  // 2. Optimization: Animations using useNativeDriver for smooth performance
   useEffect(() => {
+    // Horizontal Movement Loop
     Animated.loop(
       Animated.sequence([
         Animated.timing(translateX, { toValue: width * 0.12, duration: 9000, useNativeDriver: true }),
@@ -59,6 +61,7 @@ const RegisterScreen = () => {
       ])
     ).start();
 
+    // Vertical Movement Loop
     Animated.loop(
       Animated.sequence([
         Animated.timing(translateY, { toValue: height * 0.1, duration: 11000, useNativeDriver: true }),
@@ -66,6 +69,7 @@ const RegisterScreen = () => {
       ])
     ).start();
 
+    // Rotation Loop
     Animated.loop(
       Animated.timing(rotateAnim, {
         toValue: 1,
@@ -80,34 +84,43 @@ const RegisterScreen = () => {
     outputRange: ['0deg', '360deg'],
   });
 
-  // Username availability check
-  const checkUsername = useCallback(
-    debounce(async (newUsername) => {
-      if (newUsername.length < 3) {
-        setUsernameStatus({ available: null, message: '' });
-        return;
+  // Username availability check logic (stable function)
+  const checkUsernameApi = useCallback(async (newUsername) => {
+    if (newUsername.length < 3) {
+      setUsernameStatus({ available: null, message: '' });
+      return;
+    }
+    setIsCheckingUsername(true);
+    try {
+      const response = await apiClient.post('/auth/check-username', { username: newUsername });
+      if (response.data.available) {
+        setUsernameStatus({ available: true, message: 'Username is available! 👍' });
+      } else {
+        setUsernameStatus({ available: false, message: 'Username is already taken. ❌' });
       }
-      setIsCheckingUsername(true);
-      try {
-        const response = await apiClient.post('/auth/check-username', { username: newUsername });
-        if (response.data.available) {
-          setUsernameStatus({ available: true, message: 'Username is available!' });
-        } else {
-          setUsernameStatus({ available: false, message: 'Username is already taken.' });
-        }
-      } catch {
-        setUsernameStatus({ available: null, message: '' });
-      } finally {
-        setIsCheckingUsername(false);
-      }
-    }, 500),
-    []
+    } catch {
+      // Ignore API errors for status display
+      setUsernameStatus({ available: null, message: '' });
+    } finally {
+      setIsCheckingUsername(false);
+    }
+  }, []);
+
+  // 3. IMPROVEMENT: Use useMemo to create the debounced function ONLY once.
+  const debouncedCheckUsername = useMemo(
+    () => debounce(checkUsernameApi, 500),
+    [checkUsernameApi]
   );
 
   const handleUsernameChange = (text) => {
     setUsername(text);
-    setUsernameStatus({ available: null, message: 'Checking...' });
-    checkUsername(text);
+    // Only show "Checking..." if the input isn't empty
+    if (text.length >= 3) {
+        setUsernameStatus({ available: null, message: 'Checking...' });
+    } else {
+        setUsernameStatus({ available: null, message: '' });
+    }
+    debouncedCheckUsername(text);
   };
 
   const handleRegister = async () => {
@@ -121,11 +134,11 @@ const RegisterScreen = () => {
     setIsLoading(true);
     try {
       await apiClient.post('/auth/register', { username, email, password });
-      Alert.alert('Success!', 'Your account has been created. Please log in.', [
+      Alert.alert('Success! 🎉', 'Your account has been created. Please log in.', [
         { text: 'OK', onPress: () => navigation.navigate('Login') },
       ]);
     } catch (error) {
-      Alert.alert('Registration Failed', error.response?.data?.message || 'An error occurred.');
+      Alert.alert('Registration Failed', error.response?.data?.message || 'An error occurred. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -136,7 +149,7 @@ const RegisterScreen = () => {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       style={styles.container}
     >
-      {/* Animated Blobs */}
+      {/* Animated Blobs - useNativeDriver ensures smooth background animation */}
       <Animated.View
         style={[styles.blob, styles.blob1, { transform: [{ translateX }, { translateY }, { rotate }] }]}
       />
@@ -155,72 +168,68 @@ const RegisterScreen = () => {
         </View>
 
         <View style={styles.form}>
-  {/* Username with inline status */}
-  <View style={styles.inputWrapper}>
-    <StyledInput
-      value={username}
-      onChangeText={handleUsernameChange}
-      placeholder="Username"
-      autoCapitalize="none"
-    />
-    <View style={styles.inlineStatus}>
-      {isCheckingUsername ? (
-        <ActivityIndicator size="small" color={COLORS.primary} />
-      ) : (
-        usernameStatus.message && (
-          <Text
-            style={[
-              styles.statusText,
-              usernameStatus.available ? styles.availableText : styles.unavailableText,
-            ]}
-          >
-            {usernameStatus.message}
-          </Text>
-        )
-      )}
-    </View>
-  </View>
+          {/* Username with inline status */}
+          <View style={styles.inputWrapper}>
+            <StyledInput
+              value={username}
+              onChangeText={handleUsernameChange}
+              placeholder="Username"
+              autoCapitalize="none"
+              // Keyboard type is simple, optimizing input experience
+              keyboardType="default" 
+            />
+            <View style={styles.inlineStatus}>
+              {isCheckingUsername ? (
+                <ActivityIndicator size="small" color={COLORS.primary} />
+              ) : (
+                usernameStatus.message ? (
+                  <Text
+                    style={[
+                      styles.statusText,
+                      usernameStatus.available ? styles.availableText : styles.unavailableText,
+                    ]}
+                  >
+                    {usernameStatus.message}
+                  </Text>
+                ) : null
+              )}
+            </View>
+          </View>
 
-  <StyledInput
-    value={email}
-    onChangeText={setEmail}
-    placeholder="Email Address"
-    keyboardType="email-address"
-    autoCapitalize="none"
-  />
-  <View style={{ position: 'relative', marginBottom: SIZES.base }}>
-  <StyledInput
-    value={password}
-    onChangeText={setPassword}
-    placeholder="Password"
-    secureTextEntry={!passwordVisible}
-  />
-  <TouchableOpacity
-    onPress={() => setPasswordVisible(!passwordVisible)}
-    style={{
-      position: 'absolute',
-      right: 12,
-      top: 0,
-      bottom: 0,
-      justifyContent: 'center',
-    }}
-  >
-    <Ionicons
-      name={passwordVisible ? 'eye-off' : 'eye'}
-      size={22}
-      color={COLORS.textSecondary}
-    />
-  </TouchableOpacity>
-</View>
+          <StyledInput
+            value={email}
+            onChangeText={setEmail}
+            placeholder="Email Address"
+            keyboardType="email-address"
+            autoCapitalize="none"
+          />
+          <View style={{ position: 'relative', marginBottom: SIZES.base }}>
+            <StyledInput
+              value={password}
+              onChangeText={setPassword}
+              placeholder="Password"
+              secureTextEntry={!passwordVisible}
+            />
+            <TouchableOpacity
+              onPress={() => setPasswordVisible(!passwordVisible)}
+              style={styles.passwordToggle}
+            >
+              <Ionicons
+                name={passwordVisible ? 'eye-off' : 'eye'}
+                size={22}
+                color={COLORS.textSecondary}
+              />
+            </TouchableOpacity>
+          </View>
 
-
-  <PrimaryButton
-    title="Sign Up"
-    onPress={handleRegister}
-    isLoading={isLoading || isCheckingUsername}
-  />
-</View>
-
+          <PrimaryButton
+            title="Sign Up"
+            onPress={handleRegister}
+            // Disable button during network operations
+            disabled={isLoading || isCheckingUsername || usernameStatus.available === false} 
+            isLoading={isLoading}
+          />
+        </View>
 
         <TouchableOpacity onPress={() => navigation.navigate('Login')}>
           <Text style={styles.linkText}>
@@ -271,14 +280,7 @@ const styles = StyleSheet.create({
     color: COLORS.primary,
     fontWeight: 'bold',
   },
-  statusContainer: {
-    height: 20,
-    justifyContent: 'center',
-    alignItems: 'flex-start',
-    marginBottom: SIZES.base,
-    paddingHorizontal: SIZES.base,
-  },
-  
+  // Animated Blob Styles
   blob: {
     position: 'absolute',
     borderRadius: 999,
@@ -306,46 +308,36 @@ const styles = StyleSheet.create({
     left: width * 0.3,
     opacity: 0.3,
   },
-  form: {
-  marginBottom: SIZES.padding * 2,
-},
-inputWrapper: {
-  marginBottom: SIZES.base, // same spacing as other fields
-},
-inlineStatus: {
-  marginTop: 4,
-  paddingHorizontal: SIZES.base,
-},
-statusText: {
-  ...FONTS.caption,
-},
-availableText: {
-  color: COLORS.success,
-},
-unavailableText: {
-  color: COLORS.danger,
-},
-passwordContainer: {
-  flexDirection: 'row',
-  alignItems: 'center',
-  borderWidth: 1,
-  borderColor: COLORS.border,
-  borderRadius: SIZES.radius,
-  backgroundColor: COLORS.background,
-  marginBottom: SIZES.padding,
-  paddingHorizontal: SIZES.padding,
-  height: 55,
-},
-passwordInput: {
-  flex: 1,
-  color: COLORS.textPrimary,
-  ...FONTS.body,
-},
-eyeIcon: {
-  paddingHorizontal: 6,
-},
-
-
+  // Input Status Styles
+  inputWrapper: {
+    marginBottom: SIZES.base,
+  },
+  inlineStatus: {
+    height: 18, // Fixed height to prevent layout shift when status appears/disappears
+    marginTop: 4,
+    paddingHorizontal: SIZES.base,
+    justifyContent: 'center',
+  },
+  statusText: {
+    ...FONTS.caption,
+  },
+  availableText: {
+    color: COLORS.success,
+    fontWeight: '600',
+  },
+  unavailableText: {
+    color: COLORS.danger,
+    fontWeight: '600',
+  },
+  passwordToggle: {
+    position: 'absolute',
+    right: 12,
+    top: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    width: 40, // Ensure a large enough touch target
+    alignItems: 'center',
+  },
 });
 
 export default RegisterScreen;

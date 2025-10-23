@@ -1,6 +1,7 @@
 const pool = require('../../config/db');
 const redisClient = require('../../config/redis');
 const admin = require('firebase-admin');
+const moment = require('moment');
 
 // Declare customAlphabet globally but without immediate assignment
 let customAlphabet;
@@ -148,48 +149,84 @@ async function getRoomMembers(roomId) {
 }
 
 async function getRoomById(roomId) {
-  const [rows] = await pool.query('SELECT * FROM rooms WHERE id = ?', [roomId]);
-  return rows[0];
+  const [rows] = await pool.query('SELECT * FROM rooms WHERE id = ?', [roomId]);
+  const room = rows[0];
+
+  if (room) {
+    // If the room is active and the end_date has passed, we'll mark it as 'completed'
+    // This is a good place to update the status in the DB if it's not already 'completed'
+    if (room.status === 'active' && room.end_date) {
+      const endDate = moment(room.end_date);
+      const today = moment();
+
+      if (today.isAfter(endDate, 'day')) {
+        // The journey's end date has passed. Check if all problems have been assigned.
+        // We can enhance this check, but for now, we'll assume if end_date has passed, it's completed.
+        // A more robust check might involve comparing assigned problems count to total problems in sheet.
+        // For now, we'll update the status to 'completed'.
+        await pool.query('UPDATE rooms SET status = ? WHERE id = ?', ['completed', roomId]);
+        room.status = 'completed'; // Update the returned object as well
+        console.log(`Room ${roomId} status updated to 'completed' as end_date passed.`);
+      }
+    }
+  }
+  return room; // Returns the room with potentially updated status
 }
 
 async function startJourney(roomId, sheetId, durationInDays) {
-  const startDate = new Date();
-  const endDate = new Date();
-  endDate.setDate(startDate.getDate() + parseInt(durationInDays, 10));
+  const startDate = moment(); // Use moment for easier date handling
+  const endDate = moment().add(parseInt(durationInDays, 10), 'days'); // Add duration
 
-  const sql = 'UPDATE rooms SET sheet_id = ?, start_date = ?, end_date = ?, status = ? WHERE id = ?';
-  await pool.query(sql, [sheetId, startDate, endDate, 'active', roomId]);
-  
-  // After updating, fetch the updated room details and return them
-  const [updatedRooms] = await pool.query('SELECT * FROM rooms WHERE id = ?', [roomId]);
-  return updatedRooms[0];
+  const sql = 'UPDATE rooms SET sheet_id = ?, start_date = ?, end_date = ?, status = ? WHERE id = ?';
+  await pool.query(sql, [sheetId, startDate.format('YYYY-MM-DD HH:mm:ss'), endDate.format('YYYY-MM-DD HH:mm:ss'), 'active', roomId]);
+  
+  // After updating, fetch the updated room details and return them
+  const [updatedRooms] = await pool.query('SELECT * FROM rooms WHERE id = ?', [roomId]);
+  return updatedRooms[0];
 }
 
 async function getDailyProblems(roomId) {
-  const [rooms] = await pool.query('SELECT * FROM rooms WHERE id = ?', [roomId]);
-  if (rooms.length === 0 || rooms[0].status !== 'active') {
-    return [];
-  }
-  const room = rooms[0];
+  const [rooms] = await pool.query('SELECT * FROM rooms WHERE id = ?', [roomId]);
+  if (rooms.length === 0) {
+    return [];
+  }
+  const room = rooms[0];
 
-  const [[{ total_problems }]] = await pool.query('SELECT COUNT(*) as total_problems FROM problems WHERE sheet_id = ?', [room.sheet_id]);
+  // NEW: If room status is 'completed', return no daily problems
+  if (room.status === 'completed') {
+    return [];
+  }
 
-  const totalDuration = (new Date(room.end_date) - new Date(room.start_date)) / (1000 * 60 * 60 * 24) + 1;
-  const problemsPerDay = Math.ceil(total_problems / totalDuration);
-  
-  const today = new Date();
-  const daysSinceStart = Math.floor((today - new Date(room.start_date)) / (1000 * 60 * 60 * 24));
-  
-  if (daysSinceStart < 0 || today > new Date(room.end_date)) {
-    return []; 
-  }
+  if (room.status !== 'active' || !room.start_date || !room.end_date || !room.sheet_id) {
+    // If not active, or essential dates/sheet are missing, no daily problems
+    return [];
+  }
 
-  const offset = daysSinceStart * problemsPerDay;
+  const [[{ total_problems }]] = await pool.query('SELECT COUNT(*) as total_problems FROM problems WHERE sheet_id = ?', [room.sheet_id]);
 
-  const sql = 'SELECT * FROM problems WHERE sheet_id = ? ORDER BY problem_order LIMIT ? OFFSET ?';
-  const [problems] = await pool.query(sql, [room.sheet_id, problemsPerDay, offset]);
+  const startDate = moment(room.start_date);
+  const endDate = moment(room.end_date);
+  const today = moment();
 
-  return problems;
+  // Check if today is before the start date or after the end date
+  // Use 'day' for comparison to ignore time
+  if (today.isBefore(startDate, 'day') || today.isAfter(endDate, 'day')) {
+    return []; 
+  }
+
+  // Calculate total duration including start and end day
+  // +1 because duration is inclusive (e.g., if start=1st, end=1st, duration is 1 day)
+  const totalDuration = endDate.diff(startDate, 'days') + 1; 
+  const problemsPerDay = Math.ceil(total_problems / totalDuration);
+  
+  const daysSinceStart = today.diff(startDate, 'days'); // Days from start_date to today
+  
+  const offset = daysSinceStart * problemsPerDay;
+
+  const sql = 'SELECT * FROM problems WHERE sheet_id = ? ORDER BY problem_order LIMIT ? OFFSET ?';
+  const [problems] = await pool.query(sql, [room.sheet_id, problemsPerDay, offset]);
+
+  return problems;
 }
 
 async function getLeaderboard(roomId) {

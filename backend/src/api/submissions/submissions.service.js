@@ -13,8 +13,8 @@ const parser = new DatauriParser();
 // Remember to ensure all necessary imports (like pool, admin, sendNotificationToUser, etc.) 
 // are present at the top of your actual submissions.service.js file.
 
-async function createSubmission({ userId, roomId, problemId, file, username }) {
-    const connection = await pool.getConnection();
+async function createSubmission({ userId, roomId, problemId, file, username, approach, timeComplexity, spaceComplexity }) {
+    const connection = await pool.getConnection();
 
     // Variables needed for PUSH notification, declared here to be accessible outside the transaction
     let notificationTitle = '';
@@ -47,9 +47,25 @@ async function createSubmission({ userId, roomId, problemId, file, username }) {
         const photoUrl = uploadResult.secure_url;
 
         // --- 3. SAVE SUBMISSION TO DATABASE ---
-        const insertSql = `INSERT INTO submissions (user_id, room_id, problem_id, photo_url, points_awarded) VALUES (?, ?, ?, ?, ?)`;
-        const [submissionInsertResult] = await connection.query(insertSql, [userId, roomId, problemId, photoUrl, totalPoints]);
-        const submissionId = submissionInsertResult.insertId;
+        const insertSql = `
+ INSERT INTO submissions 
+ (user_id, room_id, problem_id, photo_url, points_awarded, approach, time_complexity, space_complexity) 
+ VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+ `;
+ 
+ // MODIFIED: Update the values array to include the new data
+const [submissionInsertResult] = await connection.query(insertSql, [
+ userId, 
+roomId, 
+problemId, 
+photoUrl, 
+totalPoints,
+ // NEW VALUES
+ approach,
+timeComplexity,
+spaceComplexity
+ ]);
+const submissionId = submissionInsertResult.insertId;
 
         // --- 4. STREAK CALCULATION LOGIC ---
         const [users] = await connection.query('SELECT current_streak, max_streak, last_submission_date FROM users WHERE id = ? FOR UPDATE', [userId]);
@@ -163,16 +179,23 @@ async function createSubmission({ userId, roomId, problemId, file, username }) {
 
 
 async function getTodaysSubmissionsForRoom(roomId) {
-  // The query now includes "s.user_id"
-  const sql = `
-    SELECT s.problem_id, s.photo_url, s.submitted_at, u.username, s.user_id, s.points_awarded 
-    FROM submissions s 
-    JOIN users u ON s.user_id = u.id 
-    WHERE s.room_id = ? AND DATE(s.submitted_at) = CURDATE();
-  `;
-  
-  const [submissions] = await pool.query(sql, [roomId]);
-  return submissions;
+ // The query now includes approach, time_complexity, and space_complexity
+ const sql = `SELECT 
+s.problem_id, 
+s.photo_url, 
+s.submitted_at, 
+u.username, 
+s.user_id, 
+s.points_awarded,
+s.approach,      
+s.time_complexity, 
+s.space_complexity 
+FROM submissions s 
+JOIN users u ON s.user_id = u.id 
+WHERE s.room_id = ? AND DATE(s.submitted_at) = CURDATE();`; // Remove leading whitespace on every line inside backticks
+
+const [submissions] = await pool.query(sql, [roomId]);
+ return submissions;
 }
 
 async function getSubmissionStatusForProblems(userId, problemIds) {

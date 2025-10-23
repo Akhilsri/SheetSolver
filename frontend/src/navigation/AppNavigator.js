@@ -1,9 +1,10 @@
 import React,{useEffect} from 'react';
-import { ActivityIndicator, View } from 'react-native';
+import { ActivityIndicator, View, Alert } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useAuth } from '../context/AuthContext';
 import messaging from '@react-native-firebase/messaging';
+import { LINKING_CONFIG } from '../../App';
 
 import MainTabNavigator from './MainTabNavigator';
 import LoginScreen from '../screens/LoginScreen';
@@ -22,6 +23,9 @@ import DirectMessageScreen from '../screens/DirectMessageScreen';
 import DailyProgressTracker from '../components/room/DailyProgressTracker';
 import JourneyDashboardScreen from '../screens/JourneyDashboardScreen';
 // import CreateSheetScreen from '../screens/CreateSheetScreen';
+import JourneyAchievementsScreen from '../screens/JourneyAchievementsScreen'; 
+import ForgotPasswordScreen from '../screens/ForgotPasswordScreen'
+import ResetPasswordScreen from '../screens/ResetPasswordScreen'
 
 const Stack = createNativeStackNavigator();
 
@@ -76,17 +80,20 @@ const AppNavigator = () => {
   }
 
   return (
-    <NavigationContainer>
+    <NavigationContainer linking={LINKING_CONFIG} fallback={<View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}><ActivityIndicator size="large" /></View>}>
       <Stack.Navigator>
         {userToken == null ? (
-          // No token found, user isn't signed in
-          <>
-            <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
-            <Stack.Screen name="Register" component={RegisterScreen} options={{ headerShown: false }} />
-          </>
+          // 🚨 FIX: Use Stack.Group instead of <>
+          // You can also move shared options here
+          <Stack.Group screenOptions={{ headerShown: false }}>
+            <Stack.Screen name="Login" component={LoginScreen} />
+            <Stack.Screen name="Register" component={RegisterScreen} />
+            <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
+            <Stack.Screen name="ResetPasswordScreen" component={ResetPasswordScreen} />
+          </Stack.Group>
         ) : (
-          // User is signed in
-          <>
+          // 🚨 FIX: Use Stack.Group instead of <>
+          <Stack.Group>
             <Stack.Screen name="Main" component={MainTabNavigator} options={{ headerShown: false }} />
             {/* Add all other screens here, so they can be pushed on top of the tabs */}
             <Stack.Screen name="CreateRoom" component={CreateRoomScreen} options={{ title: 'Create New Room' }} />
@@ -101,7 +108,8 @@ const AppNavigator = () => {
             <Stack.Screen name="DirectMessage" component={DirectMessageScreen} options={({ route }) => ({ title: route.params.connectionUsername })} />
             <Stack.Screen name="SheetViewer" component={DailyProgressTracker} options={({ route }) => ({ title: route.params.connectionUsername })} />
             <Stack.Screen name="JourneyDashboard" component={JourneyDashboardScreen} options={({ route }) => ({ title: `${route.params.roomName} Journey` })} />
-          </>
+            <Stack.Screen name="JourneyAchievements" component={JourneyAchievementsScreen} />
+          </Stack.Group>
         )}
       </Stack.Navigator>
     </NavigationContainer>

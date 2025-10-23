@@ -166,7 +166,7 @@ const ProfileScreen = () => {
       </View>
       
       {/* --- ACHIEVEMENTS SECTION --- */}
-      <View style={styles.section}>
+{/*       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Achievements</Text>
         <FlatList
           data={badges}
@@ -181,7 +181,7 @@ const ProfileScreen = () => {
           )}
           ListEmptyComponent={<Text style={styles.noDataText}>No badges earned yet. Keep solving!</Text>}
         />
-      </View>
+      </View> */}
 
       {/* --- PROFILE DETAILS SECTION --- */}
       <Card style={styles.section}>

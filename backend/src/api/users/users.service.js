@@ -79,11 +79,14 @@ async function updateUserProfile(userId, profileData) {
 
 async function searchUsers(query, userId) {
   const searchQuery = `%${query}%`;
+  // Cleaned and properly indented SQL string
   const sql = `
     SELECT id, username, full_name, college_name, avatar_url 
     FROM users 
     WHERE (username LIKE ? OR full_name LIKE ? OR college_name LIKE ?)
-    AND id != ?`;
+    AND id != ?
+    LIMIT 20
+  `; 
 
   const [users] = await pool.query(sql, [searchQuery, searchQuery, searchQuery, userId]);
   return users;

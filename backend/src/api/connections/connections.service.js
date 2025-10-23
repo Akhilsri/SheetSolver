@@ -88,16 +88,21 @@ async function sendConnectionRequest(senderId, recipientId) {
 
 // ... (rest of connections.service.js remains the same) ...
 async function getPendingRequests(userId) {
-    const sql = `
-        SELECT c.id, u.username as senderName 
-        FROM connections c
-        JOIN users u ON c.action_user_id = u.id
-        WHERE (c.user_one_id = ? OR c.user_two_id = ?) 
-        AND c.status = 'pending' AND c.action_user_id != ?
-    `;
-    const [requests] = await pool.query(sql, [userId, userId, userId]);
-    return requests;
+  const sql = `
+    SELECT 
+      c.id, 
+      c.created_at AS timestamp, -- ✅ ADDED: timestamp for connection requests
+      u.username as senderName 
+    FROM connections c
+    JOIN users u ON c.action_user_id = u.id
+    WHERE (c.user_one_id = ? OR c.user_two_id = ?) 
+    AND c.status = 'pending' AND c.action_user_id != ?
+    ORDER BY c.created_at DESC -- ✅ Good practice to order by time
+  `;
+  const [requests] = await pool.query(sql, [userId, userId, userId]);
+  return requests;
 }
+
 
 // Accepts a connection request
 async function acceptConnectionRequest(requestId, currentUserId) {

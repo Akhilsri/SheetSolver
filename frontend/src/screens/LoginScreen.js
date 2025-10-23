@@ -14,6 +14,7 @@ import {
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useAuth } from '../context/AuthContext';
+// Assuming these are available:
 import { COLORS, SIZES, FONTS } from '../styles/theme';
 import StyledInput from '../components/common/StyledInput';
 import PrimaryButton from '../components/common/PrimaryButton';
@@ -26,6 +27,7 @@ const LoginScreen = ({ navigation }) => {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  // Assuming 'login' is available from your context
   const { login } = useAuth();
 
   // animations
@@ -35,6 +37,7 @@ const LoginScreen = ({ navigation }) => {
   const logoAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
+    // Animation setup (keeping your original animation logic)
     Animated.loop(
       Animated.sequence([
         Animated.timing(translateX, {
@@ -108,12 +111,16 @@ const LoginScreen = ({ navigation }) => {
     }
   };
 
+  const handleForgotPassword = () => {
+    navigation.navigate('ForgotPassword'); // Navigate to the new screen
+  };
+
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       style={styles.container}
     >
-      {/* Animated Blobs */}
+      {/* Animated Blobs (kept for background aesthetics) */}
       <Animated.View
         style={[
           styles.blob,
@@ -135,6 +142,9 @@ const LoginScreen = ({ navigation }) => {
           source={appLogo}
           style={[styles.logo, { transform: [{ translateY: logoAnim }] }]}
         />
+        
+        {/* APP NAME ADDED HERE */}
+        <Text style={styles.appName}>SheetSolver</Text> 
 
         <View style={styles.header}>
           <Text style={styles.title}>Welcome Back</Text>
@@ -142,6 +152,7 @@ const LoginScreen = ({ navigation }) => {
         </View>
 
         <View style={styles.form}>
+          {/* StyledInput assumed to be similar to the password container style */}
           <StyledInput
             value={email}
             onChangeText={setEmail}
@@ -176,6 +187,15 @@ const LoginScreen = ({ navigation }) => {
             </TouchableOpacity>
           </View>
 
+          {/* FORGOT PASSWORD LINK ADDED HERE */}
+          <TouchableOpacity 
+            onPress={handleForgotPassword} 
+            style={styles.forgotPasswordLink}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
+          </TouchableOpacity>
+
           <PrimaryButton title="Log In" onPress={handleLogin} isLoading={isLoading} />
         </View>
 
@@ -206,11 +226,19 @@ const styles = StyleSheet.create({
     resizeMode: 'contain',
     marginBottom: SIZES.padding * 2,
   },
+  // NEW STYLE FOR APP NAME
+  appName: {
+    ...FONTS.h1, 
+    color: COLORS.primary,
+    fontWeight: '800',
+    marginBottom: SIZES.padding,
+    textAlign: 'center',
+  },
   header: {
     marginBottom: SIZES.padding * 2,
   },
   title: {
-    ...FONTS.h1,
+    ...FONTS.h2,
     textAlign: 'center',
     color: COLORS.textPrimary,
     marginBottom: 6,
@@ -244,6 +272,18 @@ const styles = StyleSheet.create({
   eyeIcon: {
     paddingHorizontal: 6,
   },
+  // NEW STYLES
+  forgotPasswordLink: {
+    alignSelf: 'flex-end',
+    marginBottom: SIZES.padding,
+  },
+  forgotPasswordText: {
+    ...FONTS.body,
+    fontSize: SIZES.font - 2, // Slightly smaller text
+    color: COLORS.primary,
+    fontWeight: '600',
+  },
+  // END NEW STYLES
   linkText: {
     ...FONTS.body,
     color: COLORS.textSecondary,

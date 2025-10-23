@@ -181,6 +181,7 @@ const UserProfileScreen = () => {
                         <Picker.Item 
                             label="-- Select a Room --" 
                             value={null} 
+                            style={{color:'black'}}
                         />
                         {myRooms.map(room => {
                             const isAlreadyMember = profileUserRooms.includes(room.id);
@@ -196,7 +197,8 @@ const UserProfileScreen = () => {
                                     key={room.id}
                                     label={`${room.name}${labelExtra}`} 
                                     value={room.id}
-                                    enabled={!isAlreadyMember && inviteStatus !== 'pending'} 
+                                    enabled={!isAlreadyMember && inviteStatus !== 'pending'}
+
                                 />
                             );
                         })}
@@ -319,6 +321,7 @@ const styles = StyleSheet.create({
       ios: { height: 150 },
       android: { height: 60 },
     }),
+color:'black'
   },
   modalButtonRow: {
     flexDirection: 'row',

@@ -1,29 +1,48 @@
 const submissionsService = require('./submissions.service');
 
 async function handleCreateSubmission(req, res) {
-  try {
-    // Data from the form fields
-    const { roomId, problemId } = req.body;
-    // User info from the authenticated token (decoded by the middleware)
-    const userId = req.user.userId;
-    const username = req.user.username; // Get username from token
+  try {
+    // Data from the form fields
+    // MODIFIED: Extract new fields here
+    const { 
+      roomId, 
+      problemId, 
+      approach, 
+      timeComplexity, 
+      spaceComplexity 
+    } = req.body;
+    
+    // User info from the authenticated token (decoded by the middleware)
+    const userId = req.user.userId;
+    const username = req.user.username; // Get username from token
 
-    // The file object from multer middleware
-    const file = req.file;
+    // The file object from multer middleware
+    const file = req.file;
 
-    if (!file || !roomId || !problemId) {
-      return res.status(400).json({ message: 'Missing required fields (proofImage, roomId, problemId).' });
-    }
+    // MODIFIED: Add new fields to the missing check, although the frontend now ensures they are present.
+    if (!file || !roomId || !problemId || !approach || !timeComplexity || !spaceComplexity) {
+      return res.status(400).json({ message: 'Missing required fields (proofImage, roomId, problemId, approach, timeComplexity, or spaceComplexity).' });
+    }
 
-    // Pass the username along with the other data to the service
-    const submissionData = { userId, roomId, problemId, file, username };
-    const result = await submissionsService.createSubmission(submissionData);
+    // Pass the username and NEW FIELDS along with the other data to the service
+    const submissionData = { 
+      userId, 
+      roomId, 
+      problemId, 
+      file, 
+      username,
+      // NEW FIELDS
+      approach,
+      timeComplexity,
+      spaceComplexity
+    };
+    const result = await submissionsService.createSubmission(submissionData);
 
-    res.status(201).json(result);
-  } catch (error) {
-    console.error("Create Submission Error:", error);
-    res.status(500).json({ message: 'Internal Server Error' });
-  }
+    res.status(201).json(result);
+  } catch (error) {
+    console.error("Create Submission Error:", error);
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
 }
 
 async function handleGetTodaysSubmissions(req, res) {

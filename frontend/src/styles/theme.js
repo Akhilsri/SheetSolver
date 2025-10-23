@@ -12,7 +12,8 @@ export const COLORS = {
 
   // Neutral Colors
   background: '#f0f4f7',  // A very light, clean blueish-grey for screen backgrounds
-  surface: '#FFFFFF',     // White for cards, modals, and main content areas
+  surface: '#FFFFFF',
+  gold: '#FFD700',     // White for cards, modals, and main content areas
   
   // Text Colors
   textPrimary: '#121212',   // Almost black for main text

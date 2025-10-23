@@ -104,7 +104,7 @@ async function getDirectMessageHistory(currentUserId, otherUserId, limit = 50, b
 async function getUnreadDirectMessageCount(userId) {
     const sql = 'SELECT COUNT(*) as unreadCount FROM direct_messages WHERE recipient_id = ? AND is_read = FALSE';
     const [[{ unreadCount }]] = await pool.query(sql, [userId]);
-    return { count: unreadCount };
+    return { count: Number(unreadCount) }
 }
 
 async function markDirectMessagesAsRead(currentUserId, otherUserId) {

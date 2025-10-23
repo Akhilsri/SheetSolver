@@ -107,10 +107,78 @@ async function checkUsernameExists(username) {
   return rows.length > 0; // Returns true if username exists, false otherwise
 }
 
+async function createPasswordResetToken(email) {
+  // 1. Find user by email
+  const sql = 'SELECT id, email FROM users WHERE email = ?';
+  const [users] = await pool.query(sql, [email]);
+
+  if (users.length === 0) {
+    // Return null silently for security (prevents email enumeration)
+    return null;
+  }
+  const user = users[0];
+
+  // 2. Generate a secure, random token (40 bytes = 80 hex characters)
+  const token = crypto.randomBytes(40).toString('hex');
+
+  // 3. Set expiration (e.g., 1 hour from now)
+  const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+
+  // 4. Delete any old existing tokens for this user
+  // Assumes you have run the necessary SQL to create the 'password_reset_tokens' table.
+  await pool.query('DELETE FROM password_reset_tokens WHERE user_id = ?', [user.id]);
+
+  // 5. Store the new token in the database
+  const insertSql = 'INSERT INTO password_reset_tokens (user_id, token, expires_at) VALUES (?, ?, ?)';
+  await pool.query(insertSql, [user.id, token, expiresAt]);
+
+  return { token, userEmail: user.email };
+}
+
+/**
+ * Resets the user's password using the provided token and new password.
+ * @param {string} token - The reset token from the deep link.
+ * @param {string} newPassword - The new raw password.
+ * @returns {Promise<boolean>} True if reset was successful.
+ */
+async function resetPassword(token, newPassword) {
+  // 1. Find the token and check expiration
+  const [tokens] = await pool.query(
+    'SELECT user_id, expires_at FROM password_reset_tokens WHERE token = ?',
+    [token]
+  );
+
+  if (tokens.length === 0) {
+    throw new Error('Invalid or used reset token.');
+  }
+
+  const tokenRecord = tokens[0];
+  if (new Date(tokenRecord.expires_at) < new Date()) {
+    // Token expired, clean it up before throwing
+    await pool.query('DELETE FROM password_reset_tokens WHERE token = ?', [token]);
+    throw new Error('Reset token has expired.');
+  }
+
+  // 2. Get user ID, hash the new password
+  const userId = tokenRecord.user_id;
+  const salt = await bcrypt.genSalt(10);
+  const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+  // 3. Update the user's password
+  await pool.query('UPDATE users SET password_hash = ? WHERE id = ?', [hashedPassword, userId]);
+
+  // 4. Delete the token so it cannot be reused
+  await pool.query('DELETE FROM password_reset_tokens WHERE token = ?', [token]);
+
+  return true;
+}
+
 // Update the exports to include the new function
 module.exports = {
   registerUser,
   loginUser,
   refreshAccessToken,
-  checkUsernameExists
+  checkUsernameExists,
+  createPasswordResetToken,
+  resetPassword
 };

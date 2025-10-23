@@ -1,8 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react'; // <-- Imported useCallback
 import { View, Text, TextInput, StyleSheet, FlatList, ActivityIndicator, TouchableOpacity, Image } from 'react-native';
 import apiClient from '../api/apiClient';
 import { COLORS, SIZES, FONTS } from '../styles/theme';
 import Icon from 'react-native-vector-icons/Ionicons';
+
+const MIN_QUERY_LENGTH = 3; // <-- Constant for clarity
 
 const SearchScreen = ({ navigation }) => {
   const [query, setQuery] = useState('');
@@ -10,32 +12,43 @@ const SearchScreen = ({ navigation }) => {
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    if (query.trim() === '') {
+    // 1. OPTIMIZATION: Enforce Minimum Query Length (Saves API calls)
+    if (query.trim().length < MIN_QUERY_LENGTH) {
       setResults([]);
+      // Ensure the loading indicator is immediately hidden
+      setIsLoading(false); 
       return;
     }
 
     setIsLoading(true);
+    
+    // 2. OPTIMIZATION: Increased Debounce Time (Saves API calls)
+    // Increased from 300ms to 750ms to bundle keystrokes into one request.
     const searchTimer = setTimeout(async () => {
       try {
         const response = await apiClient.get(`/users/search?query=${query}`);
         setResults(response.data);
       } catch (error) {
         console.error('Failed to search users:', error);
+        // Clear results on error
+        setResults([]); 
       } finally {
         setIsLoading(false);
       }
-    }, 300);
+    }, 750); // <-- Changed from 300 to 750
 
+    // Cleanup function to cancel the previous timer
     return () => clearTimeout(searchTimer);
   }, [query]);
 
-  const renderItem = ({ item }) => (
+  // 3. OPTIMIZATION: Memoize renderItem (Client-side performance/CPU usage)
+  const renderItem = useCallback(({ item }) => (
     <TouchableOpacity 
       style={styles.resultItem}
       onPress={() => navigation.navigate('UserProfile', { userId: item.id })}
     >
       <Image
+        // 4. OPTIMIZATION: (Reminder) Ensure server provides small, optimized avatars
         source={item.avatar_url ? { uri: item.avatar_url } : require('../assets/images/default_avatar.png')}
         style={styles.avatar}
       />
@@ -45,7 +58,7 @@ const SearchScreen = ({ navigation }) => {
       </View>
       <Icon name="chevron-forward-outline" size={22} color={COLORS.textSecondary} />
     </TouchableOpacity>
-  );
+  ), [navigation]); // Dependency array: only re-create if 'navigation' changes
 
   return (
     <View style={styles.container}>
@@ -53,7 +66,7 @@ const SearchScreen = ({ navigation }) => {
         <Icon name="search-outline" size={22} color={COLORS.textSecondary} style={styles.searchIcon} />
         <TextInput
           style={styles.searchInput}
-          placeholder="Search by username, college..."
+          placeholder={`Search (min ${MIN_QUERY_LENGTH} chars)...`} // <-- Updated placeholder
           placeholderTextColor={COLORS.textSecondary}
           value={query}
           onChangeText={setQuery}
@@ -67,9 +80,14 @@ const SearchScreen = ({ navigation }) => {
         <FlatList
           data={results}
           keyExtractor={(item) => item.id.toString()}
-          renderItem={renderItem}
+          renderItem={renderItem} // <-- Using the memoized renderItem
           ListEmptyComponent={
-            query.trim() !== '' && <Text style={styles.emptyText}>No users found.</Text>
+            // Show message only if the query meets the minimum length and no results were found
+            query.trim().length >= MIN_QUERY_LENGTH ? (
+                <Text style={styles.emptyText}>No users found.</Text>
+            ) : (
+                <Text style={styles.emptyText}>Start typing to search...</Text>
+            )
           }
         />
       )}

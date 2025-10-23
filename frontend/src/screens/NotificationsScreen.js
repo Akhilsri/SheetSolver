@@ -1,158 +1,183 @@
-import React, { useState, useCallback } from 'react';
-import { View, FlatList, Text, StyleSheet, ActivityIndicator, TouchableOpacity, Alert } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import {
+  View,
+  SectionList,
+  Text,
+  StyleSheet,
+  ActivityIndicator,
+  TouchableOpacity,
+  Alert,
+  Platform,
+  RefreshControl,
+} from 'react-native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import apiClient from '../api/apiClient';
 import { useAuth } from '../context/AuthContext';
 import { COLORS, SIZES, FONTS } from '../styles/theme';
 import Icon from 'react-native-vector-icons/Ionicons';
 import Card from '../components/common/Card';
-import { getCacheItem, setCacheItem, clearCacheItem } from '../services/cacheService';
+import moment from 'moment';
 
-const NOTIF_CACHE_KEY = 'userNotifications';
+// --- Constants ---
+const ACTIVITY_SECTION_TITLE = 'Activity';
+const INVITES_SECTION_TITLE = 'Pending Invitations';
+const CONNECTIONS_SECTION_TITLE = 'Connection Requests';
 
+// --- Utility Functions ---
+const formatNotificationTime = (timestamp) => {
+  if (!timestamp) return '';
+  const date = moment(timestamp);
+  const now = moment();
+
+  if (now.diff(date, 'hours') < 24) return date.fromNow();
+  if (now.diff(date, 'days') < 7) return date.format('ddd h:mm A');
+  return date.format('MMM D, YYYY');
+};
+
+const filterSectionData = (prevSections, sectionTitle, itemId) => {
+  return prevSections
+    .map(section => {
+      if (section.title === sectionTitle) {
+        return {
+          ...section,
+          data: section.data.filter(item => item.id !== itemId),
+        };
+      }
+      return section;
+    })
+    .filter(section => section.data.length > 0);
+};
+
+const removeEmptySections = (sections) => {
+  return sections.filter(section => section.data && section.data.length > 0);
+};
+
+// --- Main Component ---
 const NotificationsScreen = () => {
   const navigation = useNavigation();
   const { fetchUnreadCount } = useAuth();
   const [sections, setSections] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [isResponding, setIsResponding] = useState(false);
 
-  // Remove item from section data
-  const filterSectionData = useCallback((prevSections, sectionTitle, itemId) => {
-    return prevSections
-      .map(section => {
-        if (section.title === sectionTitle) {
-          return {
-            ...section,
-            data: section.data.filter(item => item.id !== itemId)
-          };
-        }
-        return section;
-      })
-      .filter(section => section.data.length > 0);
-  }, []);
-
-  // Fetch data with optional cache
-  const fetchData = async (useCache = true) => {
-    let cachedSections = null;
-
-    if (useCache) {
-      cachedSections = await getCacheItem(NOTIF_CACHE_KEY);
-      if (cachedSections) {
-        setSections(cachedSections);
-        setIsLoading(false);
-        console.log('Notifications loaded from cache.');
-      } else {
-        setIsLoading(true);
-      }
-    } else {
-      setIsLoading(true);
-    }
-
+  const markAllAsRead = async () => {
     try {
-      const [invitationsRes, notificationsRes, connectionRequestsRes] = await Promise.all([
+      await apiClient.put('/notifications/read-all');
+      fetchUnreadCount(); // 👈 resets count to zero on icon
+      setSections(prev =>
+        prev.map(section =>
+          section.title === ACTIVITY_SECTION_TITLE
+            ? { ...section, data: section.data.map(n => ({ ...n, is_read: true })) }
+            : section
+        )
+      );
+    } catch (error) {
+      console.error('Failed to mark notifications as read:', error);
+    }
+  };
+
+  const fetchActionItems = async () => {
+    try {
+      const [invitationsRes, connectionRequestsRes] = await Promise.all([
         apiClient.get('/invitations/pending'),
-        apiClient.get('/notifications'),
         apiClient.get('/connections/pending'),
       ]);
 
-      const newSections = [];
-      if (connectionRequestsRes.data?.length > 0) {
-        newSections.push({ title: 'Connection Requests', data: connectionRequestsRes.data });
-      }
-      if (invitationsRes.data?.length > 0) {
-        newSections.push({ title: 'Pending Invitations', data: invitationsRes.data });
-      }
-      if (notificationsRes.data?.length > 0) {
-        newSections.push({ title: 'Activity', data: notificationsRes.data });
-      }
+      setSections(prevSections => {
+        const updatedSections = prevSections.filter(
+          s => s.title !== INVITES_SECTION_TITLE && s.title !== CONNECTIONS_SECTION_TITLE
+        );
 
-      // Only update state/cache if changed
-      if (JSON.stringify(newSections) !== JSON.stringify(sections) || !useCache) {
-        setSections(newSections);
-        await setCacheItem(NOTIF_CACHE_KEY, newSections);
-      }
+        const newActionSections = [];
+        if (connectionRequestsRes.data?.length > 0) {
+          newActionSections.push({
+            title: CONNECTIONS_SECTION_TITLE,
+            data: connectionRequestsRes.data,
+            key: 'connections',
+          });
+        }
+        if (invitationsRes.data?.length > 0) {
+          newActionSections.push({
+            title: INVITES_SECTION_TITLE,
+            data: invitationsRes.data,
+            key: 'invitations',
+          });
+        }
+
+        return removeEmptySections([...newActionSections, ...updatedSections]);
+      });
     } catch (error) {
-      console.error('Failed to fetch data:', error);
-      if (!cachedSections) Alert.alert('Error', 'Could not fetch notifications.');
-    } finally {
-      setIsLoading(false);
+      console.error('Failed to fetch action items:', error);
     }
   };
 
-  // Fetch notifications + mark all as read on focus
-  useFocusEffect(
-    useCallback(() => {
-      fetchData(true);
+  const fetchActivityFeed = async (isRefresh = false) => {
+    if (isRefresh) setIsRefreshing(true);
+    try {
+      const notificationsRes = await apiClient.get('/notifications');
+      const activityData = notificationsRes.data || [];
 
-      const markAsRead = async () => {
-        try {
-          await apiClient.put('/notifications/read-all');
-          fetchUnreadCount();
-          await clearCacheItem(NOTIF_CACHE_KEY);
-
-          setSections(prev =>
-            prev.map(section =>
-              section.title === 'Activity'
-                ? { ...section, data: section.data.map(n => ({ ...n, is_read: true })) }
-                : section
-            )
-          );
-        } catch (error) {
-          console.error('Failed to mark notifications as read:', error);
+      setSections(prevSections => {
+        const actionSections = prevSections.filter(s => s.title !== ACTIVITY_SECTION_TITLE);
+        const updatedSections = [...actionSections];
+        if (activityData.length > 0) {
+          updatedSections.push({
+            title: ACTIVITY_SECTION_TITLE,
+            data: activityData,
+            key: ACTIVITY_SECTION_TITLE,
+          });
         }
+        return removeEmptySections(updatedSections);
+      });
+    } catch (error) {
+      console.error('Failed to fetch activity feed:', error);
+    } finally {
+      setIsRefreshing(false);
+      if (!isRefresh) setIsLoading(false);
+    }
+  };
+
+  useFocusEffect(
+    React.useCallback(() => {
+      const loadData = async () => {
+        await fetchActionItems();
+        await fetchActivityFeed();
+        setIsLoading(false);
+        setTimeout(() => markAllAsRead(), 500);
       };
-      markAsRead();
+      loadData();
     }, [])
   );
 
-  // Accept/Decline helpers
-  const handleAccept = async (invitationId) => {
+  const handleAction = async (actionType, itemId, sectionTitle, endpoint, navigationRoute = null) => {
     setIsResponding(true);
+    setSections(prev => removeEmptySections(filterSectionData(prev, sectionTitle, itemId)));
     try {
-      await apiClient.put(`/invitations/${invitationId}/accept`);
-      await clearCacheItem(NOTIF_CACHE_KEY);
+      await apiClient.put(endpoint);
       fetchUnreadCount();
-      setSections(prev => filterSectionData(prev, 'Pending Invitations', invitationId));
-      Alert.alert('Success', 'You have joined the room!', [{ text: 'OK', onPress: () => navigation.navigate('Main') }]);
+      if (navigationRoute) {
+        Alert.alert('Success', 'Action successful!', [
+          { text: 'OK', onPress: () => navigation.navigate(navigationRoute) },
+        ]);
+      }
+      fetchActionItems();
     } catch (error) {
-      Alert.alert('Error', 'Could not accept the invitation.');
-    } finally { setIsResponding(false); }
+      Alert.alert('Error', error?.response?.data?.message || 'Could not complete the action.');
+      fetchActionItems();
+    } finally {
+      setIsResponding(false);
+    }
   };
 
-  const handleDecline = async (invitationId) => {
-    setIsResponding(true);
-    try {
-      await apiClient.put(`/invitations/${invitationId}/decline`);
-      await clearCacheItem(NOTIF_CACHE_KEY);
-      fetchUnreadCount();
-      setSections(prev => filterSectionData(prev, 'Pending Invitations', invitationId));
-    } catch (error) {
-      Alert.alert('Error', 'Could not decline the invitation.');
-    } finally { setIsResponding(false); }
-  };
-
-  const handleAcceptConnection = async (requestId) => {
-    setIsResponding(true);
-    try {
-      await apiClient.put(`/connections/${requestId}/accept`);
-      await clearCacheItem(NOTIF_CACHE_KEY);
-      fetchUnreadCount();
-      setSections(prev => filterSectionData(prev, 'Connection Requests', requestId));
-    } catch (error) { Alert.alert('Error', 'Could not accept request.'); }
-    finally { setIsResponding(false); }
-  };
-
-  const handleDeclineConnection = async (requestId) => {
-    setIsResponding(true);
-    try {
-      await apiClient.put(`/connections/${requestId}/decline`);
-      await clearCacheItem(NOTIF_CACHE_KEY);
-      fetchUnreadCount();
-      setSections(prev => filterSectionData(prev, 'Connection Requests', requestId));
-    } catch (error) { Alert.alert('Error', 'Could not decline request.'); }
-    finally { setIsResponding(false); }
-  };
+  const handleAccept = (id) =>
+    handleAction('accept', id, INVITES_SECTION_TITLE, `/invitations/${id}/accept`, 'Main');
+  const handleDecline = (id) =>
+    handleAction('decline', id, INVITES_SECTION_TITLE, `/invitations/${id}/decline`);
+  const handleAcceptConnection = (id) =>
+    handleAction('accept', id, CONNECTIONS_SECTION_TITLE, `/connections/${id}/accept`);
+  const handleDeclineConnection = (id) =>
+    handleAction('decline', id, CONNECTIONS_SECTION_TITLE, `/connections/${id}/decline`);
 
   const handleNotificationPress = (notification) => {
     if (notification.type === 'SUBMISSION' && notification.related_room_id) {
@@ -162,39 +187,41 @@ const NotificationsScreen = () => {
 
   const renderItem = ({ item, section }) => {
     const iconMap = {
-      'Connection Requests': { name: 'person-add-outline', color: COLORS.primary },
-      'Pending Invitations': { name: 'enter-outline', color: COLORS.accent },
-      'Activity': { name: 'flash-outline', color: COLORS.success },
+      [CONNECTIONS_SECTION_TITLE]: { name: 'person-add-outline', color: COLORS.primary },
+      [INVITES_SECTION_TITLE]: { name: 'enter-outline', color: COLORS.accent },
+      [ACTIVITY_SECTION_TITLE]: { name: 'flash-outline', color: COLORS.success },
     };
-    const sectionIcon = iconMap[section.title] || { name: 'notifications-outline', color: COLORS.textSecondary };
+    const sectionIcon = iconMap[section.title];
+    const isUnread = section.title === ACTIVITY_SECTION_TITLE && !item.is_read;
+    const timeInfo = item.timestamp ? formatNotificationTime(item.timestamp) : '';
+    const roomInfo = item.roomName || item.related_room_name;
 
-    // Requests
-    if (section.title === 'Connection Requests' || section.title === 'Pending Invitations') {
-      const isConnectionRequest = section.title === 'Connection Requests';
-      const text = isConnectionRequest
-        ? <Text style={styles.notificationBody}><Text style={styles.bold}>{item.senderName}</Text> wants to connect with you.</Text>
-        : <Text style={styles.notificationBody}><Text style={styles.bold}>{item.senderName}</Text> invited you to join <Text style={styles.bold}>{item.roomName}</Text>.</Text>;
-
+    if (section.title === CONNECTIONS_SECTION_TITLE || section.title === INVITES_SECTION_TITLE) {
+      const isConnection = section.title === CONNECTIONS_SECTION_TITLE;
       return (
-        <Card style={styles.card}>
-          <View style={styles.cardHeader}>
-            <Icon name={sectionIcon.name} size={20} color={sectionIcon.color} style={{ marginRight: SIZES.base }} />
-            <Text style={[styles.sectionTitle, { color: sectionIcon.color }]}>{section.title}</Text>
+        <Card style={styles.actionCardContainer}>
+          <View style={styles.notificationMainContent}>
+            <Icon name={sectionIcon.name} size={24} color={sectionIcon.color} style={styles.actionIcon} />
+            <View style={{ flex: 1 }}>
+              <Text style={styles.notificationBodyText}>
+                <Text style={styles.bold}>{item.senderName}</Text>{' '}
+                {isConnection ? 'wants to connect with you.' : `invited you to join `}
+                {!isConnection && <Text style={styles.bold}>{item.roomName}</Text>}
+              </Text>
+              {timeInfo && <Text style={styles.notificationTime}>{timeInfo}</Text>}
+            </View>
           </View>
-          {text}
-          <View style={styles.buttonContainer}>
+          <View style={styles.actionButtonContainer}>
             <TouchableOpacity
               style={[styles.button, styles.declineButton]}
-              onPress={() => isConnectionRequest ? handleDeclineConnection(item.id) : handleDecline(item.id)}
-              disabled={isResponding}
-            >
+              onPress={() => (isConnection ? handleDeclineConnection(item.id) : handleDecline(item.id))}
+              disabled={isResponding}>
               <Text style={styles.declineButtonText}>Decline</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.button, styles.acceptButton]}
-              onPress={() => isConnectionRequest ? handleAcceptConnection(item.id) : handleAccept(item.id)}
-              disabled={isResponding}
-            >
+              onPress={() => (isConnection ? handleAcceptConnection(item.id) : handleAccept(item.id))}
+              disabled={isResponding}>
               <Text style={styles.acceptButtonText}>Accept</Text>
             </TouchableOpacity>
           </View>
@@ -202,72 +229,130 @@ const NotificationsScreen = () => {
       );
     }
 
-    // Activity
-    if (section.title === 'Activity') {
-      return (
-        <TouchableOpacity onPress={() => handleNotificationPress(item)} style={{ marginHorizontal: SIZES.padding / 2 }}>
-          <View style={[styles.activityItem, !item.is_read && styles.unreadItem]}>
-            <Icon name={sectionIcon.name} size={24} color={sectionIcon.color} style={styles.activityIcon} />
-            <View style={styles.activityTextContainer}>
-              <Text style={styles.notificationTitle}>{item.title}</Text>
-              <Text style={styles.notificationBody}>{item.body}</Text>
-            </View>
+    return (
+      <TouchableOpacity
+        onPress={() => handleNotificationPress(item)}
+        style={[styles.activityTouchArea, isUnread && styles.activityTouchAreaUnread]}
+        activeOpacity={0.7}>
+        <View style={styles.activityItem}>
+          <Icon name={sectionIcon.name} size={20} color={sectionIcon.color} style={styles.activityIcon} />
+          <View style={styles.activityTextContainer}>
+            <Text style={styles.notificationTitleText}>{item.title}</Text>
+            <Text style={styles.activityBodyText}>
+              {item.body}
+              {roomInfo ? <Text style={styles.roomInfoText}> in {roomInfo}</Text> : null}
+            </Text>
+            {timeInfo && <Text style={styles.activityTime}>{timeInfo}</Text>}
           </View>
-        </TouchableOpacity>
-      );
-    }
-
-    return null;
+          {isUnread && <View style={styles.unreadDot} />}
+        </View>
+      </TouchableOpacity>
+    );
   };
 
-  if (isLoading) return <ActivityIndicator size="large" style={styles.centered} color={COLORS.primary} />;
+  const renderSectionHeader = ({ section: { title } }) => (
+    <Text style={styles.sectionHeaderTitle}>{title}</Text>
+  );
+
+  if (isLoading)
+    return <ActivityIndicator size="large" style={styles.centered} color={COLORS.primary} />;
 
   return (
     <View style={styles.container}>
-      <FlatList
-        data={sections}
-        keyExtractor={(item, index) => item.title + index}
-        renderItem={({ item }) => (
-          <View key={item.title}>
-            <Text style={styles.sectionHeaderTitle}>{item.title}</Text>
-            <FlatList
-              data={item.data}
-              keyExtractor={(subItem) => subItem.id.toString()}
-              renderItem={({ item: subItem }) => renderItem({ item: subItem, section: item })}
-              scrollEnabled={false}
-            />
-          </View>
-        )}
-        ListEmptyComponent={<View style={styles.centered}><Text style={styles.emptyText}>No new notifications. Everything is caught up! 🎉</Text></View>}
+      <SectionList
+        sections={removeEmptySections(sections)}
+        keyExtractor={(item, index) => item.id.toString() + index}
+        renderItem={renderItem}
+        renderSectionHeader={renderSectionHeader}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.listContent}
+        refreshControl={
+          <RefreshControl
+            refreshing={isRefreshing}
+            onRefresh={() => {
+              fetchActivityFeed(true);
+              fetchActionItems();
+              markAllAsRead(); // 👈 resets count visually & in backend
+            }}
+            tintColor={COLORS.primary}
+            colors={[COLORS.primary]}
+            progressBackgroundColor="#fff"
+          />
+        }
+        ListEmptyComponent={
+          <View style={styles.centered}>
+            <Text style={styles.emptyText}>
+              No new notifications. Everything is caught up! 🎉
+            </Text>
+          </View>
+        }
       />
     </View>
   );
 };
 
+// --- Styles (same as your original) ---
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F9FAFB' },
   centered: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingTop: SIZES.padding * 2 },
   listContent: { paddingBottom: SIZES.padding * 2 },
-  emptyText: { ...FONTS.body, color: COLORS.textSecondary, textAlign: 'center' },
-  sectionHeaderTitle: { ...FONTS.h3, color: COLORS.textPrimary, fontWeight: '700', marginTop: SIZES.padding, marginBottom: SIZES.base, marginLeft: SIZES.padding },
-  card: { marginHorizontal: SIZES.padding, marginBottom: SIZES.padding, padding: SIZES.padding, backgroundColor: COLORS.surface, borderRadius: SIZES.radius, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.08, shadowRadius: 2, elevation: 2 },
-  cardHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: SIZES.base },
-  sectionTitle: { ...FONTS.body, fontWeight: '600', textTransform: 'uppercase', fontSize: 13 },
-  notificationBody: { ...FONTS.body, color: COLORS.textSecondary, marginBottom: SIZES.padding * 1.5, lineHeight: 22 },
+  emptyText: { ...FONTS.body, color: COLORS.textSecondary, textAlign: 'center', fontSize: 15 },
+  sectionHeaderTitle: {
+    ...FONTS.h3,
+    color: COLORS.textPrimary,
+    fontWeight: '700',
+    marginTop: SIZES.padding * 1.5,
+    marginBottom: SIZES.base,
+    marginLeft: SIZES.padding,
+    fontSize: 18,
+  },
+  actionCardContainer: {
+    marginHorizontal: SIZES.padding,
+    marginBottom: SIZES.padding,
+    padding: SIZES.padding,
+    borderRadius: SIZES.radius,
+    backgroundColor: COLORS.surface,
+    borderLeftWidth: 4,
+    borderLeftColor: COLORS.primary,
+  },
+  notificationMainContent: { flexDirection: 'row', alignItems: 'flex-start' },
+  actionIcon: { marginRight: SIZES.base * 1.5, marginTop: 2 },
+  notificationBodyText: { ...FONTS.body, color: COLORS.textSecondary, fontSize: 14, lineHeight: 20 },
   bold: { fontWeight: 'bold', color: COLORS.textPrimary },
-  buttonContainer: { flexDirection: 'row', justifyContent: 'flex-end', gap: SIZES.base },
-  button: { paddingVertical: SIZES.base + 2, paddingHorizontal: SIZES.padding + 4, borderRadius: SIZES.radius, minWidth: 90, justifyContent: 'center', alignItems: 'center' },
+  notificationTime: { fontSize: 12, color: COLORS.gray, marginTop: SIZES.base / 2 },
+  actionButtonContainer: { flexDirection: 'row', justifyContent: 'flex-end', gap: SIZES.base },
+  button: {
+    paddingVertical: SIZES.base,
+    paddingHorizontal: SIZES.padding * 1.2,
+    borderRadius: SIZES.radius,
+    minWidth: 90,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   acceptButton: { backgroundColor: COLORS.success },
   acceptButtonText: { ...FONTS.body, color: COLORS.surface, fontWeight: 'bold', fontSize: 14 },
-  declineButton: { backgroundColor: '#E5E7EB', borderWidth: 1, borderColor: '#D1D5DB' },
+  declineButton: { backgroundColor: COLORS.surface, borderWidth: 1, borderColor: COLORS.border },
   declineButtonText: { ...FONTS.body, color: COLORS.textPrimary, fontWeight: 'bold', fontSize: 14 },
-  activityItem: { flexDirection: 'row', alignItems: 'flex-start', padding: SIZES.padding, backgroundColor: COLORS.surface, borderBottomWidth: 1, borderBottomColor: '#F3F4F6', borderRadius: SIZES.radius / 2, marginBottom: 4 },
-  unreadItem: { backgroundColor: '#FFFAEC', borderLeftWidth: 4, borderLeftColor: COLORS.accent },
-  activityIcon: { marginRight: SIZES.padding, marginTop: 4 },
+  activityTouchArea: {
+    marginHorizontal: SIZES.padding,
+    marginBottom: SIZES.base,
+    borderRadius: SIZES.radius,
+    backgroundColor: COLORS.surface,
+    overflow: 'hidden',
+  },
+  activityTouchAreaUnread: {
+    backgroundColor: COLORS.surface,
+    borderLeftWidth: 4,
+    borderLeftColor: COLORS.accent,
+  },
+  activityItem: { flexDirection: 'row', alignItems: 'flex-start', padding: SIZES.padding },
+  activityIcon: { marginRight: SIZES.base, marginTop: 1 },
   activityTextContainer: { flex: 1 },
-  notificationTitle: { ...FONTS.h3, color: COLORS.textPrimary, fontSize: 16, fontWeight: '600' },
+  notificationTitleText: { ...FONTS.h4, color: COLORS.textPrimary, fontWeight: '600', marginBottom: 2, lineHeight: 20 },
+  activityBodyText: { fontSize: 14, color: COLORS.textSecondary },
+  roomInfoText: { fontSize: 14, color: COLORS.textPrimary, fontWeight: '500' },
+  activityTime: { fontSize: 12, color: COLORS.gray, marginTop: SIZES.base / 2 },
+  unreadDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: COLORS.accent, marginLeft: SIZES.base, marginTop: 5 },
 });
 
 export default NotificationsScreen;

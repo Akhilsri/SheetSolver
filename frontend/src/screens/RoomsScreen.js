@@ -151,6 +151,10 @@ const RoomsScreen = () => {
   useLayoutEffect(() => {
     navigation.setOptions({
       title: 'SheetSolver',
+      headerTitleStyle: {
+        color: '#6366F1', // Using the primary blue color
+        fontWeight: '700',
+      },
       headerRight: () => (
         <RoomsHeaderRight navigation={navigation} logout={logout} unreadCount={unreadCount} />
       ),

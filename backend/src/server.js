@@ -8,6 +8,7 @@ const { deleteOldSubmissions } = require('./services/cleanupService');
 const eloService = require('./services/eloService');
 const { initSocketIO } = require('./api/utils/socket-utils');
 const chatService = require('./api/chat/chat.service'); // Your chat service file
+const redirectRouter = require('./api/redirect.routes');
 
 const server = http.createServer(app);
 const io = new Server(server, { cors: { origin: "*", methods: ["GET", "POST"] } });
@@ -196,37 +197,45 @@ io.on('connection', (socket) => {
 
   // --- 2. Direct Message Logic (Final Fix) ---
   socket.on('send_private_message', async (data) => {
-    const { senderId, recipientId, messageText, user, ...messageData } = data;
-    const recipientRoom = `user-${recipientId}`;
+    const { senderId, recipientId, messageText, user, ...messageData } = data;
+    const recipientRoom = `user-${recipientId}`;
 
-    try {
-        // 1. Save the message to the database (Persistence)
-        // 🌟 FIX: Capture the insert result to get the auto-generated ID
-        const sql = 'INSERT INTO direct_messages (sender_id, recipient_id, message_text) VALUES (?, ?, ?)';
-        const [insertResult] = await pool.query(sql, [senderId, recipientId, messageText]);
+    try {
+        // 1. Save the message to the database
+        const sql = 'INSERT INTO direct_messages (sender_id, recipient_id, message_text) VALUES (?, ?, ?)';
+        const [insertResult] = await pool.query(sql, [senderId, recipientId, messageText]);
         const newMessageId = insertResult.insertId;
 
-        // 2. Calculate the new unread count for the recipient
-        const { count: newUnreadCount } = await chatService.getUnreadDirectMessageCount(recipientId); 
+        // 🚨 --- FIX 1: SELECT THE MESSAGE BACK --- 🚨
+        // This gets the real database timestamp, just like your 'send_message' logic does.
+        const [rows] = await pool.query('SELECT * FROM direct_messages WHERE id = ?', [newMessageId]);
+        const savedMessage = rows[0];
+
+        // 2. Calculate the new unread count for the recipient
+        const { count: newUnreadCount } = await chatService.getUnreadDirectMessageCount(recipientId); 
         
-        // 3. Construct the FINAL message object for the recipient
+        // 3. Construct the FINAL message object
         const messageToSend = {
-            _id: newMessageId, // CRITICAL: Use the real ID from the DB
-            text: messageText,
-            createdAt: new Date().toISOString(), // CRITICAL: Ensure timestamp is included
-            user: { _id: Number(senderId), name: user.name }, // Use user data passed from sender
-            newCount: newUnreadCount // Cost optimization fix
+            _id: savedMessage.id, // Use the real ID
+            text: savedMessage.message_text,
+            createdAt: new Date(savedMessage.created_at).toISOString(), // Use the real DB timestamp
+            user: { _id: Number(senderId), name: user.name }, 
+            newCount: newUnreadCount 
         };
 
-        // 4. Emit the message to the recipient's room
-        io.to(recipientRoom).emit('receive_private_message', messageToSend); 
-        
-        console.log(`DM sent from ${senderId} to ${recipientId}. New unread count sent: ${newUnreadCount}`);
+        // 4. Emit the message to the RECIPIENT'S room
+        io.to(recipientRoom).emit('receive_private_message', messageToSend); 
+        
+        // 🚨 --- FIX 2: EMIT THE MESSAGE BACK TO THE SENDER --- 🚨
+        // This is what makes the message "instant" for the sender.
+        socket.emit('receive_private_message', messageToSend);
 
-    } catch (error) {
-        console.error('Error in send_private_message:', error);
-    }
-});
+        console.log(`DM sent from ${senderId} to ${recipientId}.`);
+
+    } catch (error) {
+        console.error('Error in send_private_message:', error);
+    }
+  });
 });
  
 

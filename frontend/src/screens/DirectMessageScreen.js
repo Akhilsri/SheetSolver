@@ -35,7 +35,7 @@ const DirectMessageScreen = () => {
     const headerHeight = useHeaderHeight();
     const { connectionUserId } = route.params;
     const { userId, username, fetchUnreadMessageCount } = useAuth();
-    const socket = useSocket();
+    const socket = useSocket(); // This is the useRef from your context
 
     // ⚡ OPTIMIZATION: Pagination States
     const [messages, setMessages] = useState([]);
@@ -54,7 +54,7 @@ const DirectMessageScreen = () => {
         const displayItems = [];
         let lastDate = null;
 
-        const sorted = [...rawMessages].sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
+        const sorted = [...rawMessages].sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
 
         sorted.forEach(msg => {
             const msgDate = new Date(msg.createdAt);
@@ -94,6 +94,7 @@ const DirectMessageScreen = () => {
 
             if (!newRawMessages || newRawMessages.length === 0) {
                 setHasMoreMessages(false);
+                setIsPaginating(false); 
                 return;
             }
 
@@ -103,7 +104,6 @@ const DirectMessageScreen = () => {
                 user: typeof msg.user === 'string' ? JSON.parse(msg.user) : msg.user || { _id: null, name: 'Unknown' },
             }));
 
-            // Find the ID of the new oldest message to use as the next cursor
             const newOldestId = formatted.length > 0 
                 ? formatted[formatted.length - 1]._id 
                 : oldestMessageId;
@@ -111,10 +111,9 @@ const DirectMessageScreen = () => {
             setOldestMessageId(newOldestId);
             setHasMoreMessages(hasMore);
 
-            // Merge the new messages with the existing ones
             setMessages(prev => {
                 const existingRaw = prev.filter(m => m.type === 'message').reverse(); 
-                const combinedRaw = [...existingRaw, ...formatted]; 
+                const combinedRaw = [...formatted, ...existingRaw]; 
                 return processMessagesForDisplay(combinedRaw);
             });
 
@@ -131,16 +130,16 @@ const DirectMessageScreen = () => {
         const fetchFirstPage = async () => {
             try {
                 setIsLoadingInitial(true);
-                
-                // Mark messages as read and update badge count
                 await apiClient.put(`/chat/direct/${connectionUserId}/read`);
-                fetchUnreadMessageCount();
+                fetchUnreadMessageCount(); 
 
-                // Fetch only the first page (latest messages)
                 const response = await apiClient.get(`/chat/direct/${connectionUserId}`, { params: { limit: PAGE_SIZE } });
                 const { messages: rawMessages, hasMore } = response.data;
                 
-                if (!rawMessages) return;
+                if (!rawMessages) {
+                    setIsLoadingInitial(false); 
+                    return;
+                }
 
                 const formatted = rawMessages.map(msg => ({
                     ...msg,
@@ -148,7 +147,6 @@ const DirectMessageScreen = () => {
                     user: typeof msg.user === 'string' ? JSON.parse(msg.user) : msg.user || { _id: null, name: 'Unknown' },
                 }));
 
-                // Set initial cursor and status
                 const newOldestId = formatted.length > 0 
                     ? formatted[formatted.length - 1]._id 
                     : null;
@@ -167,45 +165,48 @@ const DirectMessageScreen = () => {
     }, [connectionUserId, fetchUnreadMessageCount, processMessagesForDisplay]);
 
 
-    // Socket listener
+    // Socket listener (This is correct)
     useEffect(() => {
-        if (!socket.current) return;
+        if (!socket.current) {
+            return; 
+        }
         
         const onReceivePrivateMessage = (newMessage) => {
-            // Only update if the message is from the current connection partner OR is my echo
-            if (newMessage.senderId === Number(connectionUserId) || newMessage.senderId === Number(userId)) {
+            if (newMessage.user._id === Number(connectionUserId) || newMessage.user._id === Number(userId)) {
                 
                 const formatted = {
                     ...newMessage,
                     createdAt: new Date(newMessage.createdAt),
                     type: "message",
-                    // Ensure user object is correct for display
-                    user: { _id: newMessage.senderId, name: newMessage.user.name },
+                    user: newMessage.user, 
                 };
                 
                 setMessages(prev => {
-                    // Filter out date separators, keeping only message objects (in reverse order)
                     const prevMessagesRaw = prev.filter(m => m.type === "message").reverse(); 
-                    
-                    // Add the new message to the end (latest)
                     prevMessagesRaw.push(formatted);
-                    
                     return processMessagesForDisplay(prevMessagesRaw);
                 });
             }
         };
+
         socket.current.on("receive_private_message", onReceivePrivateMessage);
         
-        return () => socket.current.off("receive_private_message", onReceivePrivateMessage);
-    }, [socket.current, connectionUserId, userId, processMessagesForDisplay]);
+        return () => {
+            if (socket.current) { 
+                socket.current.off("receive_private_message", onReceivePrivateMessage);
+            }
+        };
+    }, [socket, connectionUserId, userId, processMessagesForDisplay]);
 
 
+    // 🚨 --- THIS IS THE FIX --- 🚨
     const handleSend = useCallback(() => {
         if (text.trim() === '' || !socket.current) return;
         
-        const currentMessage = text; // Capture text before clearing
+        const currentMessage = text;
         
-        // Optimistic UI update: Append the message instantly
+        // 1. We NO LONGER add the temporary message to the state here.
+        /*
         const tempMessageData = {
              _id: `temp-${Date.now()}`,
              text: currentMessage,
@@ -213,13 +214,16 @@ const DirectMessageScreen = () => {
              user: { _id: Number(userId), name: username },
              type: "message",
         };
-        
         setMessages(prev => {
             const rawMsgs = prev.filter(m => m.type === "message").reverse();
-            rawMsgs.push(tempMessageData); // Add to latest end
+            rawMsgs.push(tempMessageData); 
             return processMessagesForDisplay(rawMsgs);
         });
+        */
         
+        // 2. We ONLY emit the message.
+        // The server will echo it back, and our `onReceivePrivateMessage`
+        // listener will handle adding it to the state *once*.
         socket.current.emit('send_private_message', {
             senderId: userId,
             recipientId: connectionUserId,
@@ -227,8 +231,9 @@ const DirectMessageScreen = () => {
             user: { _id: userId, name: username }
         });
         
+        // 3. We still clear the text input.
         setText('');
-    }, [text, userId, username, connectionUserId, socket.current, processMessagesForDisplay]);
+    }, [text, userId, username, connectionUserId, socket, processMessagesForDisplay]); // processMessagesForDisplay is no longer needed here, but it's harmless
 
 
     const renderItem = ({ item }) => {
@@ -240,7 +245,7 @@ const DirectMessageScreen = () => {
             );
         }
 
-        const isMyMessage = item.user && (item.user._id === Number(userId) || item.user.id === Number(userId));
+        const isMyMessage = item.user && (item.user._id === Number(userId) || (item.user.id && item.user.id === Number(userId)));
         const timeString = new Date(item.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
         return (
@@ -271,26 +276,27 @@ const DirectMessageScreen = () => {
         );
     };
 
-    // --- Render list footer (actually rendered at the top in inverted list) ---
     const renderListFooter = () => {
-        if (isLoadingInitial) return null;
-        if (!hasMoreMessages) return <View style={styles.endOfHistory}><Text style={styles.endOfHistoryText}></Text></View>;
-
-        return (
-            <View style={styles.paginationLoader}>
-                {isPaginating ? (
+        if (isLoadingInitial) return null; 
+        if (isPaginating) {
+            return (
+                <View style={styles.paginationLoader}>
                     <ActivityIndicator size="small" color={COLORS.primary} />
-                ) : (
-                    <TouchableOpacity onPress={loadPreviousMessages} style={styles.loadMoreButton}>
-                        <Text style={styles.loadMoreText}>Load Older Messages</Text>
-                    </TouchableOpacity>
-                )}
-            </View>
-        );
+                </View>
+            );
+        }
+        if (!hasMoreMessages) {
+             return (
+                 <View style={styles.endOfHistory}>
+                     <Text style={styles.endOfHistoryText}>This is the beginning of your conversation.</Text>
+                 </View>
+             );
+        }
+        return null;
     };
 
 
-    if (isLoadingInitial) {
+    if (isLoadingInitial && messages.length === 0) {
         return <ActivityIndicator size="large" color={COLORS.primary} style={styles.centered} />;
     }
 
@@ -309,16 +315,15 @@ const DirectMessageScreen = () => {
                         keyExtractor={(item) => item._id.toString()}
                         renderItem={renderItem}
                         contentContainerStyle={{ padding: SIZES.base }}
-                        
-                        // ⚡ OPTIMIZATION: Pagination Handlers
                         onEndReached={loadPreviousMessages}
                         onEndReachedThreshold={0.5} 
-                        ListFooterComponent={renderListFooter} // Renders at the TOP due to 'inverted'
-                        
+                        ListFooterComponent={renderListFooter}
                         ListEmptyComponent={
-                            <View style={styles.emptyState}>
-                                <Text style={styles.emptyText}>No messages yet. Say hi 👋</Text>
-                            </View>
+                            !isLoadingInitial ? (
+                                <View style={styles.emptyState}>
+                                    <Text style={styles.emptyText}>No messages yet. Say hi 👋</Text>
+                                </View>
+                            ) : null
                         }
                     />
 
@@ -348,11 +353,10 @@ const DirectMessageScreen = () => {
     );
 };
 
+// ... (Styles are all unchanged) ...
 const styles = StyleSheet.create({
     container: { flex: 1 },
     centered: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-    
-    // --- Message Bubbles ---
     messageRow: { 
         marginVertical: 4, 
         flexDirection: 'row', 
@@ -401,14 +405,12 @@ const styles = StyleSheet.create({
         fontSize: 11, 
         color: COLORS.textSecondary,
     },
-
-    // --- Input Bar ---
     inputBar: {
         flexDirection: 'row',
         alignItems: 'flex-end',
         paddingHorizontal: SIZES.base,
         paddingVertical: SIZES.base,
-        backgroundColor: COLORS.background,
+        backgroundColor: COLORS.background, 
         borderTopWidth: 1,
         borderTopColor: COLORS.border,
     },
@@ -419,7 +421,7 @@ const styles = StyleSheet.create({
         paddingVertical: Platform.OS === 'ios' ? 12 : 8,
         ...FONTS.body,
         color: COLORS.textPrimary,
-        backgroundColor: COLORS.surface,
+        backgroundColor: COLORS.surface, 
         borderRadius: 25,
         borderWidth: 1,
         borderColor: COLORS.border,
@@ -434,30 +436,25 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         marginLeft: SIZES.base,
     },
-
-    // --- Date Separator ---
     dateSeparatorContainer: {
         marginVertical: 10,
         alignItems: 'center',
     },
     dateSeparatorText: {
-        backgroundColor: COLORS.border,
+        backgroundColor: 'rgba(230, 230, 230, 0.8)', 
         color: COLORS.textSecondary,
         ...FONTS.caption,
         fontSize: 12,
         paddingVertical: 5,
         paddingHorizontal: 10,
         borderRadius: 15,
+        overflow: 'hidden', 
     },
-
-    // Empty state
     emptyState: { padding: SIZES.padding * 2, alignItems: 'center' },
     emptyText: { ...FONTS.body, color: COLORS.textSecondary, textAlign: 'center' },
-    
-    // ⚡ NEW STYLES FOR PAGINATION LOADER
     paginationLoader: { paddingVertical: SIZES.padding, alignItems: 'center' },
     endOfHistory: { paddingVertical: SIZES.padding, alignItems: 'center' },
-    endOfHistoryText: { ...FONTS.caption, color: COLORS.textSecondary, opacity: 0.5 },
+    endOfHistoryText: { ...FONTS.caption, color: COLORS.textSecondary, opacity: 0.8 },
     loadMoreButton: { 
         backgroundColor: COLORS.primaryLight, 
         paddingVertical: SIZES.base, 

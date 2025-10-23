@@ -5,8 +5,17 @@ const multer = require('multer');
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 const router = express.Router();
+const rateLimit = require('express-rate-limit');
 
 const analyticsService = require('../analytics/analytics.service');
+
+const searchLimiter = rateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  max: 30, // Max 30 requests per authenticated user (since authMiddleware runs first)
+  message: { message: "Too many search requests. Please try again in one minute." },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
 
 router.use(authMiddleware); // This applies authMiddleware to ALL routes below this line
 
@@ -20,7 +29,7 @@ router.post('/fcm-token-remove', usersController.handleRemoveFCMToken);
 router.get('/profile', usersController.handleGetUserProfile);
 // UPDATE a user's own profile
 router.put('/profile', usersController.handleUpdateUserProfile);
-router.get('/search', usersController.handleSearchUsers);
+router.get('/search', searchLimiter, usersController.handleSearchUsers);
 router.get('/:userId/profile', usersController.handleGetPublicUserProfile);
 router.get('/progress-dashboard', usersController.handleGetProgressDashboard);
 router.post(
