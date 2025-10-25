@@ -3,6 +3,7 @@ const pool = require('../../config/db');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const db = require('../../config/db');
+
 /**
  * Creates a new user in the database.
  * @param {string} username - The user's username.

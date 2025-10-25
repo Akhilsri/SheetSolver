@@ -32,6 +32,7 @@ import { COLORS, SIZES, FONTS } from '../styles/theme';
 import Card from '../components/common/Card';
 import RoomGuideModal from '../components/modals/RoomGuideModal';
 import RNPickerSelect from 'react-native-picker-select';
+import ImageZoom from 'react-native-image-pan-zoom';
 
 // Constants
 const SCREEN_WIDTH = Dimensions.get('window').width;
@@ -569,34 +570,41 @@ const RoomDetailScreen = ({ navigation }) => {
         return;
       }
 
-      const options = {
-        mediaType: 'photo',
-        quality: 1.0,
-        saveToPhotos: true,
-        cameraType: 'back',
-      };
+      // CRITICAL FIX: Limit Max Dimensions and Quality to prevent OOM crash
+    const options = {
+      mediaType: 'photo',
+      quality: 0.8,         // Reduced quality
+      maxWidth: 1600,       // Limiting dimensions
+      maxHeight: 1600,      // Limiting dimensions
+      saveToPhotos: false,  // Set to false to prevent clutter (optional)
+      cameraType: 'back',
+    };
+    
+    launchCamera(options, async (response) => {
+      if (response.didCancel) return;
       
-      launchCamera(options, async (response) => {
-        if (response.didCancel) return;
-        if (response.errorCode) {
-          Alert.alert('Camera Error', 'ImagePicker Error: ' + response.errorMessage);
-          return;
-        }
-        
-        const original = response.assets && response.assets[0];
-        if (!original || !original.uri) {
-          Alert.alert('Error', 'Could not capture image data.');
-          return;
-        }
+      // IMPROVED ERROR CHECKING (The 'undefined' error originates here)
+      if (response.errorCode) {
+        // Fallback message for undefined errors
+        const errorMessage = response.errorMessage || "Unknown camera error. Please ensure sufficient storage and memory are available.";
+        Alert.alert('Camera Error', 'ImagePicker Error: ' + errorMessage);
+        return; 
+      }
+      
+      const original = response.assets && response.assets[0];
+      if (!original || !original.uri) {
+        Alert.alert('Error', 'Could not capture image data. No asset returned.');
+        return;
+      }
 
-        setSubmissionDetailsModal({
-          visible: true,
-          problem: problem,
-          photoUri: original.uri,
-        });
+      setSubmissionDetailsModal({
+        visible: true,
+        problem: problem,
+        photoUri: original.uri,
       });
-    })();
-  }, [isUploading, requestCameraPermission]);
+    });
+  })();
+}, [isUploading, requestCameraPermission]);
 
 
   const showSubmissionPicker = useCallback((submissions) => {
@@ -609,7 +617,7 @@ const RoomDetailScreen = ({ navigation }) => {
         `Space Complexity: ${sub.space_complexity || 'N/A'}`; 
       
       Alert.alert(
-        `${sub.username}'s Submission 📸`,
+        `${sub.username}'s Submission`,
         message,
         [
           { text: 'View Photo Proof', onPress: () => {
@@ -627,12 +635,12 @@ const RoomDetailScreen = ({ navigation }) => {
     }
 
     const buttons = submissions.map(sub => ({
-      text: `View ${sub.username}'s Snap`,
+      text: `View ${sub.username}'s Algorithm`,
       onPress: () => showSubmissionDetails(sub)
     }));
     buttons.push({ text: 'Cancel', style: 'cancel' });
     
-    Alert.alert('View a Submission', 'Choose a user to see their snap, approach, and complexity.', buttons);
+    Alert.alert('View a Submission', 'Choose a user to see their submission pic, approach, and complexity.', buttons);
   }, []);
   
   const openSnap = useCallback((mySubmission) => {
@@ -681,13 +689,91 @@ const RoomDetailScreen = ({ navigation }) => {
 
 
   // Admin/Member management (omitted for brevity, assumed correct)
-  const handleApproveRequest = useCallback(async (requestId) => { /* ... */ }, [fetchData]);
-  const handleDenyRequest = useCallback(async (requestId) => { /* ... */ }, [fetchData]);
-  const confirmRemoveMember = useCallback((member) => { /* ... */ }, []);
-  const removeMember = useCallback(async (memberId) => { /* ... */ }, [roomId]);
-  const handleDeleteRoom = useCallback(async () => { /* ... */ }, [roomId, navigation]);
-  const confirmDeleteRoom = useCallback(() => { /* ... */ }, [handleDeleteRoom]);
-  const handleLeaveRoom = useCallback(() => { /* ... */ }, [roomId, navigation]);
+  const handleApproveRequest = useCallback(async (requestId) => {
+    try {
+      await roomService.approveJoinRequest(requestId);
+      Alert.alert('Success', 'Member has been added to the room.');
+      
+      // Re-fetch everything, including the new member count/list
+      fetchData(); 
+    } catch (error) {
+      Alert.alert('Error', 'Could not approve request.');
+    }
+  }, [fetchData]);
+
+  const handleDenyRequest = useCallback(async (requestId) => {
+    try {
+      await roomService.denyJoinRequest(requestId);
+      Alert.alert('Success', 'Request has been denied.');
+      fetchData();
+    } catch (error) {
+      Alert.alert('Error', 'Could not deny request.');
+    }
+  }, [fetchData]);
+  const confirmRemoveMember = useCallback((member) => {
+    Alert.alert(
+      "Remove Member",
+      `Are you sure you want to remove ${member.username} from this room?`,
+      [
+        { text: "Cancel", style: "cancel" },
+        { text: "Yes, Remove", onPress: () => removeMember(member.id), style: "destructive" }
+      ]
+    );
+  }, []);
+  const removeMember = useCallback(async (memberId) => {
+    try {
+      await roomService.removeMember(roomId, memberId);
+      Alert.alert('Success', 'Member has been removed.');
+      
+      // Update the loaded members list and the count after removal
+      setMembersData(prev => ({
+        ...prev,
+        count: prev.count - 1,
+        list: prev.list.filter(m => Number(m.id) !== Number(memberId)),
+      }));
+
+    } catch (error) {
+      const errorMessage = error?.response?.data?.message || 'Could not remove member.';
+      Alert.alert('Error', errorMessage);
+    }
+  }, [roomId]);
+const handleDeleteRoom = useCallback(async () => {
+    try {
+      await apiClient.delete(`/rooms/${roomId}`);
+      Alert.alert('Success', 'The room has been deleted.', [
+        { text: 'OK', onPress: () => navigation.navigate('RoomsTab') }
+      ]);
+    } catch (error) {
+      Alert.alert('Error', error?.response?.data?.message || 'Could not delete the room.');
+    }
+  }, [roomId, navigation]);
+
+  const confirmDeleteRoom = useCallback(() => {
+    setActionModalVisible(false);
+    Alert.alert("Delete Room", "Are you sure you want to permanently delete this room?",
+      [{ text: "Cancel", style: "cancel" },
+       { text: "Yes, Delete", onPress: handleDeleteRoom, style: "destructive" }]
+    );
+  }, [handleDeleteRoom]);
+  const handleLeaveRoom = useCallback(() => {
+    setActionModalVisible(false);
+    Alert.alert("Leave Room", "Are you sure you want to leave this room?",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Yes, Leave", onPress: async () => {
+            try {
+              await apiClient.delete(`/rooms/${roomId}/leave`);
+              Alert.alert('Success', 'You have left the room.');
+              navigation.navigate('Main');
+            } catch (error) {
+              Alert.alert('Error', error?.response?.data?.message || 'Could not leave the room.');
+            }
+          }, style: "destructive"
+        }
+      ]
+    );
+  }, [roomId, navigation]);
 
 
   // Sections Memo and Render Helpers
@@ -885,13 +971,35 @@ const RoomDetailScreen = ({ navigation }) => {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.background }}>
-      {/* Modals */}
+      
       <Modal animationType="fade" transparent visible={modalVisible} onRequestClose={() => setModalVisible(false)}>
-        <View style={styles.modalContainer}>
-          <Image source={{ uri: selectedImage }} style={styles.modalImage} resizeMode="contain" />
-          <IconButton name="close-circle" size={48} color={COLORS.surface} onPress={() => setModalVisible(false)} style={styles.modalCloseButton} />
-        </View>
-      </Modal>
+  <View style={styles.modalContainer}>
+    {selectedImage && (
+      <ImageZoom 
+        cropWidth={Dimensions.get('window').width}
+        cropHeight={Dimensions.get('window').height * 0.9} // Use most of the screen height
+        imageWidth={Dimensions.get('window').width}
+        imageHeight={Dimensions.get('window').height * 0.8} // Image starts a bit smaller
+        minScale={0.5}
+        maxScale={5}
+        style={{ width: '100%', height: '100%', justifyContent: 'center', alignItems: 'center' }}
+      >
+        <Image 
+          source={{ uri: selectedImage }} 
+          style={styles.modalZoomImage} // Use the new style below
+          resizeMode="contain" 
+        />
+      </ImageZoom>
+    )}
+    <IconButton 
+      name="close-circle" 
+      size={48} 
+      color={COLORS.surface} 
+      onPress={() => setModalVisible(false)} 
+      style={styles.modalCloseButton} 
+    />
+  </View>
+</Modal>
 
       <SubmissionDetailsModal
         visible={submissionDetailsModal.visible}
@@ -1210,6 +1318,11 @@ const styles = StyleSheet.create({
     fontSize: 15,
     textAlign: 'left',
     lineHeight: 22,
+  },
+  modalZoomImage: { 
+    width: Dimensions.get('window').width, 
+    height: Dimensions.get('window').height * 0.8, // Match height set in ImageZoom prop
+    // Ensure the image width/height are set here for ImageZoom to work correctly
   },
 });
 

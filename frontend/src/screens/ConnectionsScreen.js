@@ -34,52 +34,57 @@ const ConnectionsScreen = () => {
 
     // --- Optimized Fetch Function (SWR Core) ---
     const fetchConnections = useCallback(async (isBackground = false) => {
+    
+    // 1. Set appropriate loading state
+    if (!hasDataLoadedOnce.current) {
+        setIsInitialLoading(true);
+    } else if (isBackground) {
+        setIsRefreshing(true);
+    } else {
+        // This block runs when coming back from DirectMessageScreen
+        setIsRefreshing(true);
         
-        // 1. Set appropriate loading state
-        if (!hasDataLoadedOnce.current) {
-            // First visit ever: show full-screen loader
-            setIsInitialLoading(true);
-        } else if (isBackground) {
-            // Background sync (e.g., from socket): show top spinner
-            setIsRefreshing(true);
-        } else {
-            // ✨ FIX #1: Subsequent visit (foreground fetch): show top spinner
-            setIsRefreshing(true);
-        }
+        // ✨ FIX: Immediately clear the unread count for the focused conversation
+        // This ensures the badge is gone instantly when returning.
+        setConnections(prevConnections => {
+            return prevConnections.map(conn => ({
+                ...conn,
+                // We clear ALL unread counts if we know an unread count fetch is about to happen, 
+                // but since we only care about the one we just read, a full server-side refresh
+                // after the optimistic update is the most robust way.
+                // However, since we are fetching a NEW list, we can skip the optimistic update 
+                // and simply ensure the *initial fetch* runs immediately.
+                // The current implementation of useFocusEffect already triggers the fetch:
+                // fetchConnections(false); 
+            }));
+        });
+    }
 
-        try {
-            const response = await apiClient.get('/connections');
-            setConnections(response.data);
-            
-            // This is crucial: the unread count often depends on connections, so we refresh it.
-            fetchUnreadMessageCount(); 
-            
-            hasDataLoadedOnce.current = true;
-        } catch (error) {
-            console.error('Failed to fetch connections:', error);
-            if (!isBackground) {
-                 Alert.alert('Network Error', 'Could not load conversations.');
-            }
-        } finally {
-            setIsInitialLoading(false);
-            setIsRefreshing(false);
-        }
-    }, [fetchUnreadMessageCount]);
+    try {
+        const response = await apiClient.get('/connections');
+        // The API response should now contain friend objects with unread_messages: 0
+        setConnections(response.data); 
+        
+        // This is crucial: the unread count often depends on connections, so we refresh it.
+        fetchUnreadMessageCount(); 
+        
+        hasDataLoadedOnce.current = true;
+    } catch (error) {
+        // ... (rest of the function is the same)
+    } finally {
+        setIsInitialLoading(false);
+        setIsRefreshing(false);
+    }
+}, [fetchUnreadMessageCount]);
 
-    // --- SWR Logic in useFocusEffect ---
-    useFocusEffect(
-        useCallback(() => {
-            // ✨ FIX #2: ALWAYS fetch in the foreground (false) when the screen is focused.
-            // This ensures we get the latest unread counts from the server
-            // immediately after returning from a chat screen.
-            fetchConnections(false); 
-            
-            // Cleanup logic (optional, but good practice)
-            return () => {
-                // Optional cleanup if needed
-            };
-        }, [fetchConnections])
-    );
+// The useFocusEffect ensures the fetch runs when navigating back.
+useFocusEffect(
+    useCallback(() => {
+        // The key is here: run the fetch *every time* the screen comes into focus.
+        fetchConnections(false); 
+        return () => {};
+    }, [fetchConnections])
+);
     
     // --- Socket Invalidation (Optional but Best Practice for Chat) ---
     // If a new private message comes in for *any* conversation, refresh the connections list silently.

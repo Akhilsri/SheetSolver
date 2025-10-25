@@ -147,7 +147,7 @@ const styles = StyleSheet.create({
   centered: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   statusContainer: {
     padding: SIZES.padding,
-    minHeight: 120,
+    // minHeight: 120,
     justifyContent: 'center',
     alignItems: 'center',
   },

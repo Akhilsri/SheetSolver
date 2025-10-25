@@ -18,7 +18,7 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import { useSocket } from '../context/SocketContext';
 
 // --- Header Component (Decoupled for Optimization) ---
-const RoomsHeaderRight = React.memo(({ navigation, logout, unreadCount }) => {
+const RoomsHeaderRight = React.memo(({ navigation, unreadCount }) => {
   const count = Number(unreadCount);
 
   return (
@@ -39,15 +39,6 @@ const RoomsHeaderRight = React.memo(({ navigation, logout, unreadCount }) => {
           )}
         </View>
       </TouchableOpacity>
-
-      <TouchableOpacity
-        onPress={logout}
-        style={styles.logoutButton}
-        activeOpacity={0.7}
-      >
-        <Icon name="log-out-outline" size={18} color="#EF4444" />
-        <Text style={styles.logoutText}>Logout</Text>
-      </TouchableOpacity>
     </View>
   );
 });
@@ -62,7 +53,7 @@ const RoomsScreen = () => {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [inviteCode, setInviteCode] = useState('');
   const [isJoining, setIsJoining] = useState(false);
-  const { logout, unreadCount, fetchUnreadCount, userToken } = useAuth();
+  const { unreadCount, fetchUnreadCount, userToken } = useAuth();
   const socket = useSocket();
 
   // ⚡ OPTIMIZATION: Refactored fetchRooms to support the stale-while-revalidate pattern
@@ -156,10 +147,10 @@ const RoomsScreen = () => {
         fontWeight: '700',
       },
       headerRight: () => (
-        <RoomsHeaderRight navigation={navigation} logout={logout} unreadCount={unreadCount} />
+        <RoomsHeaderRight navigation={navigation} unreadCount={unreadCount} />
       ),
     });
-  }, [navigation, logout, unreadCount]);
+  }, [navigation, unreadCount]);
 
   const handleJoinRoom = useCallback(async () => {
     const trimmedCode = inviteCode.trim();
@@ -340,17 +331,7 @@ const styles = StyleSheet.create({
   // Header actions
   headerActions: { flexDirection: 'row', alignItems: 'center', paddingRight: 4 },
   notificationButton: { marginRight: 12, padding: 8, borderRadius: 20 },
-  logoutButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    backgroundColor: '#FEF2F2',
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: '#FECACA',
-  },
-  logoutText: { color: '#EF4444', fontSize: 13, fontWeight: '600', marginLeft: 4 },
+  
 
   // Using original badge styles now
   badge: {

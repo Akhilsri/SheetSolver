@@ -1,34 +1,50 @@
 const authService = require('./auth.service');
-const { sendEmail } = require('../utils/email.util'); 
+const { sendEmail } = require('../utils/email.util');
+const validator = require('validator');
 
 // --- DEEP LINK CONFIGURATION ---
 // This MUST match the scheme registered in your React Native app's Linking configuration
-// const DEEP_LINK_BASE = 'myapp://reset-password'; 
-
+// const DEEP_LINK_BASE = 'myapp://reset-password';
 
 async function handleRegister(req, res) {
   try {
     // 1. Extract data from the request body
     const { username, email, password } = req.body;
 
-    // 2. Basic validation
+    // 2. Basic validation: Check for required fields
     if (!username || !email || !password) {
-      return res.status(400).json({ message: 'Username, email, and password are required.' });
+      return res
+        .status(400)
+        .json({ message: 'Username, email, and password are required.' });
     }
 
-    // 3. Call the service to create the user
+    // 3. **Validation using validator.js** 🔑
+    if (!validator.isEmail(email)) {
+      return res
+        .status(400)
+        .json({ message: 'The email address format is invalid.' });
+    }
+
+    // Optional: Add more checks like password length
+    if (!validator.isLength(password, { min: 6 })) {
+        return res.status(400).json({ message: 'Password must be at least 6 characters.' });
+    }
+
+    // 4. Call the service to create the user
     await authService.registerUser(username, email, password);
 
-    // 4. Send a success response
+    // 5. Send a success response
     res.status(201).json({ message: 'User created successfully!' });
-
   } catch (error) {
-    // 5. Handle potential errors (e.g., duplicate email)
+    // 6. Handle potential errors (e.g., duplicate email from database constraint)
     console.error('Registration Error:', error);
-    // The UNIQUE constraint on the email column will cause an error if it's a duplicate
+
+    // Handle duplicate entry error (e.g., from MySQL)
     if (error.code === 'ER_DUP_ENTRY') {
       return res.status(409).json({ message: 'Email already in use.' });
     }
+
+    // Fallback for unexpected errors
     res.status(500).json({ message: 'Internal Server Error' });
   }
 }
@@ -37,7 +53,9 @@ async function handleLogin(req, res) {
   try {
     const { email, password } = req.body;
     if (!email || !password) {
-      return res.status(400).json({ message: 'Email and password are required.' });
+      return res
+        .status(400)
+        .json({ message: 'Email and password are required.' });
     }
 
     const tokens = await authService.loginUser(email, password);
@@ -48,7 +66,6 @@ async function handleLogin(req, res) {
 
     // This line sends the { accessToken, refreshToken } object directly.
     res.status(200).json(tokens);
-
   } catch (error) {
     console.error('Login Error:', error);
     res.status(500).json({ message: 'Internal Server Error' });
@@ -72,13 +89,21 @@ async function handleCheckUsername(req, res) {
 
   // Basic validation
   if (!username || typeof username !== 'string' || username.length < 3) {
-    return res.status(400).json({ available: false, message: 'Invalid username. Must be at least 3 characters.' });
+    return res
+      .status(400)
+      .json({
+        available: false,
+        message: 'Invalid username. Must be at least 3 characters.',
+      });
   }
 
   try {
     const exists = await authService.checkUsernameExists(username);
     if (exists) {
-      return res.json({ available: false, message: 'Username already exists.' });
+      return res.json({
+        available: false,
+        message: 'Username already exists.',
+      });
     } else {
       return res.json({ available: true, message: 'Username is available.' });
     }
@@ -91,28 +116,28 @@ async function handleCheckUsername(req, res) {
 // POST /api/auth/forgot-password
 // POST /api/auth/forgot-password
 async function handleForgotPassword(req, res) {
-    // 1. Setup the WEB_REDIRECT_BASE URL
-    // NOTE: This constant must be defined using the value from process.env.WEB_REDIRECT_BASE
-    const WEB_REDIRECT_BASE = process.env.WEB_REDIRECT_BASE; 
-    
-    const { email } = req.body;
-    if (!email) {
-        return res.status(400).json({ message: 'Email is required.' });
-    }
+  // 1. Setup the WEB_REDIRECT_BASE URL
+  // NOTE: This constant must be defined using the value from process.env.WEB_REDIRECT_BASE
+  const WEB_REDIRECT_BASE = process.env.WEB_REDIRECT_BASE;
 
-    try {
-        // 1. Create token and retrieve user email from the service
-        const result = await authService.createPasswordResetToken(email);
+  const { email } = req.body;
+  if (!email) {
+    return res.status(400).json({ message: 'Email is required.' });
+  }
 
-        // Security practice: Only send the email if the result is valid, but always return success below.
-        if (result) {
-            const { token, userEmail } = result;
-            
-            // CRITICAL FIX: Construct the HTTPS link pointing to your server's redirect route.
-            const resetLink = `${WEB_REDIRECT_BASE}?token=${token}`; 
+  try {
+    // 1. Create token and retrieve user email from the service
+    const result = await authService.createPasswordResetToken(email);
 
-            // 2. Build the styled HTML content
-            const htmlContent = `
+    // Security practice: Only send the email if the result is valid, but always return success below.
+    if (result) {
+      const { token, userEmail } = result;
+
+      // CRITICAL FIX: Construct the HTTPS link pointing to your server's redirect route.
+      const resetLink = `${WEB_REDIRECT_BASE}?token=${token}`;
+
+      // 2. Build the styled HTML content
+      const htmlContent = `
                 <div style="font-family: Arial, sans-serif; padding: 20px; color: #333;">
                     <h2 style="color: #4CAF50;">Password Reset Request</h2>
                     <p>You requested a password reset. Click the button below to open your app and set a new password:</p>
@@ -129,25 +154,31 @@ async function handleForgotPassword(req, res) {
                 </div>
             `;
 
-            // 3. Send email with the styled HTML body
-            await sendEmail({
-                to: userEmail,
-                subject: 'Password Reset Request for SheetSolver',
-                html: htmlContent, 
-            });
-        }
-
-        // 4. Send successful response (always return generic success for security)
-        return res.status(200).json({ message: 'If an account is registered with that email, a reset link has been sent.' });
-
-    } catch (error) {
-        console.error('Forgot Password Error:', error);
-        // Ensure that email sending errors are caught and returned to the frontend
-        if (error.message.includes('Email sending failed')) {
-            return res.status(503).json({ message: error.message });
-        }
-        return res.status(500).json({ message: 'Server error during password reset request.' });
+      // 3. Send email with the styled HTML body
+      await sendEmail({
+        to: userEmail,
+        subject: 'Password Reset Request for SheetSolver',
+        html: htmlContent,
+      });
     }
+
+    // 4. Send successful response (always return generic success for security)
+    return res
+      .status(200)
+      .json({
+        message:
+          'If an account is registered with that email, a reset link has been sent.',
+      });
+  } catch (error) {
+    console.error('Forgot Password Error:', error);
+    // Ensure that email sending errors are caught and returned to the frontend
+    if (error.message.includes('Email sending failed')) {
+      return res.status(503).json({ message: error.message });
+    }
+    return res
+      .status(500)
+      .json({ message: 'Server error during password reset request.' });
+  }
 }
 
 // POST /api/auth/reset-password
@@ -155,7 +186,9 @@ async function handleResetPassword(req, res) {
   const { token, newPassword } = req.body;
 
   if (!token || !newPassword) {
-    return res.status(400).json({ message: 'Token and new password are required.' });
+    return res
+      .status(400)
+      .json({ message: 'Token and new password are required.' });
   }
 
   try {
@@ -164,14 +197,15 @@ async function handleResetPassword(req, res) {
 
     // 2. Success
     return res.status(200).json({ message: 'Password successfully reset.' });
-
   } catch (error) {
     console.error('Reset Password Error:', error.message);
     // Respond with a 403 for invalid/expired tokens (as thrown by the service)
     if (error.message.includes('token')) {
-        return res.status(403).json({ message: error.message });
+      return res.status(403).json({ message: error.message });
     }
-    return res.status(500).json({ message: 'Server error during password reset.' });
+    return res
+      .status(500)
+      .json({ message: 'Server error during password reset.' });
   }
 }
 
@@ -182,5 +216,5 @@ module.exports = {
   handleRefreshToken,
   handleCheckUsername,
   handleForgotPassword,
-  handleResetPassword
+  handleResetPassword,
 };

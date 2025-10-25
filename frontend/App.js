@@ -1,92 +1,107 @@
 import React, { useEffect } from 'react';
-import { Platform,Linking} from 'react-native';
-import { AuthProvider } from './src/context/AuthContext';
+import { Platform } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { AuthProvider, useAuth } from './src/context/AuthContext';
 import { SocketProvider } from './src/context/SocketContext';
 import AppNavigator from './src/navigation/AppNavigator';
 import messaging from '@react-native-firebase/messaging';
-import BootSplash from 'react-native-bootsplash'; // ⬅️ KEEP THIS IMPORT
-// import NotificationPermissionModal from './src/components/modals/NotificationPermissionModal'; // ✨ NEW IMPORT
-// import { LogBox } from 'react-native';
-// LogBox.ignoreAllLogs(true)
+import BootSplash from 'react-native-bootsplash';
+import NotificationPermissionModal from './src/components/modals/NotificationPermissionModal';
 
-// <<-- INSERT LINKING_CONFIG DEFINITION HERE -->>
-// In App.js
+// UX Flag: Prevents the custom modal from showing again after user dismisses it once.
+const CUSTOM_DISMISSAL_KEY = 'NOTIFICATION_REMINDER_SHOWN_CUSTOM';
 
 const LINKING_CONFIG = {
-  prefixes: ['myapp://'],
-  config: {
-    screens: {
-      // 1. Set the initial route for the unauthenticated stack to be 'Login'.
-      Login: 'login',
-
-      // 2. Add the path for the Reset Screen.
-      // NOTE: We MUST list the screen names here for the linking config to work.
-      ResetPasswordScreen: {
-        path: 'reset-password',
-        // CRITICAL FIX: When a deep link comes in, we want this specific screen 
-        // to take precedence over the 'Login' screen, even if the user is logged out.
-        initialRouteName: 'ResetPasswordScreen', 
-      },
-      
-      // All other unauthenticated screens should be listed without a path
-      Register: 'register',
-      ForgotPassword: 'forgot-password', 
-
-      // ... rest of your routes
+    prefixes: ['myapp://'],
+    config: {
+        screens: {
+            Login: 'login',
+            ResetPasswordScreen: {
+                path: 'reset-password',
+                initialRouteName: 'ResetPasswordScreen',
+            },
+            Register: 'register',
+            ForgotPassword: 'forgot-password',
+        },
     },
-  },
 };
-// <<-- END LINKING_CONFIG DEFINITION -->>
 
-const App = () => {
+// -----------------------------------------------------------
+// --- AppInitializer Component: Manages Login-Based UX ---
+// -----------------------------------------------------------
+const AppInitializer = () => {
+    // 1. Get notification state and handlers from AuthContext
+    const {
+        // State to control modal visibility, managed by AuthContext
+        showNotificationPrompt,
+        // Setter to hide the modal if user clicks 'Maybe Later'
+        setShowNotificationPrompt,
+        // Function to start the native permission flow if user clicks 'Allow'
+        handleNotificationPermissionFlow
+    } = useAuth();
 
-  useEffect(() => {
-    // 1. ASYNCHRONOUS INITIALIZATION FUNCTION
-    const initializeApp = async () => {
-      // --- Existing Firebase Notification Channel Setup ---
-      const createNotificationChannel = async () => {
+    // --- Firebase Notification Channel Setup (Runs only once) ---
+    const createNotificationChannel = async () => {
         if (Platform.OS === 'android') {
-          const channelId = 'default_channel_id';
-          const channelExists = await messaging().android.getChannel(channelId);
-          if (!channelExists) {
-            await messaging().android.createChannel({
-              channelId,
-              name: 'Default Notifications',
-              importance: messaging.Android.Importance.HIGH,
-            });
-            console.log('Default notification channel created.');
-          }
+            const channelId = 'default_channel_id';
+            const channelExists = await messaging().android.getChannel(channelId);
+            if (!channelExists) {
+                await messaging().android.createChannel({
+                    channelId,
+                    name: 'Default Notifications',
+                    importance: messaging.Android.Importance.HIGH,
+                });
+            }
         }
-      };
-      
-      await createNotificationChannel();
-      
-      // --- Add other asynchronous tasks here (e.g., check initial auth state) ---
-      // await checkInitialAuthState();
     };
 
-    // 2. RUN THE INITIALIZATION AND HIDE BOOTSPLASH WHEN IT'S COMPLETE
-    initializeApp().finally(() => {
-      // ⬅️ CRITICAL: Hide the splash screen once all initial async tasks are done.
-      //    We use fade: true for a smooth transition.
-      BootSplash.hide({ fade: true });
-    });
-    
-  }, []); // Empty dependency array means this runs only once on component mount
+    // 1. Base Effect: Handles Splash Screen and Channel Creation
+    useEffect(() => {
+        createNotificationChannel().finally(() => {
+            // Hide the splash screen quickly after initial setup
+            BootSplash.hide({ fade: true });
+        });
 
-  return (
-    // The splash screen will hide just before these components render their content
-    <AuthProvider>
-      <SocketProvider> 
-        <AppNavigator />
-        {/* <NotificationPermissionModal /> */}
-      </SocketProvider>
-    </AuthProvider>
-  );
+        // NOTE: The previous conflicting notification useEffect 
+        // that depended on [userId, isLoading] has been removed 
+        // to prevent race conditions. The logic is now centralized in AuthContext.
+    }, []);
+
+    // Handler for dismissing the custom modal (clicking 'Maybe Later')
+    // This sets a flag in storage so we don't ask the user again.
+    const handleModalDismiss = async () => {
+        await AsyncStorage.setItem(CUSTOM_DISMISSAL_KEY, 'true');
+        setShowNotificationPrompt(false);
+    };
+
+
+    return (
+        <>
+            <AppNavigator />
+            {/* Modal is now driven entirely by AuthContext state */}
+            <NotificationPermissionModal
+                visible={showNotificationPrompt}
+                onAllow={handleNotificationPermissionFlow} // Initiates FCM flow and hides modal
+                onClose={handleModalDismiss}             // Sets dismissal flag and hides modal
+            />
+        </>
+    );
+}
+
+
+// -----------------------------------------------------------
+// --- App Component (Wrappers) ---
+// -----------------------------------------------------------
+const App = () => {
+    return (
+        <AuthProvider>
+            <SocketProvider>
+                <AppInitializer />
+            </SocketProvider>
+        </AuthProvider>
+    );
 };
 
 export default App;
 
-// <<-- EXPORT LINKING_CONFIG HERE -->>
 export { LINKING_CONFIG };
-// <<-- END EXPORT -->>

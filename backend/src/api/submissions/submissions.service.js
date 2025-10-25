@@ -32,13 +32,13 @@ async function createSubmission({ userId, roomId, problemId, file, username, app
         const problem = problems[0];
 
         switch (problem.difficulty) {
-            case 'Easy': totalPoints += 10; break;
-            case 'Medium': totalPoints += 20; break;
-            case 'Hard': totalPoints += 30; break;
-            default: totalPoints += 10;
+            case 'Easy': totalPoints += 1; break;
+            case 'Medium': totalPoints += 3; break;
+            case 'Hard': totalPoints += 5; break;
+            default: totalPoints += 1;
         }
         const [existingSubmissions] = await connection.query('SELECT id FROM submissions WHERE room_id = ? AND problem_id = ?', [roomId, problemId]);
-        if (existingSubmissions.length === 0) { totalPoints += 15; } // First solver bonus
+        if (existingSubmissions.length === 0) { totalPoints += 2; } // First solver bonus
 
         // --- 2. FILE UPLOAD LOGIC ---
         const fileExtension = path.extname(file.originalname).toString();
@@ -90,7 +90,7 @@ const submissionId = submissionInsertResult.insertId;
 
         // --- 6. PREPARE & SAVE NOTIFICATIONS ---
         notificationTitle = 'Problem Solved! 🔥';
-        notificationBody = `${username} just solved "${problem.title}"! Check out their snap.`;
+        notificationBody = `${username} just solved "${problem.title}"! Check out their algo.`;
         // Fetch users to notify and store in external variable
         [membersToNotify] = await connection.query('SELECT user_id FROM room_members WHERE room_id = ? AND user_id != ?', [roomId, userId]);
 

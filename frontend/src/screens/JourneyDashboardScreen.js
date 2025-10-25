@@ -314,22 +314,28 @@ const JourneyDashboardScreen = ({ navigation }) => {
       </LightPanel>
 
       {/* 3. Topic-wise Progress Section */}
-      <LightPanel title="Topic Mastery Breakdown">
-        {dashboardData.topicProgress.length > 0 ? (
-          dashboardData.topicProgress.map((topic) => (
-            <TopicProgressBar
-              key={topic.topic}
-              topicName={topic.topic}
-              userSolved={topic.user_solved}
-              totalInTopic={topic.total_in_topic}
-              roomAverageSolved={topic.room_total_solved_by_any_member / topic.member_count} 
-              isUserLeading={topic.user_solved > (topic.room_total_solved_by_any_member / topic.member_count)}
-            />
-          ))
-        ) : (
-          <Text style={lightStyles.noDataText}>No topic data available yet. Start solving! 🎉</Text>
-        )}
-      </LightPanel>
+      <LightPanel title="Topic Mastery Breakdown">
+        {dashboardData.topicProgress.length > 0 ? (
+          dashboardData.topicProgress.map((topic) => {
+             // 🎯 CRITICAL: Calculate the average here
+             const avgSolved = topic.room_total_solved_by_any_member / topic.member_count;
+
+             return (
+            <TopicProgressBar
+              key={topic.topic}
+              topicName={topic.topic}
+              userSolved={topic.user_solved}
+              totalInTopic={topic.total_in_topic}
+              // Pass the calculated average
+              roomAverageSolved={avgSolved} 
+              isUserLeading={topic.user_solved > avgSolved}
+            />
+             )
+          })
+        ) : (
+          <Text style={lightStyles.noDataText}>No topic data available yet. Start solving! 🎉</Text>
+        )}
+      </LightPanel>
       
       {/* 4. Burndown Chart Section */}
       {/* <LightPanel title="Progress Burndown">

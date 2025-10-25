@@ -361,7 +361,7 @@ const styles = StyleSheet.create({
     },
     myMessageBubble: { 
         alignSelf: 'flex-end', 
-        backgroundColor: COLORS.primary,
+        backgroundColor: '#34cceb',
         borderBottomRightRadius: 2, 
         borderTopRightRadius: 12,
         borderBottomLeftRadius: 12,

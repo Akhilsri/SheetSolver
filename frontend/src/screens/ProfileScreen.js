@@ -46,6 +46,7 @@ const ProfileScreen = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [dashboardData, setDashboardData] = useState(null);
   const [badges, setBadges] = useState([]);
+const { logout} = useAuth();
   
   // 🌟 UPDATED: FETCH DATA WITH CACHING
   const fetchData = async () => {
@@ -205,6 +206,20 @@ const ProfileScreen = () => {
           }}
         />
       </Card>
+
+{/* --- LOGOUT BUTTON --- */}
+      <View style={styles.logoutContainer}>
+        <TouchableOpacity
+          onPress={logout}
+          style={styles.logoutButton}
+          activeOpacity={0.7}
+        >
+          <Icon name="log-out-outline" size={20} color="#EF4444" />
+          <Text style={styles.logoutText}>Logout</Text>
+        </TouchableOpacity>
+      </View>
+
+{/*       <View style={{ height: 50 }} /> // Add space at the bottom for scrollability */}
     </ScrollView>
   );
 };
@@ -347,6 +362,29 @@ const styles = StyleSheet.create({
         fontSize: 10,
         textAlign: 'center',
         marginTop: 2,
+    },
+logoutContainer: {
+        // Matches the horizontal margin of other sections
+        marginHorizontal: SIZES.padding, 
+        marginTop: SIZES.padding * 1.5, // Extra space above it
+        marginBottom: SIZES.padding * 2, // Extra space below for scrolling
+    },
+    logoutButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center', // Center the icon and text horizontally
+        paddingVertical: SIZES.padding , // Increase padding for a larger touch target
+        backgroundColor: '#FEE2E2', // Lighter red background (Tailwind red-100 equivalent)
+        borderRadius: SIZES.radius, // Use theme radius for consistency
+        borderWidth: 1,
+        borderColor: '#FCA5A5', // Medium red border (Tailwind red-300 equivalent)
+        
+    },
+    logoutText: {
+        color: '#EF4444', // Red text color (Tailwind red-500 equivalent)
+        ...FONTS.h4, // Use a slightly larger font for prominence
+        fontWeight: '500', // Make it bold
+        marginLeft: SIZES.base, // Space between icon and text
     },
 });
 

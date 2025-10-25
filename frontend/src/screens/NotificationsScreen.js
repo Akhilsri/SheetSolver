@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   SectionList,
@@ -7,7 +7,6 @@ import {
   ActivityIndicator,
   TouchableOpacity,
   Alert,
-  Platform,
   RefreshControl,
 } from 'react-native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
@@ -49,7 +48,8 @@ const filterSectionData = (prevSections, sectionTitle, itemId) => {
 };
 
 const removeEmptySections = (sections) => {
-  return sections.filter(section => section.data && section.data.length > 0);
+  // Ensure sections is an array before filtering
+  return Array.isArray(sections) ? sections.filter(section => section.data && section.data.length > 0) : [];
 };
 
 // --- Main Component ---
@@ -61,10 +61,47 @@ const NotificationsScreen = () => {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isResponding, setIsResponding] = useState(false);
 
+  // --- Utility to process data into sections (centralized logic) ---
+  const processAndSetSections = (notifications, invitations, connections) => {
+    const newSections = [];
+
+    // 1. Connection Requests
+    if (connections?.length > 0) {
+      newSections.push({
+        title: CONNECTIONS_SECTION_TITLE,
+        data: connections,
+        key: 'connections',
+      });
+    }
+
+    // 2. Pending Invitations
+    if (invitations?.length > 0) {
+      newSections.push({
+        title: INVITES_SECTION_TITLE,
+        data: invitations,
+        key: 'invitations',
+      });
+    }
+
+    // 3. Activity Feed (Only add if data exists)
+    if (notifications?.length > 0) {
+      newSections.push({
+        title: ACTIVITY_SECTION_TITLE,
+        data: notifications,
+        key: ACTIVITY_SECTION_TITLE,
+      });
+    }
+
+    setSections(removeEmptySections(newSections));
+  };
+
+  // --- Optimized Mark All As Read (Client-side update after API) ---
   const markAllAsRead = async () => {
     try {
       await apiClient.put('/notifications/read-all');
-      fetchUnreadCount(); // 👈 resets count to zero on icon
+      fetchUnreadCount(); // Reset count on icon
+
+      // Visually mark all as read without a costly re-fetch
       setSections(prev =>
         prev.map(section =>
           section.title === ACTIVITY_SECTION_TITLE
@@ -77,6 +114,7 @@ const NotificationsScreen = () => {
     }
   };
 
+  // --- Minimal Re-fetch for Action Items (FIXED) ---
   const fetchActionItems = async () => {
     try {
       const [invitationsRes, connectionRequestsRes] = await Promise.all([
@@ -84,74 +122,90 @@ const NotificationsScreen = () => {
         apiClient.get('/connections/pending'),
       ]);
 
-      setSections(prevSections => {
-        const updatedSections = prevSections.filter(
-          s => s.title !== INVITES_SECTION_TITLE && s.title !== CONNECTIONS_SECTION_TITLE
-        );
+      const invitations = invitationsRes.data || [];
+      const connections = connectionRequestsRes.data || [];
 
-        const newActionSections = [];
-        if (connectionRequestsRes.data?.length > 0) {
-          newActionSections.push({
+      setSections(prevSections => {
+        // CRITICAL FIX: Find the existing Activity section data to keep it untouched
+        const existingActivitySection = prevSections.find(s => s.title === ACTIVITY_SECTION_TITLE);
+
+        const newSections = [];
+
+        // 1. Add new Connection Requests
+        if (connections.length > 0) {
+          newSections.push({
             title: CONNECTIONS_SECTION_TITLE,
-            data: connectionRequestsRes.data,
+            data: connections,
             key: 'connections',
           });
         }
-        if (invitationsRes.data?.length > 0) {
-          newActionSections.push({
+
+        // 2. Add new Pending Invitations
+        if (invitations.length > 0) {
+          newSections.push({
             title: INVITES_SECTION_TITLE,
-            data: invitationsRes.data,
+            data: invitations,
             key: 'invitations',
           });
         }
 
-        return removeEmptySections([...newActionSections, ...updatedSections]);
+        // 3. Preserve the existing Activity section if it was there
+        if (existingActivitySection) {
+          newSections.push(existingActivitySection);
+        }
+
+        return removeEmptySections(newSections);
       });
     } catch (error) {
       console.error('Failed to fetch action items:', error);
     }
   };
 
-  const fetchActivityFeed = async (isRefresh = false) => {
+  // --- Concurrent Initial Load Function ---
+  const loadData = async (isRefresh = false) => {
     if (isRefresh) setIsRefreshing(true);
-    try {
-      const notificationsRes = await apiClient.get('/notifications');
-      const activityData = notificationsRes.data || [];
+    const setLoadState = !isRefresh;
 
-      setSections(prevSections => {
-        const actionSections = prevSections.filter(s => s.title !== ACTIVITY_SECTION_TITLE);
-        const updatedSections = [...actionSections];
-        if (activityData.length > 0) {
-          updatedSections.push({
-            title: ACTIVITY_SECTION_TITLE,
-            data: activityData,
-            key: ACTIVITY_SECTION_TITLE,
-          });
-        }
-        return removeEmptySections(updatedSections);
-      });
+    if (setLoadState) setIsLoading(true);
+
+    try {
+      // Concurrent fetching for speed
+      const [invitationsRes, connectionRequestsRes, notificationsRes] = await Promise.all([
+        apiClient.get('/invitations/pending'),
+        apiClient.get('/connections/pending'),
+        apiClient.get('/notifications'),
+      ]);
+
+      const invitations = invitationsRes.data || [];
+      const connections = connectionRequestsRes.data || [];
+      const notifications = notificationsRes.data || [];
+
+      processAndSetSections(notifications, invitations, connections);
+
+      // Only mark as read if there were unread items
+      if (notifications.some(n => !n.is_read)) {
+        setTimeout(markAllAsRead, 500);
+      }
+
     } catch (error) {
-      console.error('Failed to fetch activity feed:', error);
+      console.error('Failed to load notifications screen data:', error);
     } finally {
       setIsRefreshing(false);
-      if (!isRefresh) setIsLoading(false);
+      if (setLoadState) setIsLoading(false);
     }
   };
 
+  // --- Focus Effect (Only runs loadData once on focus) ---
   useFocusEffect(
     React.useCallback(() => {
-      const loadData = async () => {
-        await fetchActionItems();
-        await fetchActivityFeed();
-        setIsLoading(false);
-        setTimeout(() => markAllAsRead(), 500);
-      };
       loadData();
     }, [])
   );
 
+  // --- Handle Action (Optimistic UI + Minimal Re-fetch) ---
   const handleAction = async (actionType, itemId, sectionTitle, endpoint, navigationRoute = null) => {
     setIsResponding(true);
+    // Optimistic UI update
     setSections(prev => removeEmptySections(filterSectionData(prev, sectionTitle, itemId)));
     try {
       await apiClient.put(endpoint);
@@ -161,9 +215,11 @@ const NotificationsScreen = () => {
           { text: 'OK', onPress: () => navigation.navigate(navigationRoute) },
         ]);
       }
+      // Minimal re-fetch to ensure state is correct
       fetchActionItems();
     } catch (error) {
       Alert.alert('Error', error?.response?.data?.message || 'Could not complete the action.');
+      // Re-fetch action items on error to restore the item
       fetchActionItems();
     } finally {
       setIsResponding(false);
@@ -261,7 +317,7 @@ const NotificationsScreen = () => {
     <View style={styles.container}>
       <SectionList
         sections={removeEmptySections(sections)}
-        keyExtractor={(item, index) => item.id.toString() + index}
+        keyExtractor={(item, index) => (item.id ? item.id.toString() : index.toString())}
         renderItem={renderItem}
         renderSectionHeader={renderSectionHeader}
         showsVerticalScrollIndicator={false}
@@ -269,11 +325,7 @@ const NotificationsScreen = () => {
         refreshControl={
           <RefreshControl
             refreshing={isRefreshing}
-            onRefresh={() => {
-              fetchActivityFeed(true);
-              fetchActionItems();
-              markAllAsRead(); // 👈 resets count visually & in backend
-            }}
+            onRefresh={() => loadData(true)} // Re-run concurrent load
             tintColor={COLORS.primary}
             colors={[COLORS.primary]}
             progressBackgroundColor="#fff"
@@ -291,7 +343,7 @@ const NotificationsScreen = () => {
   );
 };
 
-// --- Styles (same as your original) ---
+// --- Styles (unchanged from your original) ---
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F9FAFB' },
   centered: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingTop: SIZES.padding * 2 },
