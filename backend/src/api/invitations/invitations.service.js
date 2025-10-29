@@ -74,7 +74,7 @@ async function createInvitation(senderId, recipientId, roomId) {
 async function getPendingInvitations(recipientId) {
   // PERMANENT FIX: Rewritten as a clean, single-line SQL string.
   // ✅ ADDED: inv.created_at AS timestamp
-  const sql = 'SELECT inv.id, inv.status, inv.created_at AS timestamp, sender.username AS senderName, room.name AS roomName, room.id AS roomId FROM room_invitations inv JOIN users sender ON inv.sender_id = sender.id JOIN rooms room ON inv.room_id = room.id WHERE inv.recipient_id = ? AND inv.status = "pending" ORDER BY inv.created_at DESC';
+  const sql = 'SELECT inv.id, inv.status, inv.created_at AS timestamp, sender.username AS senderName,sender.avatar_url AS senderAvatarUrl, room.name AS roomName, room.id AS roomId FROM room_invitations inv JOIN users sender ON inv.sender_id = sender.id JOIN rooms room ON inv.room_id = room.id WHERE inv.recipient_id = ? AND inv.status = "pending" ORDER BY inv.created_at DESC';
 
   const [invitations] = await pool.query(sql, [recipientId]);
   return invitations;

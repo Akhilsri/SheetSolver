@@ -64,7 +64,7 @@ const RoomGuideModal = ({ isRoomActive, onFinish }) => {
           <Text style={styles.subtitle}>This guide appears only once!</Text>
           
           <Image 
-            source={require('../../assets/images/showSubmission.jpg')} // TODO: Replace with a local or remote image showing the required proof photo (Accepted screen)
+            source={{uri:'https://res.cloudinary.com/dnrg0ji04/image/upload/v1761507398/showSubmission_ewfnmv.jpg'}} 
             style={styles.proofImage} 
             resizeMode="contain" 
           />

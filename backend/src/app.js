@@ -16,6 +16,7 @@ const quizRoutes = require('./api/quiz/quiz.routes');
 // const invitationRoutes = require('./api/invitations/invitations.routes');
 const connectionRoutes = require('./api/connections/connections.routes');
 const redirectRouter = require('./api/redirect.routes');
+const feedbackRoutes = require('./api/feedback/feedback.routes');
 
 const app = express();
 
@@ -44,5 +45,6 @@ app.use(compression());
 app.use('/api/quiz', quizRoutes);
 app.use('/api/invitations', invitationRoutes);
 app.use('/api/connections', connectionRoutes);
+app.use('/api/feedback', feedbackRoutes);
 
 module.exports = app;

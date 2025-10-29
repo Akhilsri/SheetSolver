@@ -1,0 +1,449 @@
+id,sheet_id,topic,title,url,difficulty,problem_order
+1081,6,Array,"Reverse the array","",Easy,1001
+1082,6,Array,"Find the maximum and minimum element in an array","",Easy,1002
+1083,6,Array,"Find the ""Kth"" max and min element of an array","",Medium,1003
+1084,6,Array,"Sort an array of 0s, 1s and 2s","",Easy,1004
+1085,6,Array,"Move all negative numbers to one side of an array","",Easy,1005
+1086,6,Array,"Find the Union and Intersection of two sorted arrays","",Easy,1006
+1087,6,Array,"Write a program to cyclically rotate an array by one","",Easy,1007
+1088,6,Array,"Find largest sum contiguous Subarray [Kadane's Algorithm]","",Medium,1008
+1089,6,Array,"Minimise the maximum difference between heights","",Hard,1009
+1090,6,Array,"Minimum number of Jumps to reach end of an array","",Medium,1010
+1091,6,Array,"Find the duplicate in an array of N+1 integers","",Medium,1011
+1092,6,Array,"Merge 2 sorted arrays without using Extra space","",Medium,1012
+1093,6,Array,"Merge Intervals","",Medium,1013
+1094,6,Array,"Next Permutation","",Medium,1014
+1095,6,Array,"Count Inversions","",Hard,1015
+1096,6,Array,"Best time to buy and Sell stock","",Easy,1016
+1097,6,Array,"Find all pairs on integer array whose sum is equal to given number","",Medium,1017
+1098,6,Array,"Find common elements In 3 sorted arrays","",Medium,1018
+1099,6,Array,"Rearrange the array in alternating positive and negative items","",Medium,1019
+1100,6,Array,"Find if there is any subarray with sum equal to 0","",Medium,1020
+1101,6,Array,"Find factorial of a large number","",Medium,1021
+1102,6,Array,"Find maximum product subarray","",Medium,1022
+1103,6,Array,"Find longest consecutive subsequence","",Medium,1023
+1104,6,Array,"Find elements that appear more than n/k times","",Medium,1024
+1105,6,Array,"Maximum profit by buying and selling a share atmost twice","",Hard,1025
+1106,6,Array,"Find whether an array is a subset of another array","",Easy,1026
+1107,6,Array,"Find the triplet that sum to a given value","",Medium,1027
+1108,6,Array,"Trapping Rain water problem","",Hard,1028
+1109,6,Array,"Chocolate Distribution problem","",Easy,1029
+1110,6,Array,"Smallest Subarray with sum greater than a given value","",Medium,1030
+1111,6,Array,"Three way partitioning of an array around a given value","",Easy,1031
+1112,6,Array,"Minimum swaps required bring elements less equal K together","",Medium,1032
+1113,6,Array,"Minimum number of operations required to make an array palindrome","",Medium,1033
+1114,6,Array,"Median of 2 sorted arrays of equal size","",Medium,1034
+1115,6,Array,"Median of 2 sorted arrays of different size","",Hard,1035
+1116,6,Matrix,"Spiral traversal on a Matrix","",Medium,1036
+1117,6,Matrix,"Search an element in a Matrix","",Medium,1037
+1118,6,Matrix,"Find median in a row wise sorted matrix","",Hard,1038
+1119,6,Matrix,"Find row with maximum no. of 1s","",Medium,1039
+1120,6,Matrix,"Print elements in sorted order using row-column wise sorted matrix","",Medium,1040
+1121,6,Matrix,"Maximum size rectangle","",Hard,1041
+1122,6,Matrix,"Find a specific pair in matrix","",Medium,1042
+1123,6,Matrix,"Rotate matrix by 90 degrees","",Medium,1043
+1124,6,Matrix,"Kth smallest element in a row-column wise sorted matrix","",Medium,1044
+1125,6,Matrix,"Common elements in all rows of a given matrix","",Medium,1045
+1126,6,String,"Reverse a String","",Easy,1046
+1127,6,String,"Check whether a String is Palindrome or not","",Easy,1047
+1128,6,String,"Find duplicate characters in a string","",Easy,1048
+1129,6,String,"Why Strings are immutable in Java?","",Easy,1049
+1130,6,String,"Write a Code to check whether one string is a rotation of another","",Easy,1050
+1131,6,String,"Check if a string is a valid shuffle of 2 strings","",Medium,1051
+1132,6,String,"Count and Say problem","",Medium,1052
+1133,6,String,"Find the longest palindromic substring","",Hard,1053
+1134,6,String,"Find Longest Recurring Subsequence in String","",Medium,1054
+1135,6,String,"Print all Subsequences of a string","",Medium,1055
+1136,6,String,"Print all the permutations of the given string","",Medium,1056
+1137,6,String,"Split the binary string into two substring with equal 0s and 1s","",Easy,1057
+1138,6,String,"Word Wrap Problem","",Hard,1058
+1139,6,String,"EDIT Distance","",Hard,1059
+1140,6,String,"Find next greater number with same set of digits","",Medium,1060
+1141,6,String,"Balanced Parenthesis problem","",Medium,1061
+1142,6,String,"Word Break Problem","",Hard,1062
+1143,6,String,"Rabin-Karp Algorithm for Pattern Searching","",Medium,1063
+1144,6,String,"KMP Algorithm for Pattern Searching","",Hard,1064
+1145,6,String,"Convert a sentence into its equivalent mobile numeric keypad sequence","",Easy,1065
+1146,6,String,"Minimum number of bracket reversals needed to make an expression balanced","",Medium,1066
+1147,6,String,"Count All Palindromic Subsequence in a given String","",Hard,1067
+1148,6,String,"Count of number of given string in 2D character array","",Medium,1068
+1149,6,String,"Search a Word in a 2D Grid of characters","",Medium,1069
+1150,6,String,"Boyer Moore Algorithm for Pattern Searching","",Hard,1070
+1151,6,String,"Converting Roman Numerals to Decimal","",Easy,1071
+1152,6,String,"Longest Common Prefix","",Easy,1072
+1153,6,String,"Number of flips to make binary string alternate","",Easy,1073
+1154,6,String,"Find the first repeated word in a string","",Easy,1074
+1155,6,String,"Minimum number of swaps for bracket balancing","",Medium,1075
+1156,6,String,"Find the longest common subsequence between two strings","",Hard,1076
+1157,6,String,"Program to generate all possible valid IP addresses from given string","",Medium,1077
+1158,6,String,"Smallest window in a string containing all characters of another string","",Hard,1078
+1159,6,String,"Recursively remove all adjacent duplicates","",Medium,1079
+1160,6,String,"String matching where one string contains wildcard characters","",Hard,1080
+1161,6,String,"Function to find Number of customers who could not get a computer","",Medium,1081
+1162,6,String,"Transform One String to Another using Minimum Number of Given Operation","",Medium,1082
+1163,6,String,"Check if two given strings are isomorphic to each other","",Easy,1083
+1164,6,String,"Recursively print all sentences that can be formed from list of word lists","",Medium,1084
+1165,6,String,"Find the smallest window that contains all characters of string itself","",Medium,1085
+1166,6,String,"Rearrange characters in a string such that no two adjacent are same","",Medium,1086
+1167,6,String,"Minimum characters to be added at front to make string palindrome","",Medium,1087
+1168,6,String,"Given a sequence of words, print all anagrams together","",Medium,1088
+1169,6,Searching & Sorting,"Find first and last positions of an element in a sorted array","",Medium,1089
+1170,6,Searching & Sorting,"Find a Fixed Point (Value equal to index) in a given array","",Easy,1090
+1171,6,Searching & Sorting,"Search in a rotated sorted array","",Medium,1091
+1172,6,Searching & Sorting,"Square root of an integer","",Easy,1092
+1173,6,Searching & Sorting,"Maximum and minimum of an array using minimum number of comparisons","",Easy,1093
+1174,6,Searching & Sorting,"Optimum location of point to minimize total distance","",Hard,1094
+1175,6,Searching & Sorting,"Find the repeating and the missing","",Medium,1095
+1176,6,Searching & Sorting,"Find majority element","",Easy,1096
+1177,6,Searching & Sorting,"Searching in an array where adjacent differ by at most k","",Medium,1097
+1178,6,Searching & Sorting,"Find a pair with a given difference","",Easy,1098
+1179,6,Searching & Sorting,"Find four elements that sum to a given value","",Medium,1099
+1180,6,Searching & Sorting,"Maximum sum such that no 2 elements are adjacent","",Medium,1100
+1181,6,Searching & Sorting,"Count triplet with sum smaller than a given value","",Medium,1101
+1182,6,Searching & Sorting,"Merge 2 sorted arrays","",Easy,1102
+1183,6,Searching & Sorting,"print all subarrays with 0 sum","",Medium,1103
+1184,6,Searching & Sorting,"Product array Puzzle","",Medium,1104
+1185,6,Searching & Sorting,"Sort array according to count of set bits","",Easy,1105
+1186,6,Searching & Sorting,"Minimum number of swaps required to sort the array","",Medium,1106
+1187,6,Searching & Sorting,"Bishu and Soldiers","",Easy,1107
+1188,6,Searching & Sorting,"Rasta and Kheshtak (CodeChef)","",Medium,1108
+1189,6,Searching & Sorting,"Kth smallest number again (HackerEarth)","",Medium,1109
+1190,6,Searching & Sorting,"Find pivot element in a sorted and rotated array","",Medium,1110
+1191,6,Searching & Sorting,"K-th element of two sorted Arrays","",Hard,1111
+1192,6,Searching & Sorting,"Aggressive cows (SPOJ)","",Hard,1112
+1193,6,Searching & Sorting,"Book Allocation Problem","",Hard,1113
+1194,6,Searching & Sorting,"EKOSPOJ (SPOJ)","",Medium,1114
+1195,6,Searching & Sorting,"Job Scheduling Algo","",Medium,1115
+1196,6,Searching & Sorting,"Missing Number in AP","",Easy,1116
+1197,6,Searching & Sorting,"Smallest number with at least n trailing zeroes in factorial","",Medium,1117
+1198,6,Searching & Sorting,"Painters Partition Problem","",Hard,1118
+1199,6,Searching & Sorting,"ROTI-PRATA (SPOJ)","",Medium,1119
+1200,6,Searching & Sorting,"DoubleHelix (SPOJ)","",Medium,1120
+1201,6,Searching & Sorting,"Subset Sums (SPOJ)","",Medium,1121
+1202,6,Searching & Sorting,"Find the inversion count","",Medium,1122
+1203,6,Searching & Sorting,"Implement Merge-sort in-place","",Hard,1123
+1204,6,Searching & Sorting,"Partitioning and Sorting Arrays with Many Repeated Entries","",Medium,1124
+1205,6,LinkedList,"Write a Program to reverse the Linked List","",Easy,1125
+1206,6,LinkedList,"Reverse a Linked List in group of Given Size","",Medium,1126
+1207,6,LinkedList,"Detect Loop in linked list","",Easy,1127
+1208,6,LinkedList,"Remove Loop in Linked List","",Medium,1128
+1209,6,LinkedList,"Find the starting point of the loop","",Medium,1129
+1210,6,LinkedList,"Remove Duplicates in a sorted Linked List","",Easy,1130
+1211,6,LinkedList,"Remove Duplicates in an unsorted Linked List","",Easy,1131
+1212,6,LinkedList,"Move the last element to Front in a Linked List","",Easy,1132
+1213,6,LinkedList,"Add ""1"" to a number represented as a Linked List","",Medium,1133
+1214,6,LinkedList,"Add two numbers represented by linked lists","",Medium,1134
+1215,6,LinkedList,"Intersection of two Sorted Linked List","",Easy,1135
+1216,6,LinkedList,"Intersection Point of two Linked Lists","",Medium,1136
+1217,6,LinkedList,"Merge Sort for Linked List","",Medium,1137
+1218,6,LinkedList,"Quicksort for Linked List","",Medium,1138
+1219,6,LinkedList,"Check if Linked List is Palindrome","",Medium,1139
+1220,6,LinkedList,"Deletion from a Circular Linked List","",Easy,1140
+1221,6,LinkedList,"Reverse a Doubly Linked List","",Easy,1141
+1222,6,LinkedList,"Find pairs with given sum in doubly linked list","",Easy,1142
+1223,6,LinkedList,"Sort a ""k"" sorted Doubly Linked List","",Medium,1143
+1224,6,LinkedList,"Rotate Doubly linked list by N nodes","",Easy,1144
+1225,6,LinkedList,"Sort a biotonic doubly linked list","",Medium,1145
+1226,6,LinkedList,"Flatten a Linked List","",Hard,1146
+1227,6,LinkedList,"Merge K sorted Linked Lists","",Hard,1147
+1228,6,LinkedList,"Multiply two numbers represented by linked lists","",Medium,1148
+1229,6,LinkedList,"Delete nodes which have a greater value on right side","",Medium,1149
+1230,6,LinkedList,"Segregate even and odd nodes in a Link List","",Easy,1150
+1231,6,LinkedList,"Nth node from the end of linked list","",Easy,1151
+1232,6,LinkedList,"Find the first non-repeating character in a stream of characters","",Medium,1152
+1233,6,LinkedList,"Clone a linked list with next and random pointer","",Hard,1153
+1234,6,Binary Trees,"Level order traversal","",Easy,1154
+1235,6,Binary Trees,"Reverse Level Order traversal","",Easy,1155
+1236,6,Binary Trees,"Height of a tree","",Easy,1156
+1237,6,Binary Trees,"Diameter of a tree","",Medium,1157
+1238,6,Binary Trees,"Mirror of a tree","",Easy,1158
+1239,6,Binary Trees,"Inorder Traversal (Iterative and Recursive)","",Easy,1159
+1240,6,Binary Trees,"Preorder Traversal (Iterative and Recursive)","",Easy,1160
+1241,6,Binary Trees,"Postorder Traversal (Iterative and Recursive)","",Easy,1161
+1242,6,Binary Trees,"Left View of a tree","",Easy,1162
+1243,6,Binary Trees,"Right View of a tree","",Easy,1163
+1244,6,Binary Trees,"Top View of a tree","",Medium,1164
+1245,6,Binary Trees,"Bottom View of a tree","",Medium,1165
+1246,6,Binary Trees,"Zig-Zag traversal of a tree","",Medium,1166
+1247,6,Binary Trees,"Check if a tree is balanced or not","",Medium,1167
+1248,6,Binary Trees,"Diagnol Traversal of a tree","",Medium,1168
+1249,6,Binary Trees,"Boundary traversal of a tree","",Medium,1169
+1250,6,Binary Trees,"Construct Binary Tree from String with bracket representation","",Medium,1170
+1251,6,Binary Trees,"Convert Binary tree into Doubly Linked List","",Hard,1171
+1252,6,Binary Trees,"Convert Binary tree into Sum tree","",Medium,1172
+1253,6,Binary Trees,"Construct Binary Tree from inorder and preorder","",Medium,1173
+1254,6,Binary Trees,"Minimum time to burn a tree from a leaf node","",Hard,1174
+1255,6,Binary Trees,"Nodes at given distance K from a given node","",Hard,1175
+1256,6,Binary Trees,"Find all duplicate subtrees in a Binary tree","",Medium,1176
+1257,6,Binary Trees,"Check if a tree is a subtree of another tree","",Medium,1177
+1258,6,Binary Trees,"Check if a tree is isomorphic","",Medium,1178
+1259,6,Binary Trees,"Find Lowest Common Ancestor (LCA) in a Binary Tree","",Medium,1179
+1260,6,Binary Trees,"Maximum Sum of nodes in Binary Tree such that no two are adjacent","",Hard,1180
+1261,6,Binary Trees,"Find distance between two nodes in a Binary Tree","",Medium,1181
+1262,6,Binary Trees,"K-th Ancestor of a node in Binary Tree","",Medium,1182
+1263,6,Binary Trees,"Find maximum path sum between two leaves of a binary tree","",Hard,1183
+1264,6,Binary Trees,"Sum of nodes on the longest path from root to leaf node","",Medium,1184
+1265,6,Binary Trees,"Check if a given graph is a tree or not","",Medium,1185
+1266,6,Binary Trees,"Find largest subtree sum in a tree","",Medium,1186
+1267,6,Binary Trees,"Maximum sum of Non-adjacent nodes","",Hard,1187
+1268,6,Binary Trees,"Print all k-sum paths in a binary tree","",Medium,1188
+1269,6,Binary Trees,"Check if all leaf nodes are at same level","",Easy,1189
+1270,6,Binary Trees,"Check if a Binary Tree contains duplicate subtrees of size 2 or more","",Medium,1190
+1271,6,Binary Trees,"Check if two trees are mirror of each other","",Easy,1191
+1272,6,Binary Trees,"Check if a string is a valid preorder traversal of a BST","",Medium,1192
+1273,6,Binary Trees,"Check if a Binary Tree is a full tree","",Easy,1193
+1274,6,Binary Trees,"Check if a Binary Tree is a complete tree","",Medium,1194
+1275,6,Binary Trees,"Leaf at same level","",Easy,1195
+1276,6,Binary Search Trees,"Find a value in a BST","",Easy,1196
+1277,6,Binary Search Trees,"Deletion of a node in a BST","",Medium,1197
+1278,6,Binary Search Trees,"Find min and max value in a BST","",Easy,1198
+1279,6,Binary Search Trees,"Find inorder successor and predecessor in a BST","",Medium,1199
+1280,6,Binary Search Trees,"Check if a tree is a BST or not","",Medium,1200
+1281,6,Binary Search Trees,"Populate Inorder Successor for all nodes","",Medium,1201
+1282,6,Binary Search Trees,"Find Lowest Common Ancestor (LCA) in a BST","",Easy,1202
+1283,6,Binary Search Trees,"Construct BST from preorder traversal","",Medium,1203
+1284,6,Binary Search Trees,"Convert Binary Tree to BST","",Medium,1204
+1285,6,Binary Search Trees,"Convert a normal BST to Balanced BST","",Medium,1205
+1286,6,Binary Search Trees,"Merge two BSTs","",Medium,1206
+1287,6,Binary Search Trees,"Find K-th smallest element in BST","",Medium,1207
+1288,6,Binary Search Trees,"Find K-th largest element in BST","",Medium,1208
+1289,6,Binary Search Trees,"Find a pair with given sum in a Balanced BST","",Easy,1209
+1290,6,Binary Search Trees,"Find median of BST in O(n) time and O(1) space","",Hard,1210
+1291,6,Binary Search Trees,"Count BST nodes that lie in a given range","",Easy,1211
+1292,6,Binary Search Trees,"Replace every element with the least greater element on its right","",Medium,1212
+1293,6,Binary Search Trees,"Check if preorder traversal of a BST is valid","",Medium,1213
+1294,6,Binary Search Trees,"Check if a BST contains a dead end","",Medium,1214
+1295,6,Binary Search Trees,"Largest BST in a Binary Tree","",Hard,1215
+1296,6,Binary Search Trees,"Flatten BST to sorted list","",Easy,1216
+1297,6,Greedy,"Activity Selection Problem","",Medium,1217
+1298,6,Greedy,"Job Sequencing Problem","",Medium,1218
+1299,6,Greedy,"Huffman Coding","",Medium,1219
+1300,6,Greedy,"Water Connection Problem","",Medium,1220
+1301,6,Greedy,"Fractional Knapsack Problem","",Medium,1221
+1302,6,Greedy,"Greedy algorithm to find minimum number of coins","",Easy,1222
+1303,6,Greedy,"Maximum trains for which stoppage can be provided","",Medium,1223
+1304,6,Greedy,"Minimum Platforms Problem","",Medium,1224
+1305,6,Greedy,"Buy Maximum Stocks if i stocks can be bought on i-th day","",Medium,1225
+1306,6,Greedy,"Find the minimum cost to ""cut a board into squares""","",Hard,1226
+1307,6,Greedy,"Check if it is possible to survive on Island","",Medium,1227
+1308,6,Greedy,"Find maximum meetings in one room","",Easy,1228
+1309,6,Greedy,"Maximum product subset of an array","",Easy,1229
+1310,6,Greedy,"Maximize array sum after K negations","",Easy,1230
+1311,6,Greedy,"Maximize sum of arr[i]*i","",Medium,1231
+1312,6,Greedy,"Maximum sum of absolute difference of any permutation","",Medium,1232
+1313,6,Greedy,"Minimum sum of absolute difference of pairs of two arrays","",Easy,1233
+1314,6,Greedy,"Swap and Maximize (Maximize sum of absolute difference)","",Medium,1314
+1315,6,Greedy,"Minimum Cost of ropes","",Medium,1315
+1316,6,Greedy,"Find smallest number with given number of digits and sum","",Medium,1316
+1317,6,Greedy,"Rearrange characters in a string such that no two adjacent are same","",Medium,1317
+1318,6,Greedy,"Find maximum sum possible equal to sum of three stacks","",Easy,1318
+1319,6,Greedy,"Smallest subset with sum greater than all other elements","",Medium,1319
+1320,6,Greedy,"DEFKIN - Defense of a Kingdom (SPOJ)","",Medium,1320
+1321,6,Greedy,"GERGOVIA - Wine trading in Gergovia (SPOJ)","",Medium,1321
+1322,6,Greedy,"Picking Up Chicks (SPOJ)","",Medium,1322
+1323,6,Greedy,"CHOCOLA - Chocolate (SPOJ)","",Hard,1323
+1324,6,Greedy,"ARRANGE - Arranging Amplifiers (SPOJ)","",Hard,1324
+1325,6,Greedy,"K-Centers Problem","",Hard,1325
+1326,6,Greedy,"Minimum Cost to connect all points (Minimum Spanning Tree)","",Hard,1326
+1327,6,Greedy,"Find maximum number of overlapping intervals","",Medium,1327
+1328,6,Greedy,"Find maximum profit by buying and selling a share at most twice","",Hard,1328
+1329,6,Backtracking,"Rat in a Maze Problem","",Medium,1329
+1330,6,Backtracking,"N-Queen Problem","",Hard,1330
+1331,6,Backtracking,"Word Break Problem (Backtracking approach)","",Medium,1331
+1332,6,Backtracking,"Remove Invalid Parentheses","",Hard,1332
+1333,6,Backtracking,"Sudoku Solver","",Hard,1333
+1334,6,Backtracking,"M-Coloring Problem","",Hard,1334
+1335,6,Backtracking,"Print all permutations of a string","",Medium,1335
+1336,6,Backtracking,"Find all possible palindromic partitions of a string","",Medium,1336
+1337,6,Backtracking,"Subset Sum Problem","",Medium,1337
+1338,6,Backtracking,"The Knight's tour problem","",Medium,1338
+1339,6,Backtracking,"Tug of War","",Hard,1339
+1340,6,Backtracking,"Find shortest safe route in a path with landmines","",Medium,1340
+1341,6,Backtracking,"Combinational Sum","",Medium,1341
+1342,6,Backtracking,"Find Largest number in K swaps","",Medium,1342
+1343,6,Backtracking,"Print all Hamiltonian Cycles","",Hard,1343
+1344,6,Backtracking,"Find all subsets of a set","",Easy,1344
+1345,6,Backtracking,"Longest Possible Route in a Matrix with Hurdles","",Medium,1345
+1346,6,Backtracking,"Print all possible paths from top left to bottom right of a matrix","",Easy,1346
+1347,6,Backtracking,"Partition of a set into K subsets with equal sum","",Hard,1347
+1348,6,Stacks & Queues,"Implement Stack using Array","",Easy,1348
+1349,6,Stacks & Queues,"Implement Queue using Array","",Easy,1349
+1350,6,Stacks & Queues,"Implement Stack using Queues","",Medium,1350
+1351,6,Stacks & Queues,"Implement Queue using Stacks","",Medium,1351
+1352,6,Stacks & Queues,"Implement 2 Stacks in an Array","",Medium,1352
+1353,6,Stacks & Queues,"Find middle element of a stack","",Medium,1353
+1354,6,Stacks & Queues,"Implement N Stacks in an Array","",Hard,1354
+1355,6,Stacks & Queues,"Check for balanced parentheses","",Easy,1355
+1356,6,Stacks & Queues,"Reverse a string using Stack","",Easy,1356
+1357,6,Stacks & Queues,"Reverse a Stack using Recursion","",Medium,1357
+1358,6,Stacks & Queues,"Sort a Stack using Recursion","",Medium,1358
+1359,6,Stacks & Queues,"Redundant Brackets","",Medium,1359
+1360,6,Stacks & Queues,"The Celebrity Problem","",Medium,1360
+1361,6,Stacks & Queues,"Next Greater Element","",Medium,1361
+1362,6,Stacks & Queues,"Next Smaller Element","",Medium,1Example of finding min value
+1363,6,Stacks & Queues,"Largest rectangular Area in a Histogram","",Hard,1363
+1364,6,Stacks & Queues,"Length of the Longest Valid Substring","",Hard,1364
+1365,6,Stacks & Queues,"Expression contains redundant bracket or not","",Medium,1365
+1366,6,Stacks & Queues,"Implement a Min Stack","",Medium,1366
+1367,6,Stacks & Queues,"Find maximum of minimum for every window size","",Hard,1367
+1368,6,Stacks & Queues,"Maximum rectangular area in a binary matrix","",Hard,1368
+1369,6,Stacks & Queues,"LRU Cache Implementation","",Hard,1369
+1370,6,Stacks & Queues,"Reverse a Queue using recursion","",Medium,1370
+1371,6,Stacks & Queues,"Reverse the first K elements of a Queue","",Medium,1371
+1372,6,Stacks & Queues,"Interleave the first half of the queue with second half","",Medium,1372
+1373,6,Stacks & Queues,"Find the first circular tour that visits all petrol pumps","",Medium,1373
+1374,6,Stacks & Queues,"Minimum time required to rot all oranges","",Medium,1374
+1375,6,Stacks & Queues,"Distance of nearest cell having 1 in a binary matrix","",Medium,1Type
+1376,6,Stacks & Queues,"First negative integer in every window of size k","",Easy,1376
+1377,6,Stacks & Queues,"Sum of minimum and maximum elements of all subarrays of size k","",Hard,1377
+1378,6,Stacks & Queues,"Check if all levels of two trees are anagrams or not","",Medium,1378
+1379,6,Stacks & Queues,"Queue based approach for first non-repeating character in a stream","",Medium,1379
+1380,6,Stacks & Queues,"Next Greater Element in a Circular Array","",Medium,1380
+1381,6,Heap,"Implement a Max Heap from scratch","",Medium,1381
+1382,6,Heap,"Heap Sort","",Medium,1382
+1383,6,Heap,"Find Kth Smallest Element in an array","",Medium,1383
+1384,6,Heap,"Find Kth Largest Element in an array","",Medium,1384
+1385,6,Heap,"""K"" largest elements in an array","",Medium,1385
+1386,6,Heap,"K-th Largest Sum Contiguous Subarray","",Hard,1386
+1387,6,Heap,"Merge K sorted arrays","",Hard,1387
+1388,6,Heap,"Merge K sorted linked lists","",Hard,1388
+1389,6,Heap,"Minimum Cost of ropes","",Medium,1389
+1390,6,Heap,"Find Median in a stream","",Hard,1390
+1391,6,Heap,"Check if a Binary Tree is a Heap","",Medium,1391
+1392,6,Heap,"Merge two binary Max heaps","",Medium,1392
+1393,6,Heap,"K-th smallest element in a row-column wise sorted matrix","",Medium,1393
+1394,6,Heap,"Convert min heap to max heap","",Easy,1394
+1395,6,Heap,"Rearrange characters in a string such that no two adjacent are same","",Medium,1395
+1396,6,Heap,"Minimum sum of squares of character counts after removing K characters","",Medium,1396
+1397,6,Graph,"Implement BFS graph traversal","",Easy,1397
+1398,6,Graph,"Implement DFS graph traversal","",Easy,1398
+1399,6,Graph,"Detect cycle in an undirected graph","",Medium,1399
+1400,6,Graph,"Detect cycle in a directed graph","",Medium,1400
+1401,6,Graph,"Find a topological sort","",Medium,1401
+1402,6,Graph,"Check if a graph is bipartite or not","",Medium,1402
+1403,6,Graph,"Find the number of islands","",Medium,1403
+1404,6,Graph,"Snake and Ladder problem","",Medium,1404
+1405,6,Graph,"Dijkstra's Algorithm (Shortest path)","",Hard,1405
+1406,6,Graph,"Bellman-Ford Algorithm (Shortest path with negative edges)","",Hard,1406
+1407,6,Graph,"Floyd Warshall Algorithm (All pairs shortest path)","",Hard,1407
+1408,6,Graph,"Prim's Algorithm (Minimum Spanning Tree)","",Hard,1408
+1409,6,Graph,"Kruskal's Algorithm (Minimum Spanning Tree)","",Hard,1409
+1410,6,Graph,"Strongly Connected Components (Kosaraju's Algo)","",Hard,1410
+1411,6,Graph,"Find bridge in a graph","",Hard,1411
+1412,6,Graph,"Find articulation points in a graph","",Hard,1412
+1413,6,Graph,"M-Coloring Problem","",Hard,1413
+1414,6,Graph,"Clone a graph","",Medium,1414
+1415,6,Graph,"Word Ladder","",Hard,1415
+1416,6,Graph,"Rat in a Maze","",Medium,1416
+1417,6,Graph,"Find shortest path in a weighted DAG","",Medium,1417
+1418,6,Graph,"Find if there is a path of more than k length from a source","",Medium,1418
+1419,6,Graph,"Longest path in a Directed Acyclic Graph (DAG)","",Medium,1419
+1420,6,Graph,"Journey to the Moon (HackerRank)","",Medium,1420
+1421,6,Graph,"Cheapest Flights Within K Stops","",Hard,1421
+1422,6,Graph,"Alien Dictionary","",Hard,1422
+1423,6,Graph,"Water Jug problem","",Medium,1423
+1424,6,Graph,"Find the number of provinces (connected components)","",Medium,1424
+1425,6,Graph,"Eulerian Path and Circuit","",Hard,1425
+1426,6,Graph,"Number of Triangles in Directed and Undirected Graphs","",Hard,1426
+1427,6,Graph,"Two Clique Problem","",Hard,1427
+1428,6,Graph,"Minimize Cash Flow","",Hard,1428
+1429,6,Graph,"Vertex Cover Problem","",Hard,1429
+1430,6,Graph,"Travelling Salesman Problem","",Hard,1430
+1431,6,Graph,"Graph Coloring","",Hard,1431
+1432,6,Graph,"Minimum edges to reverse to make path","",Hard,1432
+1433,6,Graph,"Find shortest safe route in a path with landmines","",Medium,1433
+1434,6,Graph,"Word Boggle","",Medium,1434
+1435,6,Graph,"Maximum Bipartite Matching","",Hard,1435
+1436,6,Graph,"Implement D-Set (Disjoint Set Union)","",Medium,1436
+1437,6,Trie,"Construct a trie from scratch","",Easy,1437
+1438,6,Trie,"Find shortest unique prefix for every word","",Medium,1438
+1439,6,Trie,"Word Break Problem (Trie approach)","",Hard,1439
+1440,6,Trie,"Print all anagrams together","",Medium,1440
+1441,6,Trie,"Implement a Phone Directory","",Hard,1441
+1442,6,Trie,"Unique rows in boolean matrix","",Medium,1442
+1443,6,Dynamic Programming,"Coin Change Problem","",Medium,1443
+1444,6,Dynamic Programming,"0-1 Knapsack Problem","",Medium,1444
+1445,6,Dynamic Programming,"Binomial Coefficient Problem","",Medium,1445
+1446,6,Dynamic Programming,"Subset Sum Problem","",Medium,1446
+1447,6,Dynamic Programming,"Equal Sum Partition Problem","",Medium,1447
+1448,6,Dynamic Programming,"Friends Pairing Problem","",Medium,1448
+1449,6,Dynamic Programming,"Gold Mine Problem","",Medium,1449
+1450,6,Dynamic Programming,"Assembly Line Scheduling","",Medium,1450
+1451,6,Dynamic Programming,"Painting the Fence problem","",Medium,1451
+1452,6,Dynamic Programming,"Maximize The Cut Segments","",Medium,1452
+1453,6,Dynamic Programming,"Longest Common Subsequence (LCS)","",Hard,1453
+1454,6,Dynamic Programming,"Longest Increasing Subsequence (LIS)","",Hard,1454
+1455,6,Dynamic Programming,"Longest Common Substring","",Medium,1455
+1456,6,Dynamic Programming,"Edit Distance","",Hard,1456
+1457,6,Dynamic Programming,"Longest Palindromic Subsequence","",Medium,1457
+1458,6,Dynamic Programming,"Longest Repeating Subsequence","",Medium,1458
+1459,6,Dynamic Programming,"Longest Bitonic Subsequence","",Medium,1459
+1460,6,Dynamic Programming,"Matrix Chain Multiplication","",Hard,1460
+1461,6,Dynamic Programming,"Maximum sum increasing subsequence","",Medium,1461
+1462,6,Dynamic Programming,"Maximum sum rectangle in a 2D matrix","",Hard,1462
+1463,6,Dynamic Programming,"Egg Dropping Puzzle","",Hard,1463
+1464,6,Dynamic Programming,"Word Break Problem","",Hard,1464
+1465,6,Dynamic Programming,"Partition problem","",Medium,1465
+1466,6,Dynamic Programming,"Rod Cutting Problem","",Medium,1Main
+1467,6,Dynamic Programming,"Count all palindromic subsequences","",Hard,1467
+1468,6,Dynamic Programming,"Minimum number of jumps to reach end","",Medium,1468
+1469,6,Dynamic Programming,"Minimum cost to fill given weight in a bag","",Medium,1469
+1470,6,Dynamic Programming,"Minimum removals from array to make max-min <= K","",Medium,1470
+1471,6,Dynamic Programming,"Minimum insertions to form a palindrome","",Medium,1471
+1472,6,Dynamic Programming,"Optimal Strategy for a Game","",Hard,1472
+1473,6,Dynamic Programming,"Boolean Parenthesization","",Hard,1473
+1474,6,Dynamic Programming,"Interleaved Strings","",Medium,1474
+1475,6,Dynamic Programming,"Mobile Numeric Keypad Problem","",Medium,1475
+1476,6,Dynamic Programming,"Largest independent set problem","",Hard,1476
+1477,6,Dynamic Programming,"Largest square formed in a matrix","",Medium,1477
+1478,6,Dynamic Programming,"Maximum path sum in matrix","",Medium,1478
+1479,6,Dynamic Programming,"Maximum difference of 0s and 1s in a binary string","",Medium,1479
+1480,6,Dynamic Programming,"Maximum profit by buying and selling a share at most twice","",Hard,1Example of finding min value
+1481,6,Dynamic Programming,"Maximum profit by buying and selling a share at most k times","",Hard,1481
+1482,6,Dynamic Programming,"Minimum cost to cut a stick","",Hard,1482
+1483,6,Dynamic Programming,"Weighted Job Scheduling","",Hard,1483
+1484,6,Dynamic Programming,"Smallest sum contiguous subarray","",Easy,1484
+1485,6,Dynamic Programming,"Unbounded Knapsack","",Medium,1485
+1486,6,Dynamic Programming,"Count number of ways to reach a given score in a game","",Medium,1486
+1487,6,Dynamic Programming,"Count number of ways to tile a 2 x n board","",Medium,1487
+1488,6,Dynamic Programming,"Count number of binary strings without consecutive 1s","",Medium,1Which sheet to solve?
+1489,6,Dynamic Programming,"Program for n-th Catalan Number","",Hard,1489
+1490,6,Dynamic Programming,"Shortest Common Supersequence","",Medium,1490
+1491,6,Dynamic Programming,"Wildcard Pattern Matching","",Hard,1This content isn't available.
+1492,6,Dynamic Programming,"Space Optimized Solution of LCS","",Medium,1492
+1493,6,Dynamic Programming,"Longest subsequence such that difference between adjacents is one","",Medium,1493
+1494,6,Dynamic Programming,"Find length of longest subsequence of a string which is substring of another","",Hard,1494
+1495,6,Dynamic Programming,"Maximum length of pair chain","",Medium,1495
+1496,6,Dynamic Programming,"Minimum number of deletions to make a string palindrome","",Medium,1496
+1497,6,Dynamic Programming,"Minimum number of insertions to make a string palindrome","",Medium,1497
+1498,6,Dynamic Programming,"Find if a string is interleaved of two other strings","",Medium,1498
+1499,6,Dynamic Programming,"Maximum sum of 3 non-overlapping subarrays of given size","",Hard,1499
+1500,6,Dynamic Programming,"Count subsequences of type a^i b^j c^k","",Medium,1500
+1501,6,Dynamic Programming,"Maximum subsequence sum such that no three are consecutive","",Medium,1501
+1502,6,Bit Manipulation,"Find position of the only set bit","",Easy,1502
+1503,6,Bit Manipulation,"Count total set bits in all numbers from 1 to n","",Medium,1503
+1504,6,Bit Manipulation,"Program to find whether a no is power of two","",Easy,1This content isn't available.
+1505,6,Bit Manipulation,"Find the two non-repeating elements in an array","",Medium,1505
+1506,6,Bit Manipulation,"Find the element that appears once","",Easy,1506
+1507,6,Bit Manipulation,"Copy set bits in a range","",Easy,1507
+1508,6,Bit Manipulation,"Swap all odd and even bits","",Easy,1508
+1509,6,Bit Manipulation,"Divide two integers without using multiplication, division and mod","",Medium,1509
+1510,6,Bit Manipulation,"Calculate square of a number without using *, / and pow()","",Easy,1510
+1511,6,Bit Manipulation,"Power Set","",Medium,1511
+1512,6,Dynamic Programming,"Find length of largest rectangular sub-matrix of 1's","",Medium,1512
+1513,6,Dynamic Programming,"Maximum size rectangle","",Hard,1513
+1514,6,Dynamic Programming,"Maximum sum of 3 non-overlapping subarrays","",Hard,1514
+1515,6,Dynamic Programming,"Count derivations to make a string palindromic","",Medium,1515
+1516,6,Dynamic Programming,"Smallest value of n such that n/2 + n/3 + n/4 = x","",Hard,1516
+1517,6,Dynamic Programming,"Longest Common Increasing Subsequence","",Hard,1517
+1518,6,Dynamic Programming,"Shortest Common Supersequence length","",Medium,1518
+1519,6,Dynamic Programming,"Find maximum sum of a path in a matrix","",Medium,1519
+1520,6,Dynamic Programming,"Count subsequences of type a^i b^j c^k","",Medium,1520
+1521,6,Dynamic Programming,"Longest alternating subsequence","",Medium,1521
+1522,6,Dynamic Programming,"Count of strings with consecutive 1's","",Medium,1522
+1523,6,Dynamic Programming,"Maximum sum of pairs with specific difference","",Medium,1SDE vs. SWE
+1524,6,Dynamic Programming,"Maximum size subarray sum equal to k","",Medium,1524
+1525,6,Dynamic Programming,"N-th Fibonacci Number","",Easy,1525
+1526,6,Dynamic Programming,"Climbing Stairs","",Easy,1526
+1527,6,Dynamic Programming,"Count ways to reach the n-th stair","",Easy,1527
+1528,6,Dynamic Programming,"House Robber","",Medium,1528

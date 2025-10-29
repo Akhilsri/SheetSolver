@@ -301,7 +301,7 @@ const DirectMessageScreen = () => {
     }
 
     return (
-        <ImageBackground source={require('../assets/images/chat_bg.png')} style={styles.container}>
+        <ImageBackground source={{ uri: 'https://res.cloudinary.com/dnrg0ji04/image/upload/v1761507397/chat_bg_uu5ulk.png' }} style={styles.container}>
             <SafeAreaView style={{ flex: 1 }}>
                 <KeyboardAvoidingView
                     style={{ flex: 1 }}

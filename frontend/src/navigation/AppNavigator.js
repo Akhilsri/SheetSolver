@@ -26,6 +26,8 @@ import JourneyDashboardScreen from '../screens/JourneyDashboardScreen';
 import JourneyAchievementsScreen from '../screens/JourneyAchievementsScreen'; 
 import ForgotPasswordScreen from '../screens/ForgotPasswordScreen'
 import ResetPasswordScreen from '../screens/ResetPasswordScreen'
+import FeedbackScreen from '../screens/FeedbackScreen';
+
 
 const Stack = createNativeStackNavigator();
 
@@ -109,6 +111,7 @@ const AppNavigator = () => {
             <Stack.Screen name="SheetViewer" component={DailyProgressTracker} options={({ route }) => ({ title: route.params.connectionUsername })} />
             <Stack.Screen name="JourneyDashboard" component={JourneyDashboardScreen} options={({ route }) => ({ title: `${route.params.roomName} Journey` })} />
             <Stack.Screen name="JourneyAchievements" component={JourneyAchievementsScreen} />
+            <Stack.Screen name="Feedback" component={FeedbackScreen} options={{ title: 'Send Feedback' }} />
           </Stack.Group>
         )}
       </Stack.Navigator>

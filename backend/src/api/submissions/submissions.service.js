@@ -90,7 +90,7 @@ const submissionId = submissionInsertResult.insertId;
 
         // --- 6. PREPARE & SAVE NOTIFICATIONS ---
         notificationTitle = 'Problem Solved! 🔥';
-        notificationBody = `${username} just solved "${problem.title}"! Check out their algo.`;
+        notificationBody = `${username} just solved "${problem.title}"! Check out their algo`;
         // Fetch users to notify and store in external variable
         [membersToNotify] = await connection.query('SELECT user_id FROM room_members WHERE room_id = ? AND user_id != ?', [roomId, userId]);
 

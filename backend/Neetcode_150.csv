@@ -1,0 +1,151 @@
+id,sheet_id,topic,title,url,difficulty,problem_order
+1679,7,"Arrays & Hashing","Contains Duplicate","",Easy,1599
+1680,7,"Arrays & Hashing","Valid Anagram","",Easy,1600
+1681,7,"Arrays & Hashing","Two Sum","",Easy,1601
+1682,7,"Arrays & Hashing","Group Anagrams","",Medium,1602
+1683,7,"Arrays & Hashing","Top K Frequent Elements","",Medium,1603
+1684,7,"Arrays & Hashing","Product of Array Except Self","",Medium,1604
+1685,7,"Arrays & Hashing","Valid Sudoku","",Medium,1605
+1686,7,"Arrays & Hashing","Encode and Decode Strings","",Medium,1606
+1687,7,"Arrays & Hashing","Longest Consecutive Sequence","",Medium,1607
+1688,7,"Two Pointers","Valid Palindrome","",Easy,1608
+1689,7,"Two Pointers","Two Sum II - Input Array Is Sorted","",Medium,1609
+1690,7,"Two Pointers","3Sum","",Medium,1610
+1691,7,"Two Pointers","Container With Most Water","",Medium,1611
+1692,7,"Two Pointers","Trapping Rain Water","",Hard,1612
+1693,7,"Sliding Window","Best Time to Buy and Sell Stock","",Easy,1613
+1694,7,"Sliding Window","Longest Substring Without Repeating Characters","",Medium,1614
+1695,7,"Sliding Window","Longest Repeating Character Replacement","",Medium,1615
+1696,7,"Sliding Window","Permutation in String","",Medium,1616
+1697,7,"Sliding Window","Minimum Window Substring","",Hard,1617
+1698,7,"Sliding Window","Sliding Window Maximum","",Hard,1618
+1699,7,"Stack","Valid Parentheses","",Easy,1619
+1700,7,"Stack","Min Stack","",Medium,1620
+1701,7,"Stack","Evaluate Reverse Polish Notation","",Medium,1621
+1702,7,"Stack","Generate Parentheses","",Medium,1622
+1703,7,"Stack","Daily Temperatures","",Medium,1623
+1704,7,"Stack","Car Fleet","",Medium,1624
+1705,7,"Stack","Largest Rectangle in Histogram","",Hard,1625
+1706,7,"Binary Search","Binary Search","",Easy,1626
+1707,7,"Binary Search","Search a 2D Matrix","",Medium,1627
+1708,7,"Binary Search","Koko Eating Bananas","",Medium,1628
+1709,7,"Binary Search","Search in Rotated Sorted Array","",Medium,1629
+1710,7,"Binary Search","Find Minimum in Rotated Sorted Array","",Medium,1630
+1711,7,"Binary Search","Time Based Key-Value Store","",Medium,1631
+1712,7,"Binary Search","Median of Two Sorted Arrays","",Hard,1632
+1713,7,"Linked List","Reverse Linked List","",Easy,1633
+1714,7,"Linked List","Merge Two Sorted Lists","",Easy,1634
+1715,7,"Linked List","Reorder List","",Medium,1635
+1716,7,"Linked List","Remove Nth Node From End of List","",Medium,1636
+1717,7,"Linked List","Copy List with Random Pointer","",Medium,1637
+1718,7,"Linked List","Add Two Numbers","",Medium,1638
+1719,7,"Linked List","Linked List Cycle","",Easy,1639
+1720,7,"Linked List","Find the Duplicate Number","",Medium,1640
+1721,7,"Linked List","LRU Cache","",Medium,1641
+1722,7,"Linked List","Merge k Sorted Lists","",Hard,1642
+1723,7,"Linked List","Reverse Nodes in k-Group","",Hard,1643
+1724,7,"Trees","Invert Binary Tree","",Easy,1644
+1725,7,"Trees","Maximum Depth of Binary Tree","",Easy,1645
+1726,7,"Trees","Diameter of Binary Tree","",Easy,1646
+1727,7,"Trees","Balanced Binary Tree","",Easy,1647
+1728,7,"Trees","Same Tree","",Easy,1648
+1729,7,"Trees","Subtree of Another Tree","",Easy,1649
+1730,7,"Trees","Lowest Common Ancestor of a Binary Search Tree","",Medium,1650
+1731,7,"Trees","Binary Tree Level Order Traversal","",Medium,1651
+1732,7,"Trees","Binary Tree Right Side View","",Medium,1652
+1733,7,"Trees","Count Good Nodes in Binary Tree","",Medium,1653
+1734,7,"Trees","Validate Binary Search Tree","",Medium,1654
+1735,7,"Trees","Kth Smallest Element in a BST","",Medium,1655
+1736,7,"Trees","Construct Binary Tree from Preorder and Inorder Traversal","",Medium,1656
+1737,7,"Trees","Binary Tree Maximum Path Sum","",Hard,1657
+1738,7,"Trees","Serialize and Deserialize Binary Tree","",Hard,1658
+1739,7,"Tries","Implement Trie (Prefix Tree)","",Medium,1659
+1740,7,"Tries","Design Add and Search Words Data Structure","",Medium,1660
+1741,7,"Tries","Word Search II","",Hard,1661
+1742,7,"Heap / Priority Queue","Kth Largest Element in a Stream","",Easy,1662
+1743,7,"Heap / Priority Queue","Last Stone Weight","",Easy,1663
+1744,7,"Heap / Priority Queue","K Closest Points to Origin","",Medium,1664
+1745,7,"Heap / Priority Queue","Kth Largest Element in an Array","",Medium,1665
+1746,7,"Heap / Priority Queue","Task Scheduler","",Medium,1666
+1747,7,"Heap / Priority Queue","Design Twitter","",Medium,1667
+1748,7,"Heap / Priority Queue","Find Median from Data Stream","",Hard,1668
+1749,7,"Backtracking","Subsets","",Medium,1669
+1750,7,"Backtracking","Combination Sum","",Medium,1670
+1751,7,"Backtracking","Permutations","",Medium,1671
+1752,7,"Backtracking","Subsets II","",Medium,1672
+1753,7,"Backtracking","Combination Sum II","",Medium,1673
+1754,7,"Backtracking","Word Search","",Medium,1674
+1755,7,"Backtracking","Palindrome Partitioning","",Medium,1675
+1756,7,"Backtracking","Letter Combinations of a Phone Number","",Medium,1676
+1757,7,"Backtracking","N-Queens","",Hard,1677
+1758,7,"Graphs","Number of Islands","",Medium,1678
+1759,7,"Graphs","Clone Graph","",Medium,1679
+1760,7,"Graphs","Max Area of Island","",Medium,1680
+1761,7,"Graphs","Pacific Atlantic Water Flow","",Medium,1681
+1762,7,"Graphs","Surrounded Regions","",Medium,1682
+1763,7,"Graphs","Rotting Oranges","",Medium,1683
+1764,7,"Graphs","Walls and Gates","",Medium,1684
+1765,7,"Graphs","Course Schedule","",Medium,1685
+1766,7,"Graphs","Course Schedule II","",Medium,1686
+1767,7,"Graphs","Redundant Connection","",Medium,1687
+1768,7,"Graphs","Number of Connected Components in an Undirected Graph","",Medium,1688
+1769,7,"Graphs","Graph Valid Tree","",Medium,1689
+1770,7,"Graphs","Word Ladder","",Hard,1690
+1771,7,"Advanced Graphs","Reconstruct Itinerary","",Hard,1691
+1772,7,"Advanced Graphs","Min Cost to Connect All Points","",Medium,1692
+1773,7,"Advanced Graphs","Network Delay Time","",Medium,1693
+1774,7,"Advanced Graphs","Swim in Rising Water","",Hard,1694
+1775,7,"Advanced Graphs","Alien Dictionary","",Hard,1695
+1776,7,"Advanced Graphs","Cheapest Flights Within K Stops","",Medium,1696
+1777,7,"1-D DP","Climbing Stairs","",Easy,1697
+1778,7,"1-D DP","Min Cost Climbing Stairs","",Easy,1698
+1779,7,"1-D DP","House Robber","",Medium,1699
+1780,7,"1-D DP","House Robber II","",Medium,1700
+1781,7,"1-D DP","Longest Palindromic Substring","",Medium,1701
+1782,7,"1-D DP","Palindromic Substrings","",Medium,1702
+1783,7,"1-D DP","Decode Ways","",Medium,1703
+1784,7,"1-D DP","Coin Change","",Medium,1704
+1785,7,"1-D DP","Maximum Product Subarray","",Medium,1705
+1786,7,"1-D DP","Word Break","",Medium,1706
+1787,7,"1-D DP","Longest Increasing Subsequence","",Medium,1707
+1788,7,"1-D DP","Partition Equal Subset Sum","",Medium,1708
+1789,7,"2-D DP","Unique Paths","",Medium,1709
+1790,7,"2-D DP","Longest Common Subsequence","",Medium,1710
+1791,7,"2-D DP","Best Time to Buy and Sell Stock with Cooldown","",Medium,1711
+1792,7,"2-D DP","Coin Change II","",Medium,1712
+1793,7,"2-D DP","Target Sum","",Medium,1713
+1794,7,"2-D DP","Interleaving String","",Medium,1714
+1795,7,"2-D DP","Longest Increasing Path in a Matrix","",Hard,1715
+1796,7,"2-D DP","Distinct Subsequences","",Hard,1716
+1797,7,"2-D DP","Edit Distance","",Hard,1717
+1798,7,"2-D DP","Burst Balloons","",Hard,1718
+1799,7,"2-D DP","Regular Expression Matching","",Hard,1719
+1800,7,"Greedy","Maximum Subarray","",Medium,1720
+1801,7,"Greedy","Jump Game","",Medium,1721
+1802,7,"Greedy","Jump Game II","",Medium,1722
+1803,7,"Greedy","Gas Station","",Medium,1723
+1804,7,"Greedy","Hand of Straights","",Medium,1724
+1805,7,"Greedy","Merge Triplets to Form Target Triplet","",Medium,1725
+1806,7,"Greedy","Partition Labels","",Medium,1726
+1807,7,"Greedy","Valid Parenthesis String","",Medium,1727
+1808,7,"Intervals","Insert Interval","",Medium,1728
+1809,7,"Intervals","Merge Intervals","",Medium,1729
+1810,7,"Intervals","Non-overlapping Intervals","",Medium,1730
+1811,7,"Intervals","Meeting Rooms","",Easy,1731
+1812,7,"Intervals","Meeting Rooms II","",Medium,1732
+1813,7,"Intervals","Minimum Interval to Include Each Query","",Hard,1733
+1814,7,"Math & Geometry","Rotate Image","",Medium,1734
+1815,7,"Math & Geometry","Spiral Matrix","",Medium,1735
+1816,7,"Math & Geometry","Set Matrix Zeroes","",Medium,1736
+1817,7,"Math & Geometry","Happy Number","",Easy,1737
+1818,7,"Math & Geometry","Plus One","",Easy,1738
+1819,7,"Math & Geometry","Pow(x, n)","",Medium,1739
+1820,7,"Math & Geometry","Multiply Strings","",Medium,1740
+1821,7,"Math & Geometry","Detect Squares","",Medium,1741
+1822,7,"Bit Manipulation","Single Number","",Easy,1742
+1823,7,"Bit Manipulation","Number of 1 Bits","",Easy,1743
+1824,7,"Bit Manipulation","Counting Bits","",Easy,1744
+1825,7,"Bit Manipulation","Reverse Bits","",Easy,1745
+1826,7,"Bit Manipulation","Missing Number","",Easy,1746
+1827,7,"Bit Manipulation","Sum of Two Integers","",Medium,1747
+1828,7,"Bit Manipulation","Reverse Integer","",Medium,1748

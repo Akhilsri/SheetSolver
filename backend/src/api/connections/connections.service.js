@@ -91,7 +91,8 @@ async function getPendingRequests(userId) {
   const sql = `
     SELECT 
       c.id, 
-      c.created_at AS timestamp, -- ✅ ADDED: timestamp for connection requests
+      c.created_at AS timestamp,
+      u.avatar_url AS senderAvatarUrl,
       u.username as senderName 
     FROM connections c
     JOIN users u ON c.action_user_id = u.id

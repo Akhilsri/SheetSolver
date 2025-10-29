@@ -17,12 +17,22 @@ import { useAuth } from '../context/AuthContext';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { useSocket } from '../context/SocketContext';
 
+const PRIMARY_COLOR = '#6366F1';
+
 // --- Header Component (Decoupled for Optimization) ---
 const RoomsHeaderRight = React.memo(({ navigation, unreadCount }) => {
   const count = Number(unreadCount);
 
   return (
     <View style={styles.headerActions}>
+      {/* Feedback Button */}
+            <TouchableOpacity
+                onPress={() => navigation.navigate('Feedback')} // Navigate to FeedbackScreen
+                style={styles.headerIconButton}
+                activeOpacity={0.7}
+            >
+                <Icon name="chatbox-ellipses-outline" size={24} color={PRIMARY_COLOR} />
+            </TouchableOpacity>
       <TouchableOpacity
         onPress={() => navigation.navigate('Notifications')}
         style={styles.notificationButton}
@@ -188,7 +198,7 @@ const RoomsScreen = () => {
 
   const handleShareRoom = useCallback(async (roomName, inviteCode) => {
     try {
-      const message = `Join my room "${roomName}" on SheetSolver! Use invite code: ${inviteCode}`;
+      const message = `Join my room "${roomName}" on SheetSolver! Use invite code: ${inviteCode}.\n\nDownload the app and join the room: https://sheetsolver.me`;
       
       const result = await Share.share({
         message: message,

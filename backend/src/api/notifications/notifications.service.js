@@ -1,9 +1,6 @@
 const pool = require('../../config/db');
 
-async function getNotificationsForUser(userId) {
-  // ✅ ADDED: n.created_at AS timestamp
-  // ✅ ADDED: LEFT JOIN rooms r ON n.related_room_id = r.id
-  // ✅ ADDED: r.name AS related_room_name
+async function getNotificationsForUser(userId, limit = 20, offset = 0) {
   const sql = `
     SELECT 
       n.id, 
@@ -19,8 +16,9 @@ async function getNotificationsForUser(userId) {
     LEFT JOIN rooms r ON n.related_room_id = r.id
     WHERE n.recipient_user_id = ? 
     ORDER BY n.created_at DESC
+    LIMIT ? OFFSET ?
   `;
-  const [notifications] = await pool.query(sql, [userId]);
+  const [notifications] = await pool.query(sql, [userId,limit,offset]);
   return notifications;
 }
 

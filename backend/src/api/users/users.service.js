@@ -96,7 +96,7 @@ async function getPublicUserProfile(userId) {
   const profileSql = `
     SELECT 
       id, username, full_name, college_name,bio, avatar_url, 
-      linkedin_url, github_url, twitter_url 
+      linkedin_url, github_url, twitter_url,current_streak,rating 
     FROM users 
     WHERE id = ?
   `;

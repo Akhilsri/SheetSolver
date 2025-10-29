@@ -10,28 +10,35 @@ function generateEtag(data) {
 async function handleGetNotifications(req, res) {
     try {
         const userId = req.user.userId;
-        const ifNoneMatch = req.header('If-None-Match'); // 1. Get ETag from client
-
-        // --- Fetch Data ---
-        const notifications = await notificationsService.getNotificationsForUser(userId);
-
-        // 2. Generate ETag for current data
-        const currentEtag = generateEtag(notifications);
-
-        // 3. Check for Cache Hit
-        if (ifNoneMatch === currentEtag) {
-            // Cache Hit: Data hasn't changed. Send 304 response. 
-            // This response is extremely cheap.
-            res.header('ETag', currentEtag).status(304).send(); 
-            return;
+        
+        // Extract pagination parameters
+        const limit = parseInt(req.query.limit) || 20; // Default limit of 20
+        const offset = parseInt(req.query.offset) || 0; // Default start at 0
+        
+        // Ensure values are sane
+        if (limit > 100 || limit < 1 || offset < 0) {
+            return res.status(400).json({ message: 'Invalid pagination parameters.' });
         }
 
-        // Cache Miss: Send new data and ETag
-        res.header('ETag', currentEtag)
-           .status(200)
-           .json(notifications);
+        // --- Fetch Paginated Data ---
+        // Pass the pagination parameters to the service
+        const notifications = await notificationsService.getNotificationsForUser(userId, limit, offset);
+
+        // --- ETag/Caching removal for simplicity and correctness with pagination ---
+        // The ETag logic is removed here as the response body changes with every page/offset.
+        
+        res.status(200).json({
+            data: notifications,
+            meta: {
+                limit: limit,
+                offset: offset,
+                // Add a useful flag for the client
+                hasMore: notifications.length === limit 
+            }
+        });
+        
     } catch (error) {
-        console.error('Get Notifications Error:', error);
+        console.error('Get Paginated Notifications Error:', error);
         res.status(500).json({ message: 'Internal Server Error' });
     }
 }
