@@ -7,6 +7,7 @@ import AppNavigator from './src/navigation/AppNavigator';
 import messaging from '@react-native-firebase/messaging';
 import BootSplash from 'react-native-bootsplash';
 import NotificationPermissionModal from './src/components/modals/NotificationPermissionModal';
+import { withStallion } from 'react-native-stallion';
 
 // UX Flag: Prevents the custom modal from showing again after user dismisses it once.
 const CUSTOM_DISMISSAL_KEY = 'NOTIFICATION_REMINDER_SHOWN_CUSTOM';
@@ -102,6 +103,6 @@ const App = () => {
     );
 };
 
-export default App;
+export default withStallion(App);
 
 export { LINKING_CONFIG };
