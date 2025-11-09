@@ -1,5 +1,7 @@
 # SheetSolver - Collaborative DSA Platform 🚀
 
+Download App Now 👉 : https://sheetsolver.me/
+
 <p align="center">
   <img src="https://res.cloudinary.com/dnrg0ji04/image/upload/v1758554754/WhatsApp_Image_2025-09-22_at_20.45.11_096cd3eb_waehjl.jpg" alt="SheetSolver App Screenshot" width="200"/>
   <br>
